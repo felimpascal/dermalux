@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title or "Dermalux" }}</title>
+
+    <!-- ================= GLOBAL CSS ================= -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-5.3.8-dist/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sweetalert/sweetalert2.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css">
+
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
+
+    <!-- ================= GLOBAL STYLE ================= -->
+    <style>
+        body {
+            margin: 0;
+            color: #484848;
+            background: url("{{ url_for('static', filename='images/background.jpg') }}") repeat fixed;
+        }
+        thead { background: #ddd; }
+        .table-hover > tbody > tr:hover { background-color: #ccffff; }
+
+        @media only screen and (max-width: 767px) { .hideOnPhone { display:none; } }
+        @media only screen and (min-width: 768px) { .hideOnWeb { display:none; } }
+    </style>
+
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="greedy navbar navbar-expand-sm bg-dark navbar-dark fixed-top">
+    <div class="container-fluid">
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="navbar-collapse collapse">
+            <ul class="navbar-nav me-auto">
+
+                <!-- Brand/Home -->
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" href="{{ url_for('main.index') }}">Dermalux</a>
+                </li>
+
+                <!-- MASTER -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Master</a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{{ url_for('main.patient_page') }}">Pasien</a>
+                        <a class="dropdown-item" href="{{ url_for('tariff.tariff_list_page')}}">Tarif</a>
+                        <a class="dropdown-item" href="{{ url_for('diagnosa.diagnosa_list_page') }}">Diagnosa</a>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('pendaftaran.pendaftaran_list_page') }}">Registrasi</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('diagnosa_pasien.list_pasien') }}">Treatment</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('riwayat_pasien.riwayat_pasien_page') }}">Riwayat</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user_mgmt.list_users') }}">User Management</a>
+                </li>
+
+                <!-- REPORT -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Report</a>
+
+                    <div class="dropdown-menu">
+
+                        <a class="dropdown-item" href="#">
+                            Laporan Kunjungan Pasien
+                        </a>
+
+                        <a class="dropdown-item" href="#">
+                            Laporan Pendapatan
+                        </a>
+
+                        <a class="dropdown-item" href="#">
+                            Laporan Diagnosa
+                        </a>
+
+                        <a class="dropdown-item" href="#">
+                            Laporan Diagnosa & Pendapatan
+                        </a>
+
+                    </div>
+                </li>
+
+            </ul>
+
+            <!-- ================= USER MENU (KANAN) ================= -->
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        User ({{ session.get('userCode', 'Guest') }})
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href="{{ url_for('auth.ganti_password_page') }}">Ganti Password</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Log Out</a>
+                    </div>
+                </li>
+            </ul>
+
+        </div>
+    </div>
+</nav>
+
+<!-- ================= CONTENT ================= -->
+ 
+<div class="container-fluid" style="margin-top:60px;">
+    <div class="card shadow-sm" style="background-color: rgba(255,255,255,0.9); min-height:90vh; padding: 1%;">
+    {% block content %}{% endblock %}
+    </div>
+</div>
+
+<!-- ================= DYNAMIC MODAL PLACEHOLDER ================= -->
+<div id="dynamic-modal-container"></div>
+
+<!-- ================= GLOBAL JS ================= -->
+<script src="{{ url_for('static', filename='javascript/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='sweetalert/sweetalert2.min.js') }}"></script>
+
+<!-- DataTables LIBRARY ONLY -->
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- ================= GLOBAL UTIL ================= -->
+<script>
+function safeSwal(title, icon='info') {
+    if (window.Swal) Swal.fire(title, '', icon);
+    else alert(title);
+}
+
+window.myAlert = function (msg, type) {
+    if (!msg) return;
+    if (window.Swal) Swal.fire({ icon: type || 'info', title: msg });
+    else alert(msg);
+};
+</script>
+
+<!-- ================= FLASH MESSAGE ================= -->
+{% with _messages = get_flashed_messages() %}
+{% if _messages %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const msgs = {{ _messages | tojson | safe }};
+    msgs.forEach(m => window.myAlert(m, 'info'));
+});
+</script>
+{% endif %}
+{% endwith %}
+
+<!-- ================= GLOBAL UI HOOK (MODAL LOAD SAMPLE) ================= -->
+<script>
+$(function () {
+    // pattern modal dynamic: aktifkan kalau endpoint/modal sudah ada
+});
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

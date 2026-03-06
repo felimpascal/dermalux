@@ -1,0 +1,216 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="container py-3">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+      {% if mode == 'create' %}
+        <h4 class="mb-0">Tambah User</h4>
+        <small class="text-muted">Buat user baru.</small>
+      {% else %}
+        <h4 class="mb-0">Edit User</h4>
+        <small class="text-muted">Update data user tanpa mengubah password.</small>
+      {% endif %}
+    </div>
+
+    <a href="{{ url_for('user_mgmt.list_users') }}" class="btn btn-outline-secondary">
+      Kembali
+    </a>
+  </div>
+
+
+  <div class="row g-3">
+
+    <!-- ========================= -->
+    <!-- DATA USER -->
+    <!-- ========================= -->
+    <div class="col-lg-7">
+
+      <div class="card">
+        <div class="card-header">
+          <strong>Data User</strong>
+        </div>
+
+        <div class="card-body">
+
+          <form method="post"
+                action="{% if mode == 'create' %}
+                          {{ url_for('user_mgmt.create_user') }}
+                        {% else %}
+                          {{ url_for('user_mgmt.edit_user', public_id=row.public_id) }}
+                        {% endif %}">
+
+            <!-- NAMA -->
+            <div class="mb-3">
+              <label class="form-label">Nama</label>
+              <input
+                type="text"
+                name="nama"
+                class="form-control"
+                value="{{ row.nama if row else '' }}"
+                placeholder="mis: Andi Saputra"
+                required>
+            </div>
+
+            <!-- USERNAME -->
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              <input
+                type="text"
+                name="username"
+                class="form-control"
+                value="{{ row.username if row else '' }}"
+                placeholder="mis: admin, kasir1, dokter1"
+                required>
+            </div>
+
+            <!-- ROLE -->
+            <div class="mb-3">
+              <label class="form-label">Role</label>
+
+              {% set current_role = (row.role if row else 'user') %}
+
+              <select name="role" class="form-select">
+                <option value="user"
+                  {% if current_role == 'user' %}selected{% endif %}>
+                  user
+                </option>
+
+                <option value="admin"
+                  {% if current_role == 'admin' %}selected{% endif %}>
+                  admin
+                </option>
+              </select>
+
+              <small class="text-muted">
+                Admin otomatis full access (bypass permission).
+              </small>
+            </div>
+
+            <!-- STATUS -->
+            <div class="mb-3">
+
+              <label class="form-label">Status</label>
+
+              {% set active = (row.is_active if row else 1) %}
+
+              <select name="is_active" class="form-select">
+                <option value="1"
+                  {% if active == 1 %}selected{% endif %}>
+                  Active
+                </option>
+
+                <option value="0"
+                  {% if active == 0 %}selected{% endif %}>
+                  Inactive
+                </option>
+              </select>
+
+            </div>
+
+            <!-- PASSWORD (CREATE ONLY) -->
+            {% if mode == 'create' %}
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+
+              <input
+                type="password"
+                name="password"
+                class="form-control"
+                placeholder="Minimal 6 karakter"
+                required>
+
+            </div>
+            {% endif %}
+
+            <!-- BUTTON -->
+            <div class="d-flex gap-2">
+
+              <button type="submit" class="btn btn-primary">
+                Simpan
+              </button>
+
+              {% if mode != 'create' %}
+              <a
+                href="{{ url_for('user_mgmt.manage_permissions', public_id=row.public_id) }}"
+                class="btn btn-outline-secondary">
+                Kelola Permission
+              </a>
+              {% endif %}
+
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+
+
+
+    <!-- ========================= -->
+    <!-- RESET PASSWORD -->
+    <!-- ========================= -->
+    {% if mode != 'create' %}
+    <div class="col-lg-5">
+
+      <div class="card border-warning">
+
+        <div class="card-header bg-warning-subtle">
+          <strong>Reset Password</strong>
+        </div>
+
+        <div class="card-body">
+
+          <p class="text-muted mb-3">
+            Gunakan menu ini jika user lupa password.
+            Password lama akan diganti.
+          </p>
+
+          <form method="post"
+                action="{{ url_for('user_mgmt.reset_password', public_id=row.public_id) }}">
+
+            <div class="mb-3">
+
+              <label class="form-label">Password Baru</label>
+
+              <input
+                type="password"
+                name="password"
+                class="form-control"
+                placeholder="Minimal 6 karakter"
+                required>
+
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100">
+              Reset Password
+            </button>
+
+          </form>
+
+        </div>
+      </div>
+
+      <!-- PERMISSION BUTTON -->
+      <div class="mt-3">
+
+        <a
+          class="btn btn-outline-dark w-100"
+          href="{{ url_for('user_mgmt.manage_permissions', public_id=row.public_id) }}">
+
+          Permissions
+
+        </a>
+
+      </div>
+
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}

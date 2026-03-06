@@ -1,0 +1,284 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<style>
+  .table-responsive { overflow-x: auto; overflow-y: visible; }
+  .dropdown-menu { z-index: 2000; }
+
+  .truncate-120 {
+    max-width: 240px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .truncate-200 {
+    max-width: 420px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-info .label {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 2px;
+  }
+
+  .card-info .value {
+    font-weight: 500;
+  }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="mb-0">Diagnosa Pasien</h4>
+    <small class="text-muted">Daftar diagnosa berdasarkan pendaftaran</small>
+  </div>
+  <div>
+    <a href="{{ url_for('diagnosa_pasien.list_pasien') }}"
+      class="btn btn-outline-secondary">
+      Kembali
+    </a>
+    <a class="btn btn-primary"
+      href="{{ url_for('diagnosa_pasien.create_page', pendaftaran_id=pendaftaran.pendaftaran_id) }}">
+      + Tambah Diagnosa
+    </a>
+  </div>
+</div>
+
+<div class="card mb-3 card-info" style="padding: 1%;">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-2">
+        <div class="label">ID Pendaftaran</div>
+        <div class="value">{{ pendaftaran.pendaftaran_id }}</div>
+      </div>
+
+      <div class="col-md-2">
+        <div class="label">Tanggal</div>
+        <div class="value">
+          {% if pendaftaran.tgl_pendaftaran %}
+            {{ pendaftaran.tgl_pendaftaran.strftime('%d/%m/%Y %H:%M') }}
+          {% else %}
+            -
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="col-md-2">
+        <div class="label">Kode Pasien</div>
+        <div class="value">{{ pendaftaran.patient_code or '-' }}</div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="label">Nama Pasien</div>
+        <div class="value">{{ pendaftaran.full_name or '-' }}</div>
+      </div>
+
+      <div class="col-md-1">
+        <div class="label">Umur</div>
+        <div class="value">
+          {% if pendaftaran.age_years is not none %}
+            {{ pendaftaran.age_years }}
+          {% else %}
+            -
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="col-md-2">
+        <div class="label">No HP</div>
+        <div class="value">{{ pendaftaran.phone or '-' }}</div>
+      </div>
+
+      <div class="col-md-12">
+        <div class="label">Anamnesis Umum</div>
+        <div class="value">{{ pendaftaran.anamnesis_umum or '-' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="padding: 1%;">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table id="tblDiagnosa" class="table table-striped mb-0 w-100">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 80px;">ID</th>
+            <th style="width: 120px;">Tanggal</th>
+            <th style="width: 90px;">Jam</th>
+            <th style="width: 100px;">Dokter ID</th>
+            <th style="width: 220px;">Keluhan Utama</th>
+            <th style="width: 280px;">Assessment</th>
+            <th style="width: 140px;" class="text-center">Jml Diagnosa</th>
+            <th style="width: 120px;" class="text-center">Jml Foto</th>
+            <th style="width: 150px;" class="text-center">Aksi</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% if rows %}
+            {% for r in rows %}
+              <tr>
+                <td>{{ r.diagnosa_id }}</td>
+
+                <td>
+                  {% if r.tgl_diagnosa %}
+                    {{ r.tgl_diagnosa.strftime('%d/%m/%Y') }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if r.tgl_diagnosa %}
+                    {{ r.tgl_diagnosa.strftime('%H:%M') }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+
+                <td>{{ r.dokter_nama or '-' }}</td>
+
+                <td class="truncate-120" title="{{ r.keluhan_utama or '' }}">
+                  {{ r.keluhan_utama or '-' }}
+                </td>
+
+                <td class="truncate-200" title="{{ r.assessment or '' }}">
+                  {{ r.assessment or '-' }}
+                </td>
+
+                <td class="text-center">{{ r.total_detail or 0 }}</td>
+                <td class="text-center">{{ r.total_foto or 0 }}</td>
+
+                <td class="text-center">
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            data-bs-boundary="viewport"
+                            data-bs-display="static"
+                            aria-expanded="false">
+                      Actions
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <a class="dropdown-item"
+                           href="{{ url_for('diagnosa_pasien.view_page', diagnosa_id=r.diagnosa_id) }}">
+                          Lihat
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="dropdown-item"
+                           href="{{ url_for('diagnosa_pasien.edit_page', diagnosa_id=r.diagnosa_id) }}">
+                          Edit
+                        </a>
+                      </li>
+
+                      <li><hr class="dropdown-divider"></li>
+
+                      <li>
+                        <form method="POST"
+                              class="form-delete-diagnosa"
+                              data-title="Hapus diagnosa?"
+                              data-text="Data diagnosa akan dihapus dari daftar aktif."
+                              action="{{ url_for('diagnosa_pasien.delete_submit', diagnosa_id=r.diagnosa_id) }}">
+                          <input type="hidden" name="next" value="{{ request.full_path }}">
+                          <button type="submit" class="dropdown-item text-danger">
+                            Hapus
+                          </button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+
+  <script>
+    function swalLoading(title){
+      Swal.fire({
+        title: title || 'Memproses...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading()
+      });
+    }
+
+    async function swalConfirm(opts){
+      const res = await Swal.fire({
+        icon: opts.icon || 'question',
+        title: opts.title || 'Konfirmasi',
+        text: opts.text || 'Lanjutkan proses?',
+        showCancelButton: true,
+        confirmButtonText: opts.confirmText || 'Ya',
+        cancelButtonText: opts.cancelText || 'Batal',
+        reverseButtons: true
+      });
+      return res.isConfirmed;
+    }
+
+    $(function () {
+      $('#tblDiagnosa').DataTable({
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        order: [[0, 'desc']],
+        columnDefs: [
+          { targets: [6, 7, 8], orderable: false },
+          { targets: [6, 7, 8], searchable: false },
+          { targets: [6, 7, 8], className: 'text-center' }
+        ],
+        language: {
+          search: "Cari:",
+          lengthMenu: "Tampilkan _MENU_ data",
+          info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+          infoEmpty: "Tidak ada data",
+          infoFiltered: "(filter dari _MAX_ data)",
+          zeroRecords: "Data tidak ditemukan",
+          emptyTable: "Belum ada data diagnosa.",
+          paginate: { previous: "Prev", next: "Next" }
+        }
+      });
+
+      $(document).on('submit', 'form.form-delete-diagnosa', async function(e){
+        e.preventDefault();
+
+        const $form = $(this);
+        const title = $form.data('title') || 'Hapus diagnosa?';
+        const text  = $form.data('text')  || 'Data diagnosa akan dihapus.';
+
+        const ok = await swalConfirm({
+          title,
+          text,
+          icon: 'warning',
+          confirmText: 'Ya, Hapus',
+          cancelText: 'Batal'
+        });
+        if(!ok) return;
+
+        swalLoading('Menghapus diagnosa...');
+        this.submit();
+      });
+    });
+  </script>
+{% endblock %}

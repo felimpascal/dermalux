@@ -1,0 +1,72 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">{% if mode == "edit" %}Edit Diagnosa{% else %}Tambah Diagnosa{% endif %}</h4>
+    <a class="btn btn-outline-secondary" href="{{ url_for('diagnosa.diagnosa_list_page') }}">
+      <i class="bi bi-arrow-left"></i> Kembali
+    </a>
+  </div>
+
+  <form id="frmDiagnosa" method="post" action="{{ url_for('diagnosa.diagnosa_save_post') }}" class="card" novalidate>
+    <div class="card-body">
+      {% if row %}
+        <input type="hidden" name="id" value="{{ row.id }}">
+      {% endif %}
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Kode Diagnosa</label>
+          <input class="form-control" name="diagnosa_code"
+                 value="{{ row.diagnosa_code if row else '' }}" autocomplete="off">
+        </div>
+
+        <div class="col-md-8">
+          <label class="form-label">Nama Diagnosa</label>
+          <input class="form-control" name="diagnosa_name"
+                 value="{{ row.diagnosa_name if row else '' }}" autocomplete="off">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Status</label>
+          {% set st = row.is_active if row else 1 %}
+          <select class="form-select" name="is_active">
+            <option value="1" {% if st==1 %}selected{% endif %}>Aktif</option>
+            <option value="0" {% if st==0 %}selected{% endif %}>Nonaktif</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-footer text-end">
+      <button class="btn btn-primary" type="submit">
+        <i class="bi bi-save"></i> Simpan
+      </button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(function(){
+  $('#frmDiagnosa').on('submit', function(e){
+    const f = this;
+    const code = (f.diagnosa_code.value || '').trim();
+    const name = (f.diagnosa_name.value || '').trim();
+
+    function err(msg){
+      e.preventDefault();
+      window.myAlert(msg, 'error');
+      return false;
+    }
+
+    if (!code) return err('Kode diagnosa wajib diisi.');
+    if (!name) return err('Nama diagnosa wajib diisi.');
+    return true;
+  });
+});
+</script>
+{% endblock %}

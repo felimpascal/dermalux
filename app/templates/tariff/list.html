@@ -1,0 +1,309 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Master Tarif</h4>
+    <a class="btn btn-primary" href="{{ url_for('tariff.tariff_new_page') }}">
+      <i class="bi bi-plus-circle"></i> Tambah Tarif
+    </a>
+  </div>
+
+  <form class="row g-2 mb-3" method="get" action="{{ url_for('tariff.tariff_list_page') }}">
+    <div class="col-md-4">
+      <input class="form-control" name="q" value="{{ q or '' }}" placeholder="Cari kode / nama treatment">
+    </div>
+
+    <div class="col-md-3">
+      {# dropdown kategori dari master_tariff_category (bukan dari rows) #}
+      <select class="form-select" name="category">
+        <option value="">Semua Kategori</option>
+        {% for c in (categories or []) %}
+          <option value="{{ c.category_code }}"
+                  {% if (category or '')|upper == (c.category_code or '')|upper %}selected{% endif %}>
+            {{ c.category_name }}
+          </option>
+        {% endfor %}
+      </select>
+      <div class="form-text">Filter memakai kode kategori (FAC/PEEL/HAIR/SB/DSB/INF/SLIM).</div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="d-flex flex-column gap-1 mt-1">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="1" name="active" id="active"
+                 {% if active_only %}checked{% endif %}>
+          <label class="form-check-label" for="active">Hanya yang aktif</label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="1" name="promo_today" id="promo_today"
+                 {% if promo_today %}checked{% endif %}>
+          <label class="form-check-label" for="promo_today">Promo aktif hari ini</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-2 text-end">
+      <button class="btn btn-outline-secondary w-100" type="submit">
+        <i class="bi bi-funnel"></i> Filter
+      </button>
+    </div>
+  </form>
+  <div class="card">
+    <div class="table-responsive" style="padding: 1%;">
+      <table id="tblTariff" class="table table-sm table-striped table-hover align-middle">
+        <thead>
+          <tr>
+            <th style="width: 120px;">Kode</th>
+            <th>Nama Treatment</th>
+            <th style="width: 180px;">Kategori</th>
+            <th class="text-end" style="width: 140px;">Harga</th>
+            <th style="width: 240px;">Promo</th>
+            <th style="width: 110px;">Status</th>
+            <th style="width: 120px;" class="text-end">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td class="fw-semibold">{{ r.tariff_code }}</td>
+            <td>{{ r.treatment_name }}</td>
+
+            <td>
+              {% if r.category_name %}
+                <div class="d-flex flex-column">
+                  <div>
+                    <span class="badge bg-light text-dark border">{{ r.category_name }}</span>
+                    {% if r.category_code %}
+                      <span class="badge bg-secondary">{{ r.category_code }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+
+            <td class="text-end">
+              {{ "{:,.0f}".format(r.price or 0) }}
+              {% if r.promo_is_active == 1 and r.promo_price is not none %}
+                <div class="small text-success">
+                  Promo: {{ "{:,.0f}".format(r.promo_price or 0) }}
+                </div>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if r.promo_type != 'none' %}
+                <div class="d-flex flex-wrap gap-1 align-items-center">
+                  <span class="badge bg-warning text-dark">
+                    {% if r.promo_type == 'percent' %}
+                      Diskon {{ r.promo_value }}%
+                    {% elif r.promo_type == 'amount' %}
+                      Potongan Rp {{ "{:,.0f}".format(r.promo_value or 0) }}
+                    {% else %}
+                      Promo
+                    {% endif %}
+                  </span>
+
+                  {% if r.promo_is_active == 1 %}
+                    <span class="badge bg-success">Aktif</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Tidak aktif</span>
+                  {% endif %}
+                </div>
+
+                <div class="small text-muted mt-1">
+                  {% set ps = r.promo_start %}
+                  {% set pe = r.promo_end %}
+                  {# promo_start/promo_end bisa date/datetime/str #}
+                  {% if ps and ps.strftime is defined %}{{ ps.strftime('%d/%m/%Y') }}{% elif ps %}{{ ps }}{% else %}-{% endif %}
+                  s/d
+                  {% if pe and pe.strftime is defined %}{{ pe.strftime('%d/%m/%Y') }}{% elif pe %}{{ pe }}{% else %}-{% endif %}
+                </div>
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if r.is_active == 1 %}
+                <span class="badge bg-primary">Aktif</span>
+              {% else %}
+                <span class="badge bg-danger">Nonaktif</span>
+              {% endif %}
+            </td>
+
+            <td class="text-end">
+              <div class="btn-group">
+                <a class="btn btn-sm btn-outline-primary"
+                  href="{{ url_for('tariff.tariff_edit_page', tariff_id=r.id) }}">
+                  <i class="bi bi-pencil-square"></i>
+                </a>
+
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="visually-hidden">Actions</span>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item"
+                      href="{{ url_for('tariff.tariff_edit_page', tariff_id=r.id) }}">
+                      <i class="bi bi-pencil-square me-2"></i>Edit
+                    </a>
+                  </li>
+
+                  <li><hr class="dropdown-divider"></li>
+
+                  {% if r.is_active == 1 %}
+                  <li>
+                    <form method="post"
+                          action="{{ url_for('tariff.tariff_disable_post', tariff_id=r.id) }}"
+                          class="frm-disable m-0"
+                          data-code="{{ r.tariff_code }}"
+                          data-name="{{ r.treatment_name }}">
+                      <button class="dropdown-item text-danger" type="submit">
+                        <i class="bi bi-slash-circle me-2"></i>Disable
+                      </button>
+                    </form>
+                  </li>
+                  {% else %}
+                  <li>
+                    <form method="post"
+                          action="{{ url_for('tariff.tariff_enable_post', tariff_id=r.id) }}"
+                          class="frm-enable m-0"
+                          data-code="{{ r.tariff_code }}"
+                          data-name="{{ r.treatment_name }}">
+                      <button class="dropdown-item text-success" type="submit">
+                        <i class="bi bi-check-circle me-2"></i>Enable
+                      </button>
+                    </form>
+                  </li>
+                  {% endif %}
+
+                  {% if r.promo_type != 'none' %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <form method="post"
+                            action="{{ url_for('tariff.tariff_disable_promo_post', tariff_id=r.id) }}"
+                            class="frm-disable-promo m-0"
+                            data-code="{{ r.tariff_code }}"
+                            data-name="{{ r.treatment_name }}"
+                            data-promo-type="{{ r.promo_type }}"
+                            data-promo-value="{{ r.promo_value }}"
+                            data-promo-start="{% if r.promo_start and r.promo_start.strftime is defined %}{{ r.promo_start.strftime('%d/%m/%Y') }}{% elif r.promo_start %}{{ r.promo_start }}{% else %}-{% endif %}"
+                            data-promo-end="{% if r.promo_end and r.promo_end.strftime is defined %}{{ r.promo_end.strftime('%d/%m/%Y') }}{% elif r.promo_end %}{{ r.promo_end }}{% else %}-{% endif %}">
+                        <button class="dropdown-item text-warning" type="submit">
+                          <i class="bi bi-x-circle me-2"></i>Nonaktif Promo
+                        </button>
+                      </form>
+                    </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+
+          {% if rows|length == 0 %}
+          <tr><td colspan="7" class="text-center text-muted">Data tidak ada.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(function () {
+
+  // Kalau Anda sudah filtering via server, DataTables sebaiknya jangan ikut search/filter lagi.
+  // Gunakan DT hanya untuk responsive, sorting ringan, dan tampilan.
+  if ($.fn.DataTable) {
+    $('#tblTariff').DataTable({
+      pageLength: 25,
+      order: [],
+      searching: false,
+      paging: true,
+      info: true
+    });
+  }
+
+  function confirmWithSwal(opts, onYes){
+    if (!window.Swal) { onYes(); return; }
+    Swal.fire({
+      icon: opts.icon || 'question',
+      title: opts.title || 'Konfirmasi',
+      html: opts.html || '',
+      showCancelButton: true,
+      confirmButtonText: opts.confirmText || 'Ya',
+      cancelButtonText: opts.cancelText || 'Batal'
+    }).then((res) => { if (res.isConfirmed) onYes(); });
+  }
+
+  $(document).on('submit', '.frm-disable', function (e) {
+    e.preventDefault();
+    const form = this;
+    const code = $(form).data('code') || '';
+    const name = $(form).data('name') || '';
+
+    confirmWithSwal({
+      icon: 'warning',
+      title: 'Nonaktifkan tarif?',
+      html: `<div style="text-align:left">
+              <b>${code}</b><br>${name}<br><br>
+              Tarif akan menjadi <b>Nonaktif</b> dan tidak dipakai untuk transaksi baru.
+            </div>`,
+      confirmText: 'Ya, Disable'
+    }, () => form.submit());
+  });
+
+  $(document).on('submit', '.frm-enable', function (e) {
+    e.preventDefault();
+    const form = this;
+    const code = $(form).data('code') || '';
+    const name = $(form).data('name') || '';
+
+    confirmWithSwal({
+      icon: 'question',
+      title: 'Aktifkan tarif?',
+      html: `<div style="text-align:left">
+              <b>${code}</b><br>${name}<br><br>
+              Tarif akan menjadi <b>Aktif</b> dan bisa dipakai untuk transaksi baru.
+            </div>`,
+      confirmText: 'Ya, Enable'
+    }, () => form.submit());
+  });
+
+  $(document).on('submit', '.frm-disable-promo', function (e) {
+    e.preventDefault();
+    const form = this;
+    const code = $(form).data('code') || '';
+    const name = $(form).data('name') || '';
+    const promoType = $(form).data('promo-type') || '';
+    const promoValue = $(form).data('promo-value') || '';
+    const promoStart = $(form).data('promo-start') || '-';
+    const promoEnd = $(form).data('promo-end') || '-';
+
+    confirmWithSwal({
+      icon: 'question',
+      title: 'Nonaktifkan promo?',
+      html: `<div style="text-align:left">
+              <b>${code}</b><br>${name}<br><br>
+              Promo saat ini: <b>${promoType}</b> = <b>${promoValue}</b><br>
+              Periode: <b>${promoStart}</b> s/d <b>${promoEnd}</b><br><br>
+              Setelah dinonaktifkan, promo akan menjadi <b>tidak ada</b> dan tanggal/nominal promo akan dihapus.
+            </div>`,
+      confirmText: 'Ya, Nonaktifkan Promo'
+    }, () => form.submit());
+  });
+
+});
+</script>
+{% endblock %}

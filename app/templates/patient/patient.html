@@ -1,0 +1,421 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Master Pasien</h4>
+  <button id="btnAdd" class="btn btn-success" type="button">
+    + Tambah Pasien
+  </button>
+</div>
+
+<form class="row g-2 mb-3" onsubmit="return false;">
+  <div class="col-md-9">
+    <input id="q" type="text" class="form-control" placeholder="Cari: nama / no hp / kode pasien / nik">
+  </div>
+  <div class="col-md-3 d-grid">
+    <button id="btnLoad" class="btn btn-outline-secondary" type="button">
+      Filter
+    </button>
+  </div>
+</form>
+
+<div class="card">
+    <div class="table-responsive" style="padding: 1%;">
+      <table class="table table-sm table-striped table-hover align-middle" id="tblPatients">
+        <thead class="table-light">
+          <tr>
+            <th style="width:90px;">Kode</th>
+            <th style="width:170px;">NIK</th>
+            <th>Nama</th>
+            <th style="width:130px;">Gender</th>
+            <th style="width:140px;">Tanggal Lahir</th>
+            <th style="width:170px;">No HP</th>
+            <th>Alamat</th>
+            <th style="width:140px;" class="text-end">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyPatients">
+          <tr>
+            <td colspan="8" class="text-muted">Memuat data...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+</div>
+
+<!-- Modal Add/Edit -->
+<div class="modal fade" id="patientModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">Pasien</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div id="modalAlert" class="alert alert-danger d-none"></div>
+
+        <form id="patientForm" autocomplete="off">
+          <input type="hidden" id="patient_id">
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label">NIK (opsional)</label>
+              <input id="nik" class="form-control" maxlength="16" inputmode="numeric" placeholder="16 digit angka">
+              <div class="form-text">Opsional. Jika diisi wajib 16 digit angka.</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">No HP <span class="text-danger">*</span></label>
+              <input id="phone" class="form-control" maxlength="30" placeholder="08xxxxxxxxxx" required>
+              <div class="form-text">Gunakan angka, minimal 8 digit.</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Nama <span class="text-danger">*</span></label>
+              <input id="full_name" class="form-control" maxlength="150" placeholder="Nama lengkap" required>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Tempat lahir <span class="text-danger">*</span></label>
+              <input id="birth_place" class="form-control" maxlength="100" placeholder="Kota" required>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Tanggal lahir <span class="text-danger">*</span></label>
+              <input id="birth_date" type="date" class="form-control" required>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Jenis kelamin <span class="text-danger">*</span></label>
+              <select id="gender" class="form-select" required>
+                <option value="">-- pilih --</option>
+                <option value="M">Laki-laki</option>
+                <option value="F">Perempuan</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Alamat <span class="text-danger">*</span></label>
+              <textarea id="address" class="form-control" rows="3" maxlength="255" required></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-primary" id="btnSave">Simpan</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const tbody = document.getElementById("tbodyPatients");
+  const qEl = document.getElementById("q");
+
+  const modalEl = document.getElementById("patientModal");
+  const modal = new bootstrap.Modal(modalEl);
+
+  const modalTitle = document.getElementById("modalTitle");
+  const modalAlert = document.getElementById("modalAlert");
+
+  // DataTables instance
+  let dt = null;
+
+  function initOrRefreshDataTable() {
+    const table = document.getElementById("tblPatients");
+
+    // destroy dulu jika sudah pernah init (karena tbody diganti innerHTML)
+    if (dt) {
+      dt.destroy();
+      dt = null;
+    }
+
+    dt = new DataTable(table, {
+      pageLength: 10,
+      lengthMenu: [10, 25, 50, 100],
+      order: [[0, "asc"]], // default: sort Kode
+      columnDefs: [
+        { orderable: false, targets: [7] } // kolom Aksi
+      ],
+      language: {
+        search: "Cari (tabel):",
+        lengthMenu: "Tampilkan _MENU_ baris",
+        info: "Menampilkan _START_–_END_ dari _TOTAL_ data",
+        infoEmpty: "Tidak ada data",
+        zeroRecords: "Tidak ada data yang cocok",
+        paginate: { first: "Awal", last: "Akhir", next: "Berikutnya", previous: "Sebelumnya" }
+      }
+    });
+  }
+
+  document.getElementById("nik").addEventListener("input", (e) => {
+    // hanya angka, max 16
+    e.target.value = (e.target.value || "").replace(/\D/g, "").slice(0, 16);
+  });
+
+  function toISODate(val) {
+    if (!val) return "";
+    const s = String(val).trim();
+
+    // already ISO
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+
+    // RFC / other
+    const dt = new Date(s);
+    if (isNaN(dt.getTime())) return "";
+
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, "0");
+    const d = String(dt.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function tokenOrThrow() {
+    const token = localStorage.getItem("auth_token");
+    if (!token) throw new Error("Tidak ada token. Silakan login dulu di /api/auth/login-page");
+    return token;
+  }
+
+  function showModalError(msg) {
+    modalAlert.textContent = msg;
+    modalAlert.classList.remove("d-none");
+  }
+
+  function clearModalError() {
+    modalAlert.textContent = "";
+    modalAlert.classList.add("d-none");
+  }
+
+  function fmtGender(g) {
+    if (g === "M") return "Laki-laki";
+    if (g === "F") return "Perempuan";
+    return "";
+  }
+
+  function fmtDate(val) {
+    if (!val) return "";
+    const s = String(val).trim();
+
+    // "YYYY-MM-DD" / "YYYY-MM-DDTHH:mm:ss"
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+      const [y, m, d] = s.slice(0, 10).split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    // RFC
+    const dt = new Date(s);
+    if (!isNaN(dt.getTime())) {
+      const dd = String(dt.getDate()).padStart(2, "0");
+      const mm = String(dt.getMonth() + 1).padStart(2, "0");
+      const yy = dt.getFullYear();
+      return `${dd}/${mm}/${yy}`;
+    }
+
+    return s;
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function setLoadingRow(text="Memuat data...") {
+    // saat loading/error, jangan init datatable dulu
+    tbody.innerHTML = `<tr><td colspan="8" class="text-muted">${escapeHtml(text)}</td></tr>`;
+  }
+
+  function setEmptyRow() {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-muted">Tidak ada data.</td></tr>`;
+    initOrRefreshDataTable();
+  }
+
+  function renderRows(rows) {
+    if (!rows || rows.length === 0) return setEmptyRow();
+
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td class="fw-semibold">${escapeHtml(r.patient_code ?? "")}</td>
+        <td>${escapeHtml(r.nik ?? "")}</td>
+        <td>${escapeHtml(r.full_name ?? "")}</td>
+        <td>${escapeHtml(fmtGender(r.gender))}</td>
+        <td data-order="${escapeHtml(toISODate(r.birth_date))}">
+          ${escapeHtml(fmtDate(r.birth_date))}
+        </td>
+        <td>${escapeHtml(r.phone ?? "")}</td>
+        <td class="text-truncate" style="max-width:420px;" title="${escapeHtml(r.address ?? "")}">
+          ${escapeHtml(r.address ?? "")}
+        </td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary" type="button" onclick="openEdit(${Number(r.id)})">Edit</button>
+        </td>
+      </tr>
+    `).join("");
+
+    initOrRefreshDataTable();
+  }
+
+  async function apiGet(url) {
+    const token = tokenOrThrow();
+    const r = await fetch(url, { headers: { "Authorization": "Bearer " + token }});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.ok === false) throw new Error(j.error || `Request gagal (${r.status})`);
+    return j.data;
+  }
+
+  async function apiSend(url, method, payload) {
+    const token = tokenOrThrow();
+    const r = await fetch(url, {
+      method,
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.ok === false) throw new Error(j.error || `Request gagal (${r.status})`);
+    return j.data;
+  }
+
+  async function loadPatients() {
+    try {
+      setLoadingRow();
+      const q = qEl.value.trim();
+      const url = q
+        ? `/api/patients?q=${encodeURIComponent(q)}&limit=50`
+        : `/api/patients?limit=50`;
+
+      const rows = await apiGet(url);
+      renderRows(rows);
+    } catch (e) {
+      setLoadingRow("Error: " + e.message);
+    }
+  }
+
+  function resetForm() {
+    document.getElementById("patient_id").value = "";
+    document.getElementById("nik").value = "";
+    document.getElementById("full_name").value = "";
+    document.getElementById("birth_place").value = "";
+    document.getElementById("birth_date").value = "";
+    document.getElementById("gender").value = "";
+    document.getElementById("address").value = "";
+    document.getElementById("phone").value = "";
+  }
+
+  function getFormPayload() {
+    const nikRaw = (document.getElementById("nik").value || "").trim();
+    const nik = nikRaw ? nikRaw.replace(/\D/g, "") : null;
+
+    return {
+      nik: nik || null,
+      full_name: (document.getElementById("full_name").value || "").trim(),
+      birth_place: (document.getElementById("birth_place").value || "").trim(),
+      birth_date: (document.getElementById("birth_date").value || "").trim(),
+      gender: (document.getElementById("gender").value || "").trim(),
+      address: (document.getElementById("address").value || "").trim(),
+      phone: (document.getElementById("phone").value || "").trim(),
+    };
+  }
+
+  function validatePayload(p) {
+    if (!p.full_name) return "Nama wajib diisi.";
+    if (!p.birth_place) return "Tempat lahir wajib diisi.";
+    if (!p.birth_date) return "Tanggal lahir wajib diisi.";
+    if (!p.gender) return "Jenis kelamin wajib diisi.";
+    if (!p.address) return "Alamat wajib diisi.";
+    if (!p.phone) return "No HP wajib diisi.";
+
+    if (p.phone && p.phone.replace(/\D/g,'').length < 8) return "No HP tidak valid (minimal 8 digit).";
+    if (p.gender && !["M","F"].includes(p.gender)) return "Jenis kelamin tidak valid.";
+
+    if (p.nik) {
+      if (!/^\d+$/.test(p.nik)) return "NIK harus berupa angka.";
+      if (p.nik.length !== 16) return "NIK wajib 16 digit (tidak lebih dan tidak kurang).";
+    }
+    return null;
+  }
+
+  async function openAdd() {
+    clearModalError();
+    resetForm();
+    modalTitle.textContent = "Tambah Pasien";
+    modal.show();
+  }
+
+  async function openEdit(id) {
+    try {
+      clearModalError();
+      resetForm();
+      modalTitle.textContent = "Edit Pasien";
+      modal.show();
+
+      const r = await apiGet(`/api/patients/${id}`);
+      document.getElementById("patient_id").value = r.id ?? "";
+      document.getElementById("nik").value = r.nik ?? "";
+      document.getElementById("full_name").value = r.full_name ?? "";
+      document.getElementById("birth_place").value = r.birth_place ?? "";
+      document.getElementById("birth_date").value = toISODate(r.birth_date);
+      document.getElementById("gender").value = r.gender ?? "";
+      document.getElementById("address").value = r.address ?? "";
+      document.getElementById("phone").value = r.phone ?? "";
+    } catch (e) {
+      showModalError(e.message);
+    }
+  }
+
+  async function savePatient() {
+    try {
+      clearModalError();
+
+      const id = (document.getElementById("patient_id").value || "").trim();
+      const payload = getFormPayload();
+
+      const err = validatePayload(payload);
+      if (err) { showModalError(err); return; }
+
+      if (!id) {
+        await apiSend("/api/patients", "POST", payload);
+      } else {
+        await apiSend(`/api/patients/${encodeURIComponent(id)}`, "PUT", payload);
+      }
+
+      modal.hide();
+      await loadPatients();
+    } catch (e) {
+      showModalError(e.message);
+    }
+  }
+
+  // events
+  document.getElementById("btnLoad").addEventListener("click", loadPatients);
+  document.getElementById("btnAdd").addEventListener("click", openAdd);
+  document.getElementById("btnSave").addEventListener("click", savePatient);
+
+  // enter pada search
+  qEl.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") {
+      ev.preventDefault();
+      loadPatients();
+    }
+  });
+
+  // expose openEdit to global for onclick
+  window.openEdit = openEdit;
+
+  // auto load
+  loadPatients();
+</script>
+{% endblock %}

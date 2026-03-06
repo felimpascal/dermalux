@@ -1,0 +1,797 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<style>
+  .patient-card,
+  .history-card {
+    border: 0;
+    border-radius: 14px;
+    box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,.08);
+  }
+
+  .sticky-panel {
+    position: sticky;
+    top: 1rem;
+  }
+
+  .kv-label {
+    font-size: 0.82rem;
+    color: #6c757d;
+    margin-bottom: .1rem;
+  }
+
+  .kv-value {
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .table-riwayat th {
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  .table-riwayat td {
+    vertical-align: top;
+  }
+
+  .text-preline {
+    white-space: pre-line;
+  }
+
+  .chip {
+    display: inline-block;
+    padding: .22rem .55rem;
+    margin: 0 .3rem .35rem 0;
+    border-radius: 999px;
+    font-size: .75rem;
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+  }
+
+  .chip-primary {
+    background: #e7f1ff;
+    border-color: #b6d4fe;
+    color: #084298;
+  }
+
+  .thumb-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+
+  .thumb-item {
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+
+  .thumb-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .thumb-empty {
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    border: 1px dashed #ced4da;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    font-size: .7rem;
+    background: #fafafa;
+  }
+
+  .detail-box {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: .9rem;
+  }
+
+  .section-title {
+    font-size: .82rem;
+    font-weight: 700;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    margin-bottom: .5rem;
+  }
+
+  .badge-status {
+    font-size: .72rem;
+    padding: .35rem .55rem;
+  }
+
+  .modal-photo-img {
+    width: 100%;
+    max-height: 72vh;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #f8f9fa;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .empty-state {
+    border: 1px dashed #ced4da;
+    border-radius: 14px;
+    background: #fff;
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #6c757d;
+  }
+
+  @media (max-width: 991.98px) {
+    .sticky-panel {
+      position: static;
+      top: auto;
+    }
+  }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="mb-1">Riwayat Pasien</h4>
+    <div class="text-muted small">Cari pasien berdasarkan kode pasien, lalu tampilkan riwayat diagnosa, treatment, dan foto before/after.</div>
+  </div>
+</div>
+
+<form id="formSearchRiwayat" method="GET" action="{{ url_for('riwayat_pasien.riwayat_pasien_page') }}" class="mb-3">
+  <div class="row g-2 align-items-end">
+    <div class="col-lg-4 col-md-6">
+      <label class="form-label">Kode Pasien</label>
+      <div class="input-group">
+        <input
+          id="patient_code"
+          type="text"
+          name="patient_code"
+          class="form-control"
+          placeholder="Ketik kode pasien / klik Cari"
+          value="{{ patient_code or '' }}"
+          autocomplete="off"
+        >
+        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalPatient">
+          Cari
+        </button>
+      </div>
+    </div>
+
+    <div class="col-auto">
+      <button type="submit" class="btn btn-primary">Tampilkan Riwayat</button>
+    </div>
+
+    <div class="col-auto">
+      <a href="{{ url_for('riwayat_pasien.riwayat_pasien_page') }}" class="btn btn-outline-secondary">
+        Reset
+      </a>
+    </div>
+  </div>
+</form>
+
+{% if error_msg %}
+  <div class="alert alert-danger">{{ error_msg }}</div>
+{% endif %}
+
+<div class="row g-3">
+  <!-- PANEL KIRI -->
+  <div class="col-lg-4">
+    <div class="card patient-card sticky-panel">
+      <div class="card-header bg-white border-0 pt-3 pb-0">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Data Pasien</h5>
+          <div id="patient_status" class="small text-muted">
+            {% if patient %}Data pasien terisi{% else %}Belum dipilih{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="mb-3">
+          <div class="kv-label">Kode Pasien</div>
+          <input id="p_patient_code" type="text" class="form-control" readonly value="{{ patient.patient_code if patient else '' }}">
+        </div>
+
+        <div class="mb-3">
+          <div class="kv-label">Nama Pasien</div>
+          <input id="p_full_name" type="text" class="form-control" readonly value="{{ patient.full_name if patient else '' }}">
+        </div>
+
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <div class="kv-label">NIK</div>
+            <input id="p_nik" type="text" class="form-control" readonly value="{{ patient.nik if patient else '' }}">
+          </div>
+          <div class="col-sm-6 mb-3">
+            <div class="kv-label">Jenis Kelamin</div>
+            <input id="p_gender" type="text" class="form-control" readonly
+                   value="{% if patient %}{% if patient.gender == 'L' %}Laki-laki{% elif patient.gender == 'P' %}Perempuan{% else %}{{ patient.gender or '' }}{% endif %}{% endif %}">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <div class="kv-label">Tempat Lahir</div>
+            <input id="p_birth_place" type="text" class="form-control" readonly value="{{ patient.birth_place if patient else '' }}">
+          </div>
+          <div class="col-sm-6 mb-3">
+            <div class="kv-label">Tanggal Lahir</div>
+            <input id="p_birth_date" type="text" class="form-control" readonly value="{{ patient.birth_date if patient else '' }}">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="kv-label">No. HP</div>
+          <input id="p_phone" type="text" class="form-control" readonly value="{{ patient.phone if patient else '' }}">
+        </div>
+
+        <div class="mb-0">
+          <div class="kv-label">Alamat</div>
+          <textarea id="p_address" class="form-control" rows="3" readonly>{{ patient.address if patient else '' }}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL KANAN -->
+  <div class="col-lg-8">
+    <div class="card history-card">
+      <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Riwayat Pasien</h5>
+        {% if riwayat %}
+          <span class="badge bg-light text-dark border">{{ riwayat|length }} riwayat</span>
+        {% endif %}
+      </div>
+
+      <div class="card-body">
+        {% if patient and riwayat %}
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle table-riwayat">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 56px;">#</th>
+                  <th style="min-width: 140px;">Tanggal</th>
+                  <th style="min-width: 120px;">Pendaftaran</th>
+                  <th style="min-width: 140px;">Dokter</th>
+                  <th style="min-width: 220px;">Diagnosa</th>
+                  <th style="min-width: 220px;">Treatment</th>
+                  <th style="min-width: 120px;">Before</th>
+                  <th style="min-width: 120px;">After</th>
+                  <th style="width: 90px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in riwayat %}
+                  <tr>
+                    <td class="text-center">{{ loop.index }}</td>
+
+                    <td>
+                      <div class="fw-semibold">{{ row.tgl_diagnosa or '-' }}</div>
+                    </td>
+
+                    <td>
+                      <div class="fw-semibold">#{{ row.pendaftaran_id }}</div>
+                      <div class="small text-muted">{{ row.tgl_pendaftaran or '-' }}</div>
+                    </td>
+
+                    <td>
+                      <div class="fw-semibold">{{ row.dokter_nama or '-' }}</div>
+                      {% if row.jenis_kulit %}
+                        <div class="small text-muted mt-1">Jenis kulit: {{ row.jenis_kulit }}</div>
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      {% if row.diagnosa_detail %}
+                        {% for d in row.diagnosa_detail %}
+                          <div class="mb-1">
+                            <span class="chip {% if d.is_primary %}chip-primary{% endif %}">
+                              {{ d.diagnosa_name or '-' }}
+                              {% if d.is_primary %} - Utama{% endif %}
+                            </span>
+                          </div>
+                          {% if d.note %}
+                            <div class="small text-muted mb-2">{{ d.note }}</div>
+                          {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      {% if row.treatments %}
+                        {% for t in row.treatments %}
+                          <div class="mb-2">
+                            <div class="fw-semibold">
+                              {{ t.treatment_name or t.treatment_name_snapshot or '-' }}
+                            </div>
+                            <div class="small text-muted">
+                              Qty: {{ t.qty or 0 }} |
+                              Harga: {{ "{:,.0f}".format((t.unit_price or 0)|float).replace(",", ".") }} |
+                              Subtotal: {{ "{:,.0f}".format((t.subtotal or 0)|float).replace(",", ".") }}
+                            </div>
+                            {% if t.notes %}
+                              <div class="small text-muted">{{ t.notes }}</div>
+                            {% endif %}
+                          </div>
+                        {% endfor %}
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      {% if row.foto_before %}
+                        <div class="thumb-wrap">
+                          {% for f in row.foto_before[:3] %}
+                            <div
+                              class="thumb-item"
+                              data-bs-toggle="modal"
+                              data-bs-target="#photoPreviewModal"
+                              data-img="{{ f.file_path or '' }}"
+                              data-title="Before - {{ row.patient_code or '' }} - Diagnosa #{{ row.diagnosa_id }}"
+                              data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
+                            >
+                              <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'before' }}">
+                            </div>
+                          {% endfor %}
+                          {% if row.foto_before_count > 3 %}
+                            <div class="thumb-empty">+{{ row.foto_before_count - 3 }}</div>
+                          {% endif %}
+                        </div>
+                      {% else %}
+                        <div class="thumb-empty">Kosong</div>
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      {% if row.foto_after %}
+                        <div class="thumb-wrap">
+                          {% for f in row.foto_after[:3] %}
+                            <div
+                              class="thumb-item"
+                              data-bs-toggle="modal"
+                              data-bs-target="#photoPreviewModal"
+                              data-img="{{ f.file_path or '' }}"
+                              data-title="After - {{ row.patient_code or '' }} - Diagnosa #{{ row.diagnosa_id }}"
+                              data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
+                            >
+                              <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'after' }}">
+                            </div>
+                          {% endfor %}
+                          {% if row.foto_after_count > 3 %}
+                            <div class="thumb-empty">+{{ row.foto_after_count - 3 }}</div>
+                          {% endif %}
+                        </div>
+                      {% else %}
+                        <div class="thumb-empty">Kosong</div>
+                      {% endif %}
+                    </td>
+
+                    <td class="text-center">
+                      <button
+                        class="btn btn-sm btn-outline-primary"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#detail-{{ row.diagnosa_id }}"
+                        aria-expanded="false"
+                      >
+                        Detail
+                      </button>
+                    </td>
+                  </tr>
+
+                  <tr class="collapse-row">
+                    <td colspan="9" class="p-0 border-top-0">
+                      <div class="collapse" id="detail-{{ row.diagnosa_id }}">
+                        <div class="p-3">
+                          <div class="detail-box">
+                            <div class="row g-3">
+                              <div class="col-md-6">
+                                <div class="section-title">Keluhan Utama</div>
+                                <div class="text-preline">{{ row.keluhan_utama or '-' }}</div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="section-title">Assessment</div>
+                                <div class="text-preline">{{ row.assessment or '-' }}</div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="section-title">Anamnesis Dokter</div>
+                                <div class="text-preline">{{ row.anamnesis_dokter or '-' }}</div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="section-title">Pemeriksaan Fisik</div>
+                                <div class="text-preline">{{ row.pemeriksaan_fisik or '-' }}</div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="section-title">Lokasi Keluhan</div>
+                                <div class="text-preline">{{ row.lokasi_keluhan or '-' }}</div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="section-title">Durasi Keluhan</div>
+                                <div class="text-preline">{{ row.durasi_keluhan or '-' }}</div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="section-title">Riwayat Alergi</div>
+                                <div class="text-preline">{{ row.riwayat_alergi or '-' }}</div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="section-title">Riwayat Perawatan</div>
+                                <div class="text-preline">{{ row.riwayat_perawatan or '-' }}</div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="section-title">Rencana Tindakan</div>
+                                <div class="text-preline">{{ row.rencana_tindakan or '-' }}</div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <div class="section-title">Edukasi Pasien</div>
+                                <div class="text-preline">{{ row.edukasi_pasien or '-' }}</div>
+                              </div>
+
+                              <div class="col-md-12">
+                                <div class="section-title">Saran Kontrol</div>
+                                <div class="text-preline">{{ row.saran_kontrol or '-' }}</div>
+                              </div>
+
+                              {% if row.foto_other %}
+                                <div class="col-md-12">
+                                  <div class="section-title">Foto Lainnya</div>
+                                  <div class="thumb-wrap">
+                                    {% for f in row.foto_other %}
+                                      <div
+                                        class="thumb-item"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#photoPreviewModal"
+                                        data-img="{{ f.file_path or '' }}"
+                                        data-title="{{ f.jenis_foto or 'Foto' }} - Diagnosa #{{ row.diagnosa_id }}"
+                                        data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
+                                      >
+                                        <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'foto' }}">
+                                      </div>
+                                    {% endfor %}
+                                  </div>
+                                </div>
+                              {% endif %}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% elif patient %}
+          <div class="empty-state">
+            <div class="fw-semibold mb-1">Belum ada riwayat diagnosa</div>
+            <div class="small">Pasien ditemukan, tetapi belum memiliki data riwayat diagnosa.</div>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <div class="fw-semibold mb-1">Riwayat belum ditampilkan</div>
+            <div class="small">Silakan cari pasien terlebih dahulu.</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CARI PASIEN -->
+<div class="modal fade" id="modalPatient" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Cari Pasien</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+
+      <div class="modal-body">
+        <input id="patientSearch" class="form-control" placeholder="Ketik kode pasien / NIK / nama / no HP...">
+
+        <div class="mt-3 table-responsive">
+          <table class="table table-sm table-hover align-middle">
+            <thead>
+              <tr>
+                <th style="width: 110px;">Kode</th>
+                <th style="width: 170px;">NIK</th>
+                <th>Nama</th>
+                <th style="width: 140px;">No HP</th>
+                <th style="width: 80px;">Gender</th>
+                <th style="width: 120px;">Tgl Lahir</th>
+              </tr>
+            </thead>
+            <tbody id="patientResult"></tbody>
+          </table>
+        </div>
+
+        <div class="small text-muted">
+          Klik baris untuk memilih pasien.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PREVIEW FOTO -->
+<div class="modal fade" id="photoPreviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title" id="photoPreviewTitle">Preview Foto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <img id="photoPreviewImg" src="" alt="Preview" class="modal-photo-img">
+        <div id="photoPreviewCaption" class="small text-muted mt-3"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const pageUrl = "{{ url_for('riwayat_pasien.riwayat_pasien_page') }}";
+
+  const $form = document.getElementById("formSearchRiwayat");
+  const $patientCode = document.getElementById("patient_code");
+  const $status = document.getElementById("patient_status");
+
+  const viewFields = {
+    patient_code: document.getElementById("p_patient_code"),
+    nik: document.getElementById("p_nik"),
+    full_name: document.getElementById("p_full_name"),
+    birth_place: document.getElementById("p_birth_place"),
+    phone: document.getElementById("p_phone"),
+    gender: document.getElementById("p_gender"),
+    birth_date: document.getElementById("p_birth_date"),
+    address: document.getElementById("p_address"),
+  };
+
+  function safeText(v){
+    return (v ?? "").toString();
+  }
+
+  function esc(s){
+    return safeText(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function genderLabel(v){
+    const x = safeText(v).trim().toUpperCase();
+    if (x === "L") return "Laki-laki";
+    if (x === "P") return "Perempuan";
+    return safeText(v);
+  }
+
+  function clearPatientView(msg){
+    viewFields.patient_code.value = "";
+    viewFields.nik.value = "";
+    viewFields.full_name.value = "";
+    viewFields.birth_place.value = "";
+    viewFields.phone.value = "";
+    viewFields.gender.value = "";
+    viewFields.birth_date.value = "";
+    viewFields.address.value = "";
+    $status.textContent = msg || "Belum dipilih";
+    $status.className = "small text-muted";
+  }
+
+  function setPatientView(p){
+    viewFields.patient_code.value = p.patient_code || "";
+    viewFields.nik.value = p.nik || "";
+    viewFields.full_name.value = p.full_name || "";
+    viewFields.birth_place.value = p.birth_place || "";
+    viewFields.phone.value = p.phone || "";
+    viewFields.gender.value = genderLabel(p.gender || "");
+    viewFields.birth_date.value = p.birth_date || "";
+    viewFields.address.value = p.address || "";
+    $status.textContent = "Data pasien terisi";
+    $status.className = "small text-success";
+  }
+
+  async function safeJson(res){
+    try { return await res.json(); } catch(e) { return null; }
+  }
+
+  // =========================
+  // FETCH PASIEN BY CODE
+  // Endpoint yang dipakai:
+  // GET /api/riwayat-pasien/patient?patient_code=...
+  // =========================
+  async function fetchPatientByCode(code){
+    code = (code || "").trim();
+
+    if(!code){
+      clearPatientView("Belum dipilih");
+      return false;
+    }
+
+    try{
+      $status.textContent = "Mengambil data pasien...";
+      $status.className = "small text-muted";
+
+      const res = await fetch(`/api/riwayat-pasien/patient?patient_code=${encodeURIComponent(code)}`, {
+        headers: { "Accept": "application/json" }
+      });
+
+      const json = await safeJson(res);
+      if(!res.ok || !json || !json.ok){
+        clearPatientView("Pasien tidak ditemukan");
+        $status.className = "small text-danger";
+        return false;
+      }
+
+      setPatientView(json.data);
+      return true;
+    }catch(e){
+      clearPatientView("Gagal mengambil data pasien");
+      $status.className = "small text-danger";
+      console.error(e);
+      return false;
+    }
+  }
+
+  $patientCode.addEventListener("blur", function(){
+    fetchPatientByCode($patientCode.value);
+  });
+
+  // =========================
+  // MODAL LIVE SEARCH
+  // CATATAN:
+  // Bagian ini mengasumsikan Anda punya endpoint:
+  // GET /api/patients?q=...&limit=20
+  // dengan output:
+  // { ok: true, data: [...] }
+  // =========================
+  const $q = document.getElementById("patientSearch");
+  const $tbody = document.getElementById("patientResult");
+  const modalEl = document.getElementById("modalPatient");
+
+  function render(rows){
+    $tbody.innerHTML = "";
+
+    if(!rows || rows.length === 0){
+      $tbody.innerHTML = `<tr><td colspan="6" class="text-muted">Tidak ada data</td></tr>`;
+      return;
+    }
+
+    for(const r of rows){
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${esc(r.patient_code)}</td>
+        <td>${esc(r.nik)}</td>
+        <td>${esc(r.full_name)}</td>
+        <td>${esc(r.phone)}</td>
+        <td>${esc(genderLabel(r.gender))}</td>
+        <td>${esc(r.birth_date)}</td>
+      `;
+
+      tr.addEventListener("click", async function(){
+        $patientCode.value = r.patient_code || "";
+        setPatientView(r);
+
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if(modal) modal.hide();
+
+        window.location.href = `${pageUrl}?patient_code=${encodeURIComponent(r.patient_code || "")}`;
+      });
+
+      $tbody.appendChild(tr);
+    }
+  }
+
+  async function fetchPatients(){
+    const q = ($q.value || "").trim();
+    const url = `/api/patients?q=${encodeURIComponent(q)}&limit=20`;
+
+    const res = await fetch(url, {
+      headers: { "Accept": "application/json" }
+    });
+
+    const json = await safeJson(res);
+    if(!res.ok || !json || !json.ok){
+      throw new Error((json && json.error) ? json.error : "Gagal mencari pasien");
+    }
+
+    render(json.data || []);
+  }
+
+  let t = null;
+  $q.addEventListener("input", function(){
+    clearTimeout(t);
+    t = setTimeout(() => fetchPatients().catch(console.error), 250);
+  });
+
+  modalEl.addEventListener("shown.bs.modal", function(){
+    $q.focus();
+    fetchPatients().catch(console.error);
+  });
+
+  modalEl.addEventListener("hidden.bs.modal", function(){
+    $q.value = "";
+    $tbody.innerHTML = "";
+  });
+
+  // =========================
+  // SUBMIT FORM
+  // =========================
+  $form.addEventListener("submit", function(e){
+    const code = ($patientCode.value || "").trim();
+    if(!code){
+      e.preventDefault();
+      clearPatientView("Kode pasien wajib diisi");
+      $status.className = "small text-danger";
+    }
+  });
+
+  // =========================
+  // INIT
+  // =========================
+  if (($patientCode.value || "").trim()){
+    fetchPatientByCode($patientCode.value);
+  } else {
+    clearPatientView("Belum dipilih");
+  }
+
+  // =========================
+  // MODAL PREVIEW FOTO
+  // =========================
+  const photoModal = document.getElementById('photoPreviewModal');
+  if (photoModal) {
+    photoModal.addEventListener('show.bs.modal', function (event) {
+      const trigger = event.relatedTarget;
+      if (!trigger) return;
+
+      const img = trigger.getAttribute('data-img') || '';
+      const title = trigger.getAttribute('data-title') || 'Preview Foto';
+      const caption = trigger.getAttribute('data-caption') || '';
+
+      document.getElementById('photoPreviewTitle').textContent = title;
+      document.getElementById('photoPreviewImg').src = '/static/uploads/'+img;
+      document.getElementById('photoPreviewCaption').textContent = caption;
+    });
+
+    photoModal.addEventListener('hidden.bs.modal', function () {
+      document.getElementById('photoPreviewImg').src = '';
+      document.getElementById('photoPreviewCaption').textContent = '';
+    });
+  }
+})();
+</script>
+
+{% endblock %}

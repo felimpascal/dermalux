@@ -1,0 +1,343 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">
+    {% if mode == 'edit' %}Edit Pendaftaran{% else %}Tambah Pendaftaran{% endif %}
+  </h4>
+  <a class="btn btn-outline-secondary" href="{{ url_for('pendaftaran.pendaftaran_list_page') }}">Kembali</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('pendaftaran.pendaftaran_save_post') }}">
+      {% if mode == 'edit' and row %}
+        <input type="hidden" name="id" value="{{ row.pendaftaran_id }}">
+      {% endif %}
+
+      <div class="row g-3">
+
+        <!-- KODE PASIEN + MODAL SEARCH -->
+        <div class="col-md-4">
+          <label class="form-label">Kode Pasien</label>
+          <div class="input-group">
+            <input id="patient_code" type="text" class="form-control" name="patient_code"
+                   value="{{ row.patient_code if row else '' }}" required
+                   placeholder="Ketik kode pasien / klik Cari">
+            <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalPatient">
+              Cari
+            </button>
+          </div>
+          <div class="form-text">Bisa ketik manual atau klik <b>Cari</b> untuk live search.</div>
+        </div>
+
+        <!-- TANGGAL OTOMATIS -->
+        <div class="col-md-4">
+          <label class="form-label">Tanggal Pendaftaran</label>
+          <input id="tgl_pendaftaran" type="datetime-local" class="form-control" name="tgl_pendaftaran"
+                value="{% if row and row.tgl_pendaftaran %}{{ row.tgl_pendaftaran.strftime('%Y-%m-%dT%H:%M:%S') }}{% endif %}"
+                step="1"
+                required>
+          <div class="form-text">Otomatis terisi saat tambah. (Detik aktif)</div>
+        </div>
+
+        <!-- PANEL VIEW DATA PASIEN (READONLY) -->
+        <div class="col-12">
+          <div class="border rounded p-3 bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="fw-semibold">Data Pasien (View Only)</div>
+              <div id="patient_status" class="small text-muted">Belum dipilih</div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label">NIK</label>
+                <input id="p_nik" type="text" class="form-control" readonly>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label">Nama Lengkap</label>
+                <input id="p_full_name" type="text" class="form-control" readonly>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">No HP</label>
+                <input id="p_phone" type="text" class="form-control" readonly>
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label">Gender</label>
+                <input id="p_gender" type="text" class="form-control" readonly>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Tempat Lahir</label>
+                <input id="p_birth_place" type="text" class="form-control" readonly>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Tanggal Lahir</label>
+                <input id="p_birth_date" type="text" class="form-control" readonly>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Kode Pasien</label>
+                <input id="p_patient_code" type="text" class="form-control" readonly>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Alamat</label>
+                <textarea id="p_address" class="form-control" rows="2" readonly></textarea>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ANAMNESIS -->
+        <div class="col-12">
+          <label class="form-label">Anamnesis Umum</label>
+          <textarea class="form-control" name="anamnesis_umum" rows="4"
+                    placeholder="Keluhan, riwayat singkat, permintaan pasien...">{{ row.anamnesis_umum if row else '' }}</textarea>
+        </div>
+
+      </div>
+
+      <div class="mt-4 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">
+          {% if mode == 'edit' %}Simpan Perubahan{% else %}Simpan{% endif %}
+        </button>
+
+        {% if mode == 'edit' and row %}
+          <a class="btn btn-success"
+             href="{{ url_for('pendaftaran.pendaftaran_treatment_page', pendaftaran_id=row.pendaftaran_id) }}">
+            Lanjut: Tambah Treatment
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL CARI PASIEN -->
+<div class="modal fade" id="modalPatient" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Cari Pasien</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+
+      <div class="modal-body">
+        <input id="patientSearch" class="form-control"
+               placeholder="Ketik kode pasien / NIK / nama / no HP...">
+
+        <div class="mt-3 table-responsive">
+          <table class="table table-sm table-hover align-middle">
+            <thead>
+              <tr>
+                <th style="width: 110px;">Kode</th>
+                <th style="width: 170px;">NIK</th>
+                <th>Nama</th>
+                <th style="width: 140px;">No HP</th>
+                <th style="width: 80px;">Gender</th>
+                <th style="width: 120px;">Tgl Lahir</th>
+              </tr>
+            </thead>
+            <tbody id="patientResult"></tbody>
+          </table>
+        </div>
+
+        <div class="small text-muted">
+          Klik baris untuk memilih pasien.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  function pad2(n){ return String(n).padStart(2, "0"); }
+  function nowLocalDatetimeSeconds(){
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = pad2(d.getMonth()+1);
+    const dd = pad2(d.getDate());
+    const HH = pad2(d.getHours());
+    const MM = pad2(d.getMinutes());
+    const SS = pad2(d.getSeconds());
+    return `${yyyy}-${mm}-${dd}T${HH}:${MM}:${SS}`;
+  }
+
+  const MODE = "{{ mode }}";
+  const initialPatientCode = "{{ row.patient_code if row else '' }}";
+
+  // Auto-set tgl_pendaftaran untuk mode tambah (jangan overwrite edit)
+  const $tgl = document.getElementById("tgl_pendaftaran");
+  if (MODE !== "edit" && $tgl && (!$tgl.value || $tgl.value.trim()==="")){
+    $tgl.value = nowLocalDatetimeSeconds();
+  }
+
+  // ===== View fields =====
+  const $status = document.getElementById("patient_status");
+  const viewFields = {
+    patient_code: document.getElementById("p_patient_code"),
+    nik: document.getElementById("p_nik"),
+    full_name: document.getElementById("p_full_name"),
+    birth_place: document.getElementById("p_birth_place"),
+    phone: document.getElementById("p_phone"),
+    gender: document.getElementById("p_gender"),
+    birth_date: document.getElementById("p_birth_date"),
+    address: document.getElementById("p_address"),
+  };
+
+  function clearPatientView(msg){
+    viewFields.patient_code.value = "";
+    viewFields.nik.value = "";
+    viewFields.full_name.value = "";
+    viewFields.birth_place.value = "";
+    viewFields.phone.value = "";
+    viewFields.gender.value = "";
+    viewFields.birth_date.value = "";
+    viewFields.address.value = "";
+    $status.textContent = msg || "Belum dipilih";
+    $status.className = "small text-muted";
+  }
+
+  function setPatientView(p){
+    viewFields.patient_code.value = p.patient_code || "";
+    viewFields.nik.value = p.nik || "";
+    viewFields.full_name.value = p.full_name || "";
+    viewFields.birth_place.value = p.birth_place || "";
+    viewFields.phone.value = p.phone || "";
+    viewFields.gender.value = p.gender || "";
+    viewFields.birth_date.value = p.birth_date || "";
+    viewFields.address.value = p.address || "";
+    $status.textContent = "Data pasien terisi";
+    $status.className = "small text-success";
+  }
+
+  // ===== Fetch patient by code =====
+  const $patientCode = document.getElementById("patient_code");
+
+  async function safeJson(res){
+    try { return await res.json(); } catch(e) { return null; }
+  }
+
+  async function fetchPatientByCode(code){
+    code = (code || "").trim();
+    if(!code){
+      clearPatientView("Belum dipilih");
+      return;
+    }
+
+    try{
+      $status.textContent = "Mengambil data pasien...";
+      $status.className = "small text-muted";
+
+      // ✅ endpoint benar: by-code
+      const res = await fetch(`/api/patients/by-code/${encodeURIComponent(code)}`, {
+        headers: { "Accept": "application/json" }
+      });
+
+      const json = await safeJson(res);
+      if(!res.ok || !json || !json.ok){
+        clearPatientView("Pasien tidak ditemukan");
+        $status.className = "small text-danger";
+        return;
+      }
+
+      setPatientView(json.data);
+    }catch(e){
+      clearPatientView("Gagal mengambil data pasien");
+      $status.className = "small text-danger";
+      console.error(e);
+    }
+  }
+
+  $patientCode.addEventListener("blur", function(){
+    fetchPatientByCode($patientCode.value);
+  });
+
+  if (initialPatientCode && initialPatientCode.trim() !== ""){
+    fetchPatientByCode(initialPatientCode);
+  } else {
+    clearPatientView("Belum dipilih");
+  }
+
+  // ===== Modal live search =====
+  const $q = document.getElementById("patientSearch");
+  const $tbody = document.getElementById("patientResult");
+
+  function esc(s){
+    return (s ?? "").toString()
+      .replaceAll("&","&amp;").replaceAll("<","&lt;")
+      .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function render(rows){
+    $tbody.innerHTML = "";
+    if(!rows || rows.length === 0){
+      $tbody.innerHTML = `<tr><td colspan="6" class="text-muted">Tidak ada data</td></tr>`;
+      return;
+    }
+
+    for(const r of rows){
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${esc(r.patient_code)}</td>
+        <td>${esc(r.nik)}</td>
+        <td>${esc(r.full_name)}</td>
+        <td>${esc(r.phone)}</td>
+        <td>${esc(r.gender)}</td>
+        <td>${esc(r.birth_date)}</td>
+      `;
+      tr.addEventListener("click", function(){
+        $patientCode.value = r.patient_code || "";
+        setPatientView(r);
+
+        const modalEl = document.getElementById("modalPatient");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if(modal) modal.hide();
+      });
+      $tbody.appendChild(tr);
+    }
+  }
+
+  async function fetchPatients(){
+    const q = ($q.value || "").trim();
+
+    // ✅ endpoint benar: GET /api/patients (q, limit)
+    const url = `/api/patients?q=${encodeURIComponent(q)}&limit=20`;
+
+    const res = await fetch(url, { headers: { "Accept": "application/json" }});
+    const json = await safeJson(res);
+    if(!res.ok || !json || !json.ok) throw new Error((json && json.error) ? json.error : "Gagal mencari pasien");
+    render(json.data);
+  }
+
+  let t = null;
+  $q.addEventListener("input", function(){
+    clearTimeout(t);
+    t = setTimeout(() => fetchPatients().catch(console.error), 250);
+  });
+
+  const modalEl = document.getElementById("modalPatient");
+  modalEl.addEventListener("shown.bs.modal", function(){
+    $q.focus();
+    fetchPatients().catch(console.error);
+  });
+
+  modalEl.addEventListener("hidden.bs.modal", function(){
+    $q.value = "";
+    $tbody.innerHTML = "";
+  });
+
+})();
+</script>
+
+{% endblock %}

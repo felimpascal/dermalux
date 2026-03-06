@@ -1,0 +1,494 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<style>
+  .table-responsive {
+    overflow-x: auto;
+    overflow-y: visible !important;
+    min-height: calc(100vh - 280px);
+    padding-bottom: 180px;
+  }
+
+  .card,
+  .card-body {
+    overflow: visible !important;
+  }
+
+  .dropdown-menu {
+    z-index: 9999 !important;
+  }
+
+  .truncate-120 {
+    max-width: 420px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .truncate-200 {
+    max-width: 520px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Pendaftaran</h4>
+  <a class="btn btn-primary" href="{{ url_for('pendaftaran.pendaftaran_new_page') }}">
+    + Tambah Pendaftaran
+  </a>
+</div>
+
+<form class="row g-2 mb-3" method="GET" action="{{ url_for('pendaftaran.pendaftaran_list_page') }}">
+  <div class="col-md-2">
+    <input type="date" class="form-control" name="date" value="{{ date or '' }}">
+  </div>
+
+  <div class="col-md-4">
+    <input type="text" class="form-control" name="q"
+           placeholder="Cari: kode pasien / nama / no hp / anamnesis / ID"
+           value="{{ q or '' }}">
+  </div>
+
+  <div class="col-md-2">
+    <select class="form-select" name="status">
+      <option value="" {% if not status %}selected{% endif %}>Semua Status</option>
+      <option value="draft" {% if status=='draft' %}selected{% endif %}>Draft</option>
+      <option value="confirmed" {% if status=='confirmed' %}selected{% endif %}>Confirmed</option>
+      <option value="paid" {% if status=='paid' %}selected{% endif %}>Paid</option>
+      <option value="canceled" {% if status=='canceled' %}selected{% endif %}>Canceled</option>
+    </select>
+  </div>
+
+  <div class="col-md-2 d-grid">
+    <button class="btn btn-outline-secondary">Filter</button>
+  </div>
+</form>
+
+<div class="card" style="padding: 1%;">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table id="tblPendaftaran" class="table table-striped mb-0 w-100">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 90px;">ID</th>
+            <th style="width: 120px;">Tanggal</th>
+            <th style="width: 90px;">Jam</th>
+
+            <th style="width: 150px;">Kode Pasien</th>
+            <th style="width: 240px;">Nama Pasien</th>
+            <th style="width: 80px;" class="text-end">Umur</th>
+            <th style="width: 140px;">No HP</th>
+
+            <th>Anamnesis Umum</th>
+            <th style="width: 140px;" class="text-end">Nominal</th>
+            <th style="width: 120px;" class="text-end">Paid</th>
+            <th style="width: 80px;">Status</th>
+            <th style="width: 140px;" class="text-center">Aksi</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% if rows %}
+            {% for r in rows %}
+              <tr>
+                <td>{{ r.pendaftaran_id }}</td>
+                <td>{{ r.tgl_pendaftaran.strftime('%d/%m/%Y') }}</td>
+                <td>{{ r.tgl_pendaftaran.strftime('%H:%M') }}</td>
+
+                <td>{{ r.patient_code }}</td>
+
+                <td class="truncate-200" title="{{ r.full_name or '' }}">
+                  {{ r.full_name or '-' }}
+                </td>
+
+                <td class="text-end">
+                  {% if r.age_years is not none %}
+                    {{ r.age_years }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+
+                <td>{{ r.phone or '-' }}</td>
+
+                <td class="truncate-120" title="{{ r.anamnesis_umum or '' }}">
+                  {{ (r.anamnesis_umum or '') }}
+                </td>
+
+                <td class="text-end">
+                  {{ "{:,.0f}".format(r.total or 0) }}
+                </td>
+
+                <td class="text-end">
+                  {{ "{:,.0f}".format(r.paidAmount or 0) }}
+                </td>
+
+                <td>
+                  {% if r.status == 'draft' %}
+                    <span class="badge bg-warning text-dark">draft</span>
+                  {% elif r.status == 'confirmed' %}
+                    <span class="badge bg-success">confirmed</span>
+                  {% elif r.status == 'paid' %}
+                    <span class="badge bg-primary">paid</span>
+                  {% elif r.status == 'canceled' %}
+                    <span class="badge bg-secondary">canceled</span>
+                  {% else %}
+                    <span class="badge bg-light text-dark">{{ r.status }}</span>
+                  {% endif %}
+                </td>
+
+                <td class="text-center">
+                  
+                  <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                          type="button"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false">
+                    Actions
+                  </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <a class="dropdown-item"
+                           href="{{ url_for('pendaftaran.pendaftaran_edit_page', pendaftaran_id=r.pendaftaran_id) }}">
+                          Detail Header
+                        </a>
+                      </li>
+
+                      <li>
+                        <a class="dropdown-item"
+                           href="{{ url_for('pendaftaran.pendaftaran_treatment_page', pendaftaran_id=r.pendaftaran_id) }}">
+                          Treatment
+                        </a>
+                      </li>
+
+
+                      {% if r.status == 'confirmed' %}
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                          <form method="POST"
+                                class="form-paid"
+                                data-title="Set pendaftaran menjadi PAID?"
+                                data-text="Masukkan nominal rupiah yang diterima."
+                                data-total="{{ (r.total or 0) }}"
+                                action="{{ url_for('pendaftaran.pendaftaran_paid_post', pendaftaran_id=r.pendaftaran_id) }}">
+                            <input type="hidden" name="paid_amount" value="">
+                            <button type="submit" class="dropdown-item text-primary">
+                              Paid
+                            </button>
+                          </form>
+                        </li>
+                      {% endif %}
+
+                      {% if r.status == 'paid' %}
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                          <button type="button"
+                                  class="dropdown-item text-success btn-share-receipt"
+                                  data-token="{{ r.receipt_token or '' }}"
+                                  data-phone="{{ r.phone or '' }}">
+                            Share Receipt
+                          </button>
+                        </li>
+
+                        <li>
+                          <a class="dropdown-item"
+                             href="{{ url_for('pendaftaran.receipt_public_page', token=(r.receipt_token or '')) }}"
+                             target="_blank" rel="noopener">
+                            Buka Receipt
+                          </a>
+                        </li>
+
+                      {% endif %}
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+
+  <script>
+    function swalLoading(title){
+      Swal.fire({
+        title: title || 'Memproses...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading()
+      });
+    }
+
+    function formatRupiahDigits(digits){
+      if(!digits) return '';
+      return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function normalizeDigits(val){
+      return String(val || '').replace(/[^\d]/g, '');
+    }
+
+    function parseRupiahToNumber(val){
+      const digits = normalizeDigits(val);
+      return digits ? Number(digits) : 0;
+    }
+
+    function formatRupiahWithCaret(inputEl){
+      const oldValue = inputEl.value || '';
+      const oldPos = inputEl.selectionStart || oldValue.length;
+
+      const leftPart = oldValue.slice(0, oldPos);
+      const leftDigitsCount = normalizeDigits(leftPart).length;
+
+      const digits = normalizeDigits(oldValue);
+      const formatted = formatRupiahDigits(digits);
+      inputEl.value = formatted;
+
+      let newPos = 0;
+      let seenDigits = 0;
+      while(newPos < formatted.length){
+        if(/\d/.test(formatted[newPos])) seenDigits++;
+        newPos++;
+        if(seenDigits >= leftDigitsCount) break;
+      }
+      try { inputEl.setSelectionRange(newPos, newPos); } catch(e){}
+    }
+
+    function buildReceiptUrl(token){
+      return `${window.location.origin}/r/${encodeURIComponent(token)}`;
+    }
+
+    function normalizePhoneID(phone){
+      let p = String(phone || '').trim();
+      if(!p) return '';
+      p = p.replace(/[^\d+]/g, '');
+      if(p.startsWith('+')) p = p.slice(1);
+      if(p.startsWith('0')) p = '62' + p.slice(1);
+      return p;
+    }
+
+    function buildWaUrl(receiptUrl, phone){
+      const msg = `Berikut link kwitansi/receipt:\n${receiptUrl}`;
+      const p = normalizePhoneID(phone);
+      if(p){
+        return `https://wa.me/${encodeURIComponent(p)}?text=${encodeURIComponent(msg)}`;
+      }
+      return `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    }
+
+    async function copyToClipboard(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        return true;
+      }catch(e){
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try{
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          return true;
+        }catch(err){
+          document.body.removeChild(ta);
+          return false;
+        }
+      }
+    }
+
+    async function openShareReceiptModal(token, phone){
+      token = String(token || '').trim();
+      if(!token){
+        await Swal.fire({
+          icon:'error',
+          title:'Gagal',
+          text:'Receipt token kosong. Pastikan token disimpan di DB dan ikut dikirim ke list.'
+        });
+        return;
+      }
+
+      const url = buildReceiptUrl(token);
+      const wa  = buildWaUrl(url, phone);
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Receipt siap dibagikan',
+        html: `
+          <div class="text-start">
+            <div class="small text-muted mb-1">Link receipt:</div>
+            <div class="border rounded p-2 bg-light" style="word-break:break-all;">
+              ${url}
+            </div>
+            <div class="mt-3 d-flex gap-2 flex-wrap">
+              <button id="btnCopyReceipt" class="btn btn-outline-secondary btn-sm" type="button">Copy Link</button>
+              <a class="btn btn-success btn-sm" href="${wa}" target="_blank" rel="noopener">Share WhatsApp</a>
+              <a class="btn btn-primary btn-sm" href="${url}" target="_blank" rel="noopener">Buka Receipt</a>
+            </div>
+            <div class="small text-muted mt-2">
+              Siapa pun yang memiliki link dapat membuka receipt ini.
+            </div>
+          </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true,
+        didOpen: () => {
+          const btn = document.getElementById('btnCopyReceipt');
+          if(btn){
+            btn.addEventListener('click', async () => {
+              const ok = await copyToClipboard(url);
+              if(ok){
+                Swal.fire({
+                  icon:'success',
+                  title:'Tersalin',
+                  text:'Link receipt berhasil dicopy.',
+                  timer:1200,
+                  showConfirmButton:false
+                });
+              }else{
+                Swal.fire({
+                  icon:'error',
+                  title:'Gagal',
+                  text:'Tidak bisa copy otomatis. Silakan copy manual.'
+                });
+              }
+            });
+          }
+        }
+      });
+    }
+
+    $(function () {
+      $('#tblPendaftaran').DataTable({
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        order: [[0, 'desc']],
+        columnDefs: [
+          { targets: [11], orderable: false, searchable: false },
+          { targets: [10], orderable: false },
+          { targets: [5, 8, 9], className: 'text-end' }
+        ],
+        language: {
+          search: "Cari:",
+          lengthMenu: "Tampilkan _MENU_ data",
+          info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+          infoEmpty: "Tidak ada data",
+          infoFiltered: "(filter dari _MAX_ data)",
+          zeroRecords: "Data tidak ditemukan",
+          emptyTable: "Belum ada data.",
+          paginate: { previous: "Prev", next: "Next" }
+        }
+      });
+
+      $(document).on('submit', 'form.form-confirm, form.form-cancel', async function(e){
+        e.preventDefault();
+
+        const $form = $(this);
+        const isCancel = $form.hasClass('form-cancel');
+
+        const title = $form.data('title') || (isCancel ? 'Batalkan pendaftaran?' : 'Konfirmasi pendaftaran?');
+        const text  = $form.data('text')  || (isCancel ? 'Pendaftaran akan dibatalkan.' : 'Status akan menjadi confirmed.');
+        const icon  = isCancel ? 'warning' : 'question';
+        const confirmText = isCancel ? 'Ya, Batalkan' : 'Confirm';
+        const cancelText  = 'Batal';
+
+        const ok = await swalConfirm({ title, text, icon, confirmText, cancelText });
+        if(!ok) return;
+
+        swalLoading(isCancel ? 'Membatalkan...' : 'Mengonfirmasi...');
+        this.submit();
+      });
+
+      $(document).on('submit', 'form.form-paid', async function(e){
+        e.preventDefault();
+
+        const $form = $(this);
+        const title = $form.data('title') || 'Set pendaftaran menjadi PAID?';
+        const text  = $form.data('text')  || 'Masukkan nominal rupiah yang diterima.';
+        const total = Number($form.data('total') || 0);
+
+        const res = await Swal.fire({
+          icon: 'question',
+          title: title,
+          text: text,
+          input: 'text',
+          inputValue: '',
+          inputPlaceholder: 'Contoh: 150.000',
+          inputAttributes: { inputmode: 'numeric', autocomplete: 'off' },
+          showCancelButton: true,
+          confirmButtonText: 'Simpan',
+          cancelButtonText: 'Batal',
+          reverseButtons: true,
+          didOpen: () => {
+            const input = Swal.getInput();
+            if(!input) return;
+
+            input.value = '';
+
+            input.addEventListener('input', () => {
+              formatRupiahWithCaret(input);
+            });
+          },
+          preConfirm: () => {
+            const v = Swal.getInput()?.value || '';
+            const num = parseRupiahToNumber(v);
+
+            if(!num || num <= 0){
+              Swal.showValidationMessage('Nominal wajib diisi dan harus > 0.');
+              return false;
+            }
+
+            if(total > 0 && num < total){
+              Swal.showValidationMessage(`Nominal tidak boleh lebih kecil dari biaya (${formatRupiahDigits(String(total))}).`);
+              return false;
+            }
+
+            return String(num);
+          }
+        });
+
+        if(!res.isConfirmed) return;
+
+        $form.find('input[name="paid_amount"]').val(res.value);
+        swalLoading('Menyimpan pembayaran...');
+        this.submit();
+      });
+
+      $(document).on('click', '.btn-share-receipt', function(){
+        const token = $(this).data('token') || '';
+        const phone = $(this).data('phone') || '';
+        openShareReceiptModal(token, phone);
+      });
+
+      const receiptToken = {{ (receipt_token or '')|tojson }};
+      const receiptPhone = {{ (receipt_phone or '')|tojson }};
+      if(receiptToken){
+        openShareReceiptModal(receiptToken, receiptPhone);
+
+        try{
+          const u = new URL(window.location.href);
+          u.searchParams.delete('receipt');
+          u.searchParams.delete('phone');
+          window.history.replaceState({}, '', u.toString());
+        }catch(e){}
+      }
+    });
+  </script>
+{% endblock %}

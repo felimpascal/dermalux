@@ -1,0 +1,70 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow rounded-4">
+                <div class="card-body p-4">
+
+                    <h4 class="mb-4 text-center fw-bold">Ganti Password</h4>
+
+                    <form method="POST" action="{{ url_for('auth.ganti_password_submit') }}" autocomplete="off">
+
+                        <div class="mb-3">
+                            <label class="form-label">Password Lama</label>
+                            <input type="password"
+                                   name="txtPasswordLama"
+                                   class="form-control"
+                                   required
+                                   value="{{ user.passLama }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Password Baru</label>
+                            <input type="password"
+                                   name="txtPasswordBaru"
+                                   class="form-control"
+                                   required
+                                   value="{{ user.passBaru }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Konfirmasi Password Baru</label>
+                            <input type="password"
+                                   name="txtPasswordKonfirmasi"
+                                   class="form-control"
+                                   required
+                                   value="{{ user.passKonfirmasi }}">
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            Simpan Perubahan
+                        </button>
+
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('auth.logout') }}" class="text-danger small">
+                                Logout
+                            </a>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            Swal.fire({
+                icon: 'info',
+                title: 'Informasi',
+                text: '{{ messages[0] }}'
+            });
+        {% endif %}
+    {% endwith %}
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h4 class="mb-0">Dashboard</h4>
+    <div class="small text-muted">Promo berlaku hari ini</div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      <b>Tarif Promo Aktif (Hari Ini)</b>
+    </div>
+    <div class="card-body">
+
+      {% if promo_rows and promo_rows|length > 0 %}
+      <div class="table-responsive">
+        <table id="tblPromo" class="table table-sm table-striped table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Kode</th>
+              <th>Treatment</th>
+              <th class="text-end">Harga Normal</th>
+              <th>Promo</th>
+              <th class="text-end">Harga Promo</th>
+              <th>Periode</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in promo_rows %}
+            <tr>
+              <td>{{ r.tariff_code }}</td>
+              <td>{{ r.treatment_name }}</td>
+              <td class="text-end">{{ "{:,.0f}".format(r.price) }}</td>
+              <td>
+                {% if r.promo_type == 'percent' %}
+                  {{ r.promo_value }}%
+                {% elif r.promo_type == 'amount' %}
+                  Rp {{ "{:,.0f}".format(r.promo_value) }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td class="text-end"><b>{{ "{:,.0f}".format(r.promo_price) }}</b></td>
+              <td class="small text-muted">
+                  {{ r.promo_start.strftime('%d/%m/%Y') }} s/d {{ r.promo_end.strftime('%d/%m/%Y') }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="text-muted">Tidak ada promo yang berlaku hari ini.</div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(function(){
+  if ($.fn.DataTable) {
+    $('#tblPromo').DataTable({
+      pageLength: 10,
+      order: [],
+    });
+  }
+});
+</script>
+{% endblock %}

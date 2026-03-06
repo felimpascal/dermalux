@@ -1,0 +1,209 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="container py-3">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+      <h4 class="mb-0">Permissions</h4>
+      <small class="text-muted">
+        User: <strong>{{ user.username }}</strong> ({{ user.role }})
+      </small>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('user_mgmt.edit_user', public_id=user.public_id) }}"
+         class="btn btn-outline-secondary">
+        Kembali
+      </a>
+
+      <a href="{{ url_for('user_mgmt.list_users') }}"
+         class="btn btn-outline-dark">
+        List User
+      </a>
+    </div>
+  </div>
+
+
+  {% if user.role == 'admin' %}
+  <div class="alert alert-info">
+    User ini adalah <strong>admin</strong>.  
+    Admin otomatis full access (bypass permission).  
+    Mapping permission tetap boleh disimpan tetapi tidak berpengaruh pada akses admin.
+  </div>
+  {% endif %}
+
+
+  <div class="card">
+
+    <div class="card-body">
+
+      <!-- ========================= -->
+      <!-- SEARCH -->
+      <!-- ========================= -->
+      <div class="row g-2 align-items-center mb-3">
+
+        <div class="col-md-6">
+          <input id="permSearch"
+                 type="text"
+                 class="form-control"
+                 placeholder="Cari permission code atau name...">
+        </div>
+
+        <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end">
+          <button type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  id="btnSelectAll">
+            Select All
+          </button>
+
+          <button type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  id="btnClearAll">
+            Clear All
+          </button>
+        </div>
+
+      </div>
+
+
+      <!-- ========================= -->
+      <!-- PERMISSION FORM -->
+      <!-- ========================= -->
+      <form method="post"
+            action="{{ url_for('user_mgmt.manage_permissions', public_id=user.public_id) }}">
+
+        <div class="table-responsive">
+
+          <table class="table table-hover align-middle"
+                 id="permTable">
+
+            <thead class="table-light">
+              <tr>
+                <th style="width:80px;">Grant</th>
+                <th>Code</th>
+                <th>Name</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {% for p in perms %}
+
+              <tr>
+
+                <td>
+                  <input
+                    class="form-check-input perm-check"
+                    type="checkbox"
+                    name="perm_ids"
+                    value="{{ p.id }}"
+                    {% if p.granted %}checked{% endif %}>
+                </td>
+
+                <td class="perm-code fw-semibold">
+                  {{ p.permission_code }}
+                </td>
+
+                <td class="perm-name text-muted">
+                  {{ p.permission_name }}
+                </td>
+
+              </tr>
+
+              {% endfor %}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+
+        <!-- BUTTON -->
+        <div class="d-flex gap-2">
+
+          <button type="submit"
+                  class="btn btn-primary">
+            Simpan
+          </button>
+
+          <a href="{{ url_for('user_mgmt.edit_user', public_id=user.public_id) }}"
+             class="btn btn-outline-secondary">
+            Batal
+          </a>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<script>
+(function () {
+
+  const searchEl = document.getElementById("permSearch");
+  const table = document.getElementById("permTable");
+  const btnSelectAll = document.getElementById("btnSelectAll");
+  const btnClearAll = document.getElementById("btnClearAll");
+
+  function filterRows() {
+
+    const q = (searchEl.value || "").toLowerCase().trim();
+    const rows = table.querySelectorAll("tbody tr");
+
+    rows.forEach(tr => {
+
+      const code = tr.querySelector(".perm-code").textContent.toLowerCase();
+      const name = tr.querySelector(".perm-name").textContent.toLowerCase();
+
+      const ok = (q === "") || code.includes(q) || name.includes(q);
+
+      tr.style.display = ok ? "" : "none";
+
+    });
+
+  }
+
+  searchEl.addEventListener("input", filterRows);
+
+
+  btnSelectAll.addEventListener("click", function () {
+
+    table.querySelectorAll("tbody tr").forEach(tr => {
+
+      if (tr.style.display === "none") return;
+
+      const cb = tr.querySelector(".perm-check");
+
+      if (cb) cb.checked = true;
+
+    });
+
+  });
+
+
+  btnClearAll.addEventListener("click", function () {
+
+    table.querySelectorAll("tbody tr").forEach(tr => {
+
+      if (tr.style.display === "none") return;
+
+      const cb = tr.querySelector(".perm-check");
+
+      if (cb) cb.checked = false;
+
+    });
+
+  });
+
+})();
+</script>
+
+{% endblock %}

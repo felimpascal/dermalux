@@ -1,0 +1,798 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<style>
+  .card-section { margin-bottom: 1rem; }
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: .75rem;
+  }
+  .required-star { color: #dc3545; }
+  .table-responsive { overflow-x: auto; overflow-y: visible; }
+  .table td, .table th { vertical-align: middle; }
+  .text-muted-xs {
+    font-size: 12px;
+    color: #6c757d;
+  }
+  .info-label {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 2px;
+  }
+  .info-value {
+    font-weight: 500;
+  }
+  .photo-chip {
+    border: 1px solid #dee2e6;
+    border-radius: .5rem;
+    padding: .75rem;
+    background: #fff;
+    height: 100%;
+  }
+  .photo-chip .title {
+    font-weight: 600;
+    margin-bottom: .25rem;
+  }
+  .sticky-footer-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: #fff;
+    border-top: 1px solid #e9ecef;
+    padding-top: .75rem;
+    margin-top: 1rem;
+  }
+  .photo-preview-box {
+    width: 120px;
+    height: 120px;
+    border: 1px solid #dee2e6;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #f8f9fa;
+  }
+  .photo-preview-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .preview-placeholder {
+    font-size: 12px;
+    color: #6c757d;
+    text-align: center;
+    padding: 8px;
+  }
+  .tom-select .ts-control {
+    min-height: 38px;
+  }
+</style>
+
+{% set h = data.header if data and data.header else pendaftaran %}
+{% set current_user_id = session.get('user_id', '') %}
+{% set current_user_code = session.get('userCode', '-') %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="mb-0">
+      {% if mode == 'edit' %}
+        Edit Diagnosa Pasien
+      {% else %}
+        Tambah Diagnosa Pasien
+      {% endif %}
+    </h4>
+    <small class="text-muted">
+      {% if mode == 'edit' %}
+        Perbarui data diagnosa pasien
+      {% else %}
+        Input diagnosa pasien berdasarkan pendaftaran
+      {% endif %}
+    </small>
+  </div>
+
+  <div>
+    <a href="{{ url_for('diagnosa_pasien.list_page', pendaftaran_id=h.pendaftaran_id) }}"
+      class="btn btn-outline-secondary">
+      Batal
+    </a>
+    <button type="submit" class="btn btn-primary" id="btnSubmitDiagnosa" form="formDiagnosa">
+      {% if mode == 'edit' %}
+        Update Diagnosa
+      {% else %}
+        Simpan Diagnosa
+      {% endif %}
+    </button>
+    <a href="{{ url_for('diagnosa_pasien.list_page', pendaftaran_id=h.pendaftaran_id) }}"
+      class="btn btn-outline-secondary">
+      Kembali
+    </a>
+  </div>
+</div>
+
+<form id="formDiagnosa"
+      method="POST"
+      enctype="multipart/form-data"
+      action="{% if mode == 'edit' %}{{ url_for('diagnosa_pasien.edit_submit', diagnosa_id=h.diagnosa_id) }}{% else %}{{ url_for('diagnosa_pasien.create_submit') }}{% endif %}">
+  
+  {% if mode != 'edit' %}
+    <input type="hidden" name="pendaftaran_id" value="{{ h.pendaftaran_id }}">
+  {% endif %}
+
+  <input type="hidden" name="diagnosa_details" id="diagnosa_details">
+  <input type="hidden" name="photos_meta" id="photos_meta">
+  <input type="hidden" name="dokter_id" value="{{ current_user_id }}">
+
+  <div class="card card-section">
+    <div class="card-body">
+      <div class="section-title">Informasi Pendaftaran</div>
+
+      <div class="row g-3">
+        <div class="col-md-2">
+          <div class="info-label">ID Pendaftaran</div>
+          <div class="info-value">{{ h.pendaftaran_id or '-' }}</div>
+        </div>
+
+        <div class="col-md-2">
+          <div class="info-label">Tanggal Pendaftaran</div>
+          <div class="info-value">
+            {% if h.tgl_pendaftaran %}
+              {{ h.tgl_pendaftaran.strftime('%d/%m/%Y %H:%M') }}
+            {% else %}
+              -
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-md-2">
+          <div class="info-label">Kode Pasien</div>
+          <div class="info-value">{{ h.patient_code or '-' }}</div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="info-label">Nama Pasien</div>
+          <div class="info-value">{{ h.full_name or '-' }}</div>
+        </div>
+
+        <div class="col-md-1">
+          <div class="info-label">Umur</div>
+          <div class="info-value">
+            {% if h.age_years is not none %}
+              {{ h.age_years }}
+            {% else %}
+              -
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-md-2">
+          <div class="info-label">No HP</div>
+          <div class="info-value">{{ h.phone or '-' }}</div>
+        </div>
+
+        <div class="col-md-12">
+          <div class="info-label">Anamnesis Umum</div>
+          <div class="info-value">{{ h.anamnesis_umum or '-' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-section">
+    <div class="card-body">
+      <div class="section-title">Assessment Dokter</div>
+
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Tanggal Diagnosa <span class="required-star">*</span></label>
+          <input type="datetime-local"
+                 class="form-control"
+                 name="tgl_diagnosa"
+                 value="{% if data and data.header and data.header.tgl_diagnosa %}{{ data.header.tgl_diagnosa.strftime('%Y-%m-%dT%H:%M') }}{% elif h.tgl_pendaftaran %}{{ h.tgl_pendaftaran.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Dokter</label>
+          <input type="text"
+                 class="form-control"
+                 value="{{ current_user_code }}"
+                 readonly
+                 disabled>
+          <div class="text-muted-xs mt-1">Dokter diambil otomatis dari session login.</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Keluhan Utama</label>
+          <input type="text"
+                 class="form-control"
+                 name="keluhan_utama"
+                 value="{% if data and data.header %}{{ data.header.keluhan_utama or '' }}{% endif %}"
+                 placeholder="Contoh: Jerawat aktif sejak 3 bulan">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Jenis Kulit</label>
+          <input type="text"
+                 class="form-control"
+                 name="jenis_kulit"
+                 value="{% if data and data.header %}{{ data.header.jenis_kulit or '' }}{% endif %}"
+                 placeholder="Contoh: berminyak / kering / kombinasi / sensitif">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Lokasi Keluhan</label>
+          <input type="text"
+                 class="form-control"
+                 name="lokasi_keluhan"
+                 value="{% if data and data.header %}{{ data.header.lokasi_keluhan or '' }}{% endif %}"
+                 placeholder="Contoh: wajah, pipi kanan-kiri, dagu">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Durasi Keluhan</label>
+          <input type="text"
+                 class="form-control"
+                 name="durasi_keluhan"
+                 value="{% if data and data.header %}{{ data.header.durasi_keluhan or '' }}{% endif %}"
+                 placeholder="Contoh: 3 bulan">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Riwayat Alergi</label>
+          <textarea class="form-control"
+                    name="riwayat_alergi"
+                    rows="3"
+                    placeholder="Riwayat alergi obat / skincare / bahan tertentu">{% if data and data.header %}{{ data.header.riwayat_alergi or '' }}{% endif %}</textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Riwayat Perawatan</label>
+          <textarea class="form-control"
+                    name="riwayat_perawatan"
+                    rows="3"
+                    placeholder="Riwayat treatment / skincare / tindakan sebelumnya">{% if data and data.header %}{{ data.header.riwayat_perawatan or '' }}{% endif %}</textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Anamnesis Dokter</label>
+          <textarea class="form-control"
+                    name="anamnesis_dokter"
+                    rows="4"
+                    placeholder="Catatan anamnesis dari dokter">{% if data and data.header %}{{ data.header.anamnesis_dokter or '' }}{% endif %}</textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Pemeriksaan Fisik</label>
+          <textarea class="form-control"
+                    name="pemeriksaan_fisik"
+                    rows="4"
+                    placeholder="Hasil pemeriksaan fisik / objektif">{% if data and data.header %}{{ data.header.pemeriksaan_fisik or '' }}{% endif %}</textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Assessment</label>
+          <textarea class="form-control"
+                    name="assessment"
+                    rows="4"
+                    placeholder="Ringkasan assessment dokter">{% if data and data.header %}{{ data.header.assessment or '' }}{% endif %}</textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Rencana Tindakan</label>
+          <textarea class="form-control"
+                    name="rencana_tindakan"
+                    rows="4"
+                    placeholder="Rencana treatment / tindakan / terapi">{% if data and data.header %}{{ data.header.rencana_tindakan or '' }}{% endif %}</textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Edukasi Pasien</label>
+          <textarea class="form-control"
+                    name="edukasi_pasien"
+                    rows="3"
+                    placeholder="Edukasi / instruksi untuk pasien">{% if data and data.header %}{{ data.header.edukasi_pasien or '' }}{% endif %}</textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Saran Kontrol</label>
+          <textarea class="form-control"
+                    name="saran_kontrol"
+                    rows="3"
+                    placeholder="Saran follow up / kontrol">{% if data and data.header %}{{ data.header.saran_kontrol or '' }}{% endif %}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-section">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="section-title mb-0">Detail Diagnosa <span class="required-star">*</span></div>
+        <button type="button" class="btn btn-sm btn-primary" id="btnAddDiagnosaRow">
+          + Tambah Diagnosa
+        </button>
+      </div>
+
+      <div class="text-muted-xs mb-2">
+        Minimal harus ada 1 diagnosa, dan hanya boleh ada 1 diagnosa utama.
+      </div>
+
+      <div class="table-responsive" style="min-height: 20vh;">
+        <table class="table table-bordered align-middle mb-0" id="tblDiagnosaDetail">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 70px;" class="text-center">Utama</th>
+              <th style="width: 380px;">Diagnosa</th>
+              <th>Catatan</th>
+              <th style="width: 90px;" class="text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="diagnosaDetailBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-section">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="section-title mb-0">Foto Diagnosa (Opsional)</div>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddPhotoRow">
+          + Tambah Foto
+        </button>
+      </div>
+
+      <div class="text-muted-xs mb-3">
+        Pilih file foto langsung. Path tidak perlu diketik manual.
+      </div>
+
+      {% if mode == 'edit' and data and data.photos %}
+        <div class="mb-3">
+          <label class="form-label">Foto Existing</label>
+          <div class="row g-2">
+            {% for p in data.photos %}
+              <div class="col-md-4">
+                <div class="photo-chip">
+                  <div class="mb-2">
+                    <div class="photo-preview-box">
+                      {% if p.file_path %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ p.file_path) }}"
+                             alt="{{ p.file_name or 'Foto diagnosa' }}"
+                             onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=&quot;preview-placeholder&quot;>Preview tidak tersedia</div>';">
+                      {% else %}
+                        <div class="preview-placeholder">Preview tidak tersedia</div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="title">{{ (p.jenis_foto or '-')|upper }}</div>
+                  <div><strong>Area:</strong> {{ p.area_foto or '-' }}</div>
+                  <div><strong>File:</strong> {{ p.file_name or '-' }}</div>
+                  <div><strong>Tanggal:</strong>
+                    {% if p.taken_at %}
+                      {{ p.taken_at.strftime('%d/%m/%Y %H:%M') }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </div>
+                  <div><strong>Catatan:</strong> {{ p.note or '-' }}</div>
+
+                  <button type="button"
+                          class="btn btn-sm btn-outline-danger btn-delete-photo-existing mt-2"
+                          data-action="{{ url_for('diagnosa_pasien.delete_photo_submit', foto_id=p.foto_id) }}"
+                          data-next="{{ request.path }}">
+                    Hapus Foto
+                  </button>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <hr>
+        </div>
+      {% endif %}
+
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="tblPhotoInput">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 140px;">Jenis Foto</th>
+              <th style="width: 140px;">Area Foto</th>
+              <th style="width: 260px;">File</th>
+              <th style="width: 170px;">Taken At</th>
+              <th style="width: 140px;">Preview</th>
+              <th>Catatan</th>
+              <th style="width: 90px;" class="text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="photoBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</form>
+
+<form id="deletePhotoForm" method="POST" style="display:none;">
+  <input type="hidden" name="next" id="deletePhotoNext" value="">
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    const MASTER_DIAGNOSA = {{ (master_diagnosa or [])|tojson }};
+    const EXISTING_DETAILS = {{ (data.details if data and data.details else [])|tojson }};
+    const diagnosaSelectInstances = [];
+
+    function escapeHtml(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function swalError(text){
+      return Swal.fire({
+        icon: 'error',
+        title: 'Validasi Gagal',
+        text: text || 'Data belum lengkap.'
+      });
+    }
+
+    function swalLoading(title){
+      Swal.fire({
+        title: title || 'Memproses...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading()
+      });
+    }
+
+    async function swalConfirm(opts){
+      const res = await Swal.fire({
+        icon: opts.icon || 'question',
+        title: opts.title || 'Konfirmasi',
+        text: opts.text || 'Lanjutkan proses?',
+        showCancelButton: true,
+        confirmButtonText: opts.confirmText || 'Ya',
+        cancelButtonText: opts.cancelText || 'Batal',
+        reverseButtons: true
+      });
+      return res.isConfirmed;
+    }
+
+    function getNowForDatetimeLocal(){
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    }
+
+    function buildDiagnosaOptions(selectedId){
+      let html = '<option value="">-- pilih diagnosa --</option>';
+      MASTER_DIAGNOSA.forEach(item => {
+        const selected = String(selectedId || '') === String(item.id) ? 'selected' : '';
+        html += `<option value="${item.id}" ${selected}>${escapeHtml(item.diagnosa_code)} - ${escapeHtml(item.diagnosa_name)}</option>`;
+      });
+      return html;
+    }
+
+    function enhanceDiagnosaSelect(selectEl){
+      if (!selectEl) return;
+
+      const ts = new TomSelect(selectEl, {
+        create: false,
+        persist: false,
+        maxItems: 1,
+        valueField: 'value',
+        labelField: 'text',
+        searchField: ['text'],
+        placeholder: 'Cari kode atau nama diagnosa...',
+        render: {
+          option: function(data, escape) {
+            return `<div>${escape(data.text)}</div>`;
+          },
+          item: function(data, escape) {
+            return `<div>${escape(data.text)}</div>`;
+          }
+        }
+      });
+
+      diagnosaSelectInstances.push(ts);
+    }
+
+    function createDiagnosaRow(row = {}){
+      const tr = document.createElement('tr');
+      tr.className = 'diagnosa-row';
+
+      tr.innerHTML = `
+        <td class="text-center">
+          <input type="radio" name="primary_diagnosa_radio" class="form-check-input input-primary"
+                 ${Number(row.is_primary || 0) === 1 ? 'checked' : ''}>
+        </td>
+        <td>
+          <select class="form-select input-master-diagnosa">
+            ${buildDiagnosaOptions(row.master_diagnosa_id || '')}
+          </select>
+        </td>
+        <td>
+          <input type="text" class="form-control input-note" value="${escapeHtml(row.note || '')}" placeholder="Catatan diagnosa">
+        </td>
+        <td class="text-center">
+          <button type="button" class="btn btn-sm btn-outline-danger btn-remove-row">Hapus</button>
+        </td>
+      `;
+      return tr;
+    }
+
+    function addDiagnosaRow(row = {}){
+      const body = document.getElementById('diagnosaDetailBody');
+      const tr = createDiagnosaRow(row);
+      body.appendChild(tr);
+
+      const select = tr.querySelector('.input-master-diagnosa');
+      enhanceDiagnosaSelect(select);
+    }
+
+    function createPhotoRow(index){
+      const nowValue = getNowForDatetimeLocal();
+
+      const tr = document.createElement('tr');
+      tr.className = 'photo-row';
+      tr.dataset.index = index;
+
+      tr.innerHTML = `
+        <td>
+          <select class="form-select input-jenis-foto">
+            <option value="">-- pilih --</option>
+            <option value="before">before</option>
+            <option value="after">after</option>
+            <option value="progress">progress</option>
+            <option value="other">other</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" class="form-control input-area-foto" placeholder="Contoh: pipi kanan">
+        </td>
+        <td>
+          <input type="file" class="form-control input-file" name="photo_file_${index}" accept=".jpg,.jpeg,.png,.webp">
+          <div class="text-muted-xs mt-1 file-name-preview">Belum ada file dipilih</div>
+        </td>
+        <td>
+          <input type="datetime-local" class="form-control input-taken-at" value="${nowValue}">
+        </td>
+        <td>
+          <div class="photo-preview-box preview-box">
+            <div class="preview-placeholder">Belum ada preview</div>
+          </div>
+        </td>
+        <td>
+          <input type="text" class="form-control input-photo-note" placeholder="Catatan">
+        </td>
+        <td class="text-center">
+          <button type="button" class="btn btn-sm btn-outline-danger btn-remove-row">Hapus</button>
+        </td>
+      `;
+      return tr;
+    }
+
+    function addPhotoRow(){
+      const body = document.getElementById('photoBody');
+      const index = document.querySelectorAll('#photoBody tr.photo-row').length;
+      body.appendChild(createPhotoRow(index));
+    }
+
+    function getDiagnosaDetailsFromTable(){
+      const rows = document.querySelectorAll('#diagnosaDetailBody tr.diagnosa-row');
+      const out = [];
+
+      rows.forEach(row => {
+        const masterId = row.querySelector('.input-master-diagnosa')?.value || '';
+        const isPrimary = row.querySelector('.input-primary')?.checked ? 1 : 0;
+        const note = row.querySelector('.input-note')?.value || '';
+
+        if (!masterId) return;
+
+        out.push({
+          master_diagnosa_id: Number(masterId),
+          is_primary: isPrimary,
+          note: note
+        });
+      });
+
+      return out;
+    }
+
+    function getPhotosMetaFromTable(){
+      const rows = document.querySelectorAll('#photoBody tr.photo-row');
+      const out = [];
+
+      rows.forEach((row, idx) => {
+        const jenisFoto = row.querySelector('.input-jenis-foto')?.value || '';
+        const areaFoto = row.querySelector('.input-area-foto')?.value || '';
+        const takenAt = row.querySelector('.input-taken-at')?.value || '';
+        const note = row.querySelector('.input-photo-note')?.value || '';
+        const fileInput = row.querySelector('.input-file');
+
+        const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+
+        if (!jenisFoto && !areaFoto && !takenAt && !note && !hasFile) return;
+
+        out.push({
+          index: idx,
+          input_name: fileInput ? fileInput.name : '',
+          jenis_foto: jenisFoto,
+          area_foto: areaFoto,
+          taken_at: takenAt,
+          note: note,
+          has_file: !!hasFile
+        });
+      });
+
+      return out;
+    }
+
+    function validateDiagnosaDetails(details){
+      if (!details.length){
+        return 'Minimal harus ada 1 diagnosa.';
+      }
+
+      const primaryCount = details.filter(x => Number(x.is_primary) === 1).length;
+      if (primaryCount === 0){
+        return 'Harus ada 1 diagnosa utama.';
+      }
+      if (primaryCount > 1){
+        return 'Diagnosa utama hanya boleh 1.';
+      }
+
+      const seen = new Set();
+      for (const row of details){
+        const id = String(row.master_diagnosa_id || '');
+        if (!id) return 'Diagnosa belum lengkap.';
+        if (seen.has(id)) return 'Diagnosa yang sama tidak boleh dipilih lebih dari satu kali.';
+        seen.add(id);
+      }
+
+      return '';
+    }
+
+    function validatePhotos(photos){
+      for (let i = 0; i < photos.length; i++){
+        const p = photos[i];
+        const no = i + 1;
+
+        if (!p.jenis_foto){
+          return `Foto ke-${no}: jenis_foto wajib diisi.`;
+        }
+        if (!p.has_file){
+          return `Foto ke-${no}: file wajib dipilih.`;
+        }
+      }
+      return '';
+    }
+
+    function renderImagePreview(fileInput){
+      const tr = fileInput.closest('tr');
+      const previewBox = tr?.querySelector('.preview-box');
+      const fileNamePreview = tr?.querySelector('.file-name-preview');
+
+      if (!previewBox) return;
+
+      if (!fileInput.files || !fileInput.files.length){
+        previewBox.innerHTML = `<div class="preview-placeholder">Belum ada preview</div>`;
+        if (fileNamePreview) fileNamePreview.textContent = 'Belum ada file dipilih';
+        return;
+      }
+
+      const file = fileInput.files[0];
+      if (fileNamePreview) fileNamePreview.textContent = file.name;
+
+      const reader = new FileReader();
+      reader.onload = function(e){
+        previewBox.innerHTML = `<img src="${e.target.result}" alt="Preview Foto">`;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      const btnAddDiagnosaRow = document.getElementById('btnAddDiagnosaRow');
+      const btnAddPhotoRow = document.getElementById('btnAddPhotoRow');
+      const form = document.getElementById('formDiagnosa');
+      const deletePhotoForm = document.getElementById('deletePhotoForm');
+      const deletePhotoNext = document.getElementById('deletePhotoNext');
+
+      btnAddDiagnosaRow?.addEventListener('click', function(){
+        addDiagnosaRow();
+      });
+
+      btnAddPhotoRow?.addEventListener('click', function(){
+        addPhotoRow();
+      });
+
+      document.addEventListener('click', async function(e){
+        if (e.target.classList.contains('btn-remove-row')){
+          const tr = e.target.closest('tr');
+          if (tr) tr.remove();
+          return;
+        }
+
+        if (e.target.classList.contains('btn-delete-photo-existing')){
+          const action = e.target.dataset.action || '';
+          const next = e.target.dataset.next || '';
+
+          const ok = await swalConfirm({
+            title: 'Hapus foto?',
+            text: 'Foto existing akan dihapus.',
+            icon: 'warning',
+            confirmText: 'Ya, Hapus',
+            cancelText: 'Batal'
+          });
+
+          if (!ok) return;
+
+          if (!action || !deletePhotoForm) {
+            await swalError('Action hapus foto tidak valid.');
+            return;
+          }
+
+          deletePhotoForm.action = action;
+          if (deletePhotoNext) deletePhotoNext.value = next;
+
+          swalLoading('Menghapus foto...');
+          deletePhotoForm.submit();
+        }
+      });
+
+      document.addEventListener('change', function(e){
+        if (e.target.classList.contains('input-primary') && e.target.checked){
+          document.querySelectorAll('.input-primary').forEach(radio => {
+            if (radio !== e.target) radio.checked = false;
+          });
+        }
+
+        if (e.target.classList.contains('input-file')){
+          renderImagePreview(e.target);
+        }
+      });
+
+      if (EXISTING_DETAILS && EXISTING_DETAILS.length){
+        EXISTING_DETAILS.forEach(row => addDiagnosaRow(row));
+      } else {
+        addDiagnosaRow();
+      }
+
+      form?.addEventListener('submit', async function(e){
+        e.preventDefault();
+
+        const details = getDiagnosaDetailsFromTable();
+        const photosMeta = getPhotosMetaFromTable();
+
+        const detailError = validateDiagnosaDetails(details);
+        if (detailError){
+          await swalError(detailError);
+          return;
+        }
+
+        const photoError = validatePhotos(photosMeta);
+        if (photoError){
+          await swalError(photoError);
+          return;
+        }
+
+        document.getElementById('diagnosa_details').value = JSON.stringify(details);
+        document.getElementById('photos_meta').value = JSON.stringify(photosMeta);
+
+        swalLoading('{% if mode == "edit" %}Mengupdate diagnosa...{% else %}Menyimpan diagnosa...{% endif %}');
+        form.submit();
+      });
+    });
+  </script>
+{% endblock %}

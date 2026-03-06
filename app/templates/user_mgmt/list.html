@@ -1,0 +1,163 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="container py-3">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+      <h4 class="mb-0">User Management</h4>
+      <small class="text-muted">
+        Kelola user, reset password, dan permission.
+      </small>
+    </div>
+
+    <a href="{{ url_for('user_mgmt.create_user') }}"
+       class="btn btn-primary">
+      + Tambah User
+    </a>
+  </div>
+
+
+  <!-- ========================= -->
+  <!-- SEARCH -->
+  <!-- ========================= -->
+  <form class="row g-2 mb-3"
+        method="get"
+        action="{{ url_for('user_mgmt.list_users') }}">
+
+    <div class="col-sm-8 col-md-6">
+      <input
+        type="text"
+        name="q"
+        value="{{ q or '' }}"
+        class="form-control"
+        placeholder="Cari nama atau username...">
+    </div>
+
+    <div class="col-sm-4 col-md-3 d-grid">
+      <button class="btn btn-outline-secondary"
+              type="submit">
+        Cari
+      </button>
+    </div>
+
+    <div class="col-sm-12 col-md-3 d-grid">
+      <a class="btn btn-outline-dark"
+         href="{{ url_for('user_mgmt.list_users') }}">
+        Reset
+      </a>
+    </div>
+
+  </form>
+
+
+
+  <!-- ========================= -->
+  <!-- TABLE -->
+  <!-- ========================= -->
+  <div class="card">
+
+    <div class="card-body p-0">
+
+      <div class="table-responsive">
+
+        <table class="table table-hover mb-0">
+
+          <thead class="table-light">
+            <tr>
+              <th style="width: 220px;">Nama</th>
+              <th>Username</th>
+              <th style="width:120px;">Role</th>
+              <th style="width:120px;">Status</th>
+              <th style="width:220px;">Aksi</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            {% if rows and rows|length > 0 %}
+
+              {% for r in rows %}
+
+              <tr>
+
+                <!-- NAMA -->
+                <td class="fw-semibold">
+                  {{ r.nama or '-' }}
+                </td>
+
+                <!-- USERNAME -->
+                <td>
+                  {{ r.username }}
+                </td>
+
+                <!-- ROLE -->
+                <td>
+                  <span class="badge
+                    {% if r.role == 'admin' %}
+                      bg-dark
+                    {% else %}
+                      bg-secondary
+                    {% endif %}">
+                    {{ r.role }}
+                  </span>
+                </td>
+
+                <!-- STATUS -->
+                <td>
+                  {% if r.is_active %}
+                    <span class="badge bg-success">
+                      Active
+                    </span>
+                  {% else %}
+                    <span class="badge bg-danger">
+                      Inactive
+                    </span>
+                  {% endif %}
+                </td>
+
+                <!-- ACTION -->
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <a
+                      class="btn btn-outline-primary"
+                      href="{{ url_for('user_mgmt.edit_user', public_id=r.public_id) }}">
+                      Edit
+                    </a>
+
+                    <a
+                      class="btn btn-outline-secondary"
+                      href="{{ url_for('user_mgmt.manage_permissions', public_id=r.public_id) }}">
+                      Permissions
+                    </a>
+                  </div>
+                </td>
+
+              </tr>
+
+              {% endfor %}
+
+            {% else %}
+
+              <tr>
+                <td colspan="5"
+                    class="text-center py-4 text-muted">
+                  Tidak ada data user.
+                </td>
+              </tr>
+
+            {% endif %}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

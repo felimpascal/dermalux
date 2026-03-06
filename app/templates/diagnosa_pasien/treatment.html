@@ -1,0 +1,741 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+<style>
+  /* highlight row yang terpilih */
+  #tblTariff tbody tr.row-picked { background: rgba(25,135,84,.08); }
+  /* biar kelihatan row bisa diklik */
+  #tblTariff tbody tr { cursor: pointer; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="mb-0">Treatment Pendaftaran #{{ header.pendaftaran_id }}</h4>
+    <div class="text-muted small">
+      Kode Pasien: <b>{{ header.patient_code }}</b> |
+      Tanggal: <b>{{ header.tgl_pendaftaran }}</b> |
+      Status:
+      {% if header.status == 'draft' %}
+        <span class="badge bg-warning text-dark">draft</span>
+      {% elif header.status == 'confirmed' %}
+        <span class="badge bg-success">confirmed</span>
+      {% elif header.status == 'paid' %}
+        <span class="badge bg-primary">paid</span>
+      {% else %}
+        <span class="badge bg-secondary">{{ header.status }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{{ url_for('diagnosa_pasien.list_pasien') }}">Kembali</a>
+    
+    {% if header.status == 'draft' %}
+      <form method="POST"
+            id="formConfirm"
+            action="{{ url_for('pendaftaran.pendaftaran_confirm_post', pendaftaran_id=header.pendaftaran_id) }}">
+        <button class="btn btn-success" type="submit">Confirm</button>
+      </form>
+    {% endif %}
+
+
+    {% if header.status == 'confirmed' %}
+      <form method="POST"
+            id="formPaid"
+            action="{{ url_for('pendaftaran.pendaftaran_paid_post', pendaftaran_id=header.pendaftaran_id) }}">
+        <input type="hidden" name="paid_amount" id="paid_amount" value="">
+        <button class="btn btn-primary" type="submit">Paid</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="mb-2"><b>Anamnesis Umum</b></div>
+    <div class="text-muted">{{ header.anamnesis_umum or '-' }}</div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h5 class="mb-0">Daftar Treatment</h5>
+
+  {% if header.status == 'draft' %}
+    <button class="btn btn-primary" id="btnOpenModal">+ Tambah Treatment</button>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-striped mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 90px;">ID</th>
+            <th style="width: 140px;">Kode</th>
+            <th>Nama Treatment</th>
+            <th style="width: 90px;" class="text-end">Qty</th>
+            <th style="width: 160px;" class="text-end">Harga</th>
+            <th style="width: 160px;" class="text-end">Diskon</th>
+            <th style="width: 160px;" class="text-end">Subtotal</th>
+            <th style="width: 120px;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyTreatments">
+          {% if rows %}
+            {% for d in rows %}
+              <tr>
+                <td>{{ d.pendaftaran_treatment_id }}</td>
+                <td>{{ d.tariff_code or '' }}</td>
+                <td>{{ d.treatment_name_snapshot }}</td>
+                <td class="text-end">{{ d.qty }}</td>
+                <td class="text-end">{{ "{:,.0f}".format(d.unit_price or 0) }}</td>
+                <td class="text-end">
+                  {% if d.discount_type %}
+                    {{ d.discount_type }} {{ d.discount_value }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td class="text-end">{{ "{:,.0f}".format(d.subtotal or 0) }}</td>
+                <td>
+                  {% if header.status == 'draft' %}
+                    <button class="btn btn-sm btn-outline-danger btnDel"
+                            data-id="{{ d.pendaftaran_treatment_id }}">
+                      Hapus
+                    </button>
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="8" class="text-center py-4 text-muted">Belum ada treatment.</td></tr>
+          {% endif %}
+        </tbody>
+        <tfoot class="table-light">
+          <tr>
+            <th colspan="6" class="text-end">Total</th>
+            <th class="text-end" id="grandTotal">0</th>
+            <th></th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- =========================
+     Modal: Tambah Treatment
+     ========================= -->
+<div class="modal fade" id="modalAdd" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Treatment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-2">
+          <div class="col-md-12">
+            <label class="form-label">Cari Tarif</label>
+            <input type="text" class="form-control" id="qTariff" placeholder="Ketik nama / kode tarif...">
+            <div class="form-text">
+              Data tariff otomatis tampil (tanpa klik Cari). Klik row untuk pilih/unpilih, isi qty, lalu simpan.
+            </div>
+            <div class="form-text">
+              Tip: klik header <b>Pilih</b> untuk sort checkbox (checked dulu).
+            </div>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="table-responsive" style="max-height: 420px; overflow:auto;">
+          <table class="table table-sm table-hover align-middle w-100" id="tblTariff">
+            <thead>
+              <tr>
+                <th style="width: 70px;">Pilih</th>
+                <th style="width: 110px;">Qty</th>
+                <th style="width: 140px;">Kode</th>
+                <th>Nama</th>
+                <th class="text-end" style="width: 140px;">Harga</th>
+                <th class="text-end" style="width: 160px;">Diskon</th>
+                <th style="width: 140px;">Promo</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyTariff">
+              <tr><td colspan="7" class="text-center text-muted py-3">Loading tariff...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <hr>
+
+        <div class="row g-2 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label">Catatan (opsional)</label>
+            <input type="text" class="form-control" id="notes" placeholder="mis: paket, catatan dokter, dll">
+          </div>
+
+          <div class="col-md-3">
+            <div class="small text-muted">Total item terpilih</div>
+            <div class="fw-semibold" id="selCount">0</div>
+          </div>
+
+          <div class="col-md-3 text-end">
+            <div class="small text-muted">Total (preview)</div>
+            <div class="fw-semibold" id="selTotal">0</div>
+          </div>
+        </div>
+
+        <div class="alert alert-info mt-3 mb-0">
+          Diskon &amp; promo <b>dikunci</b> dan otomatis mengambil dari master tariff.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
+        <button type="button" class="btn btn-primary" id="btnSubmitTreatment">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+{# Jika DataTables & jQuery sudah ada di base.html, Anda boleh HAPUS 3 baris CDN di bawah #}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+<script>
+(function(){
+  const pendaftaranId = {{ header.pendaftaran_id }};
+
+  // =========================
+  // SweetAlert2 helpers
+  // =========================
+  function swalError(msg){
+    return Swal.fire({ icon:'error', title:'Gagal', text: msg || 'Terjadi kesalahan.' });
+  }
+  function swalInfo(msg){
+    return Swal.fire({ icon:'info', title:'Informasi', text: msg || '' });
+  }
+  function swalSuccess(msg){
+    return Swal.fire({ icon:'success', title:'Berhasil', text: msg || 'Berhasil diproses.' });
+  }
+  async function swalConfirm(opts){
+    const res = await Swal.fire({
+      icon: opts.icon || 'question',
+      title: opts.title || 'Konfirmasi',
+      text: opts.text || 'Lanjutkan proses?',
+      showCancelButton: true,
+      confirmButtonText: opts.confirmText || 'Ya',
+      cancelButtonText: opts.cancelText || 'Batal',
+      reverseButtons: true
+    });
+    return res.isConfirmed;
+  }
+  function swalLoading(title){
+    Swal.fire({
+      title: title || 'Memproses...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => Swal.showLoading()
+    });
+  }
+
+  function formatRupiahInput(val){
+    const digits = String(val || '').replace(/[^\d]/g,'');
+    if(!digits) return '';
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  function parseRupiahToNumber(val){
+    const digits = String(val || '').replace(/[^\d]/g,'');
+    return digits ? Number(digits) : 0;
+  }
+
+  function rupiah(n){
+    n = Number(n || 0);
+    return n.toLocaleString('id-ID');
+  }
+
+  // =========================
+  // Confirm pendaftaran (SweetAlert)
+  // =========================
+  const formConfirm = document.getElementById('formConfirm');
+  if(formConfirm){
+    formConfirm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+
+      const ok = await swalConfirm({
+        title: 'Konfirmasi pendaftaran?',
+        text: 'Status akan berubah menjadi confirmed.',
+        icon: 'question',
+        confirmText: 'Confirm',
+        cancelText: 'Batal'
+      });
+      if(!ok) return;
+
+      swalLoading('Mengonfirmasi...');
+      formConfirm.submit();
+    });
+  }
+
+  // =========================
+  // Paid pendaftaran (SweetAlert input nominal)
+  // =========================
+  const formPaid = document.getElementById('formPaid');
+  if(formPaid){
+    formPaid.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+
+      // default: total dari footer
+      const defaultTotal = (document.getElementById('grandTotal')?.innerText || '').trim();
+
+      const res = await Swal.fire({
+        icon: 'question',
+        title: 'Set pendaftaran menjadi PAID?',
+        text: 'Masukkan nominal rupiah yang diterima.',
+        input: 'text',
+        inputValue: formatRupiahInput(defaultTotal),
+        inputPlaceholder: 'Contoh: 150.000',
+        inputAttributes: { inputmode:'numeric', autocomplete:'off' },
+        showCancelButton: true,
+        confirmButtonText: 'Simpan',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+        didOpen: () => {
+          const input = Swal.getInput();
+          if(!input) return;
+          input.value = formatRupiahInput(input.value);
+          input.addEventListener('input', () => {
+            const caret = input.selectionStart || 0;
+            const formatted = formatRupiahInput(input.value);
+            input.value = formatted;
+            try { input.setSelectionRange(caret, caret); } catch(err){}
+          });
+        },
+        preConfirm: () => {
+          const v = Swal.getInput()?.value || '';
+          const num = parseRupiahToNumber(v);
+          if(!num || num <= 0){
+            Swal.showValidationMessage('Nominal wajib diisi dan harus > 0.');
+            return false;
+          }
+          return String(num);
+        }
+      });
+
+      if(!res.isConfirmed) return;
+
+      document.getElementById('paid_amount').value = res.value;
+
+      swalLoading('Menyimpan pembayaran...');
+      formPaid.submit();
+    });
+  }
+
+  // Diskon UI: pakai field diskon permanen jika ada, fallback promo bila ada (client-side preview saja)
+  function calcDiscount(gross, item){
+    const dt = (item.discount_type || item.discountType || '').toUpperCase();
+    const dv = Number(item.discount_value ?? item.discountValue ?? 0);
+
+    let disc = 0;
+    if(dt === 'PERCENT') disc = gross * (dv/100);
+    else if(dt === 'AMOUNT') disc = dv;
+
+    if(disc < 0) disc = 0;
+    if(disc > gross) disc = gross;
+    return disc;
+  }
+
+  function getUnitPrice(item){
+    return Number(item.final_price ?? item.finalPrice ?? item.price ?? 0);
+  }
+
+  // Anda saat ini belum punya promo_code; tampilkan ringkas promo_type/value (opsional)
+  function getPromoLabel(item){
+    const pt = (item.promo_type || '').toUpperCase();
+    const pv = Number(item.promo_value ?? 0);
+    if(!pt) return '';
+    if(pt === 'PERCENT') return `PROMO ${pv}%`;
+    if(pt === 'AMOUNT') return `PROMO ${rupiah(pv)}`;
+    return '';
+  }
+
+  // key tariff_id -> { qty:int }
+  const picked = new Map();
+
+  let allTariffs = [];
+  let loadedAllTariff = false;
+  let dtTariff = null;
+
+  function refreshGrandTotal(){
+    let total = 0;
+    document.querySelectorAll('#tbodyTreatments tr').forEach(tr=>{
+      const td = tr.querySelector('td:nth-child(7)');
+      if(!td) return;
+      const raw = (td.innerText || '0').replace(/\./g,'').replace(/,/g,'');
+      total += (Number(raw) || 0);
+    });
+    const el = document.getElementById('grandTotal');
+    if(el) el.innerText = rupiah(total);
+  }
+
+  function refreshSelectedSummary(){
+    let count = 0;
+    let total = 0;
+
+    picked.forEach((v, tariffId)=>{
+      const t = allTariffs.find(x => Number(x.id) === Number(tariffId));
+      if(!t) return;
+
+      const qty = parseInt(v.qty || 0, 10);
+      if(qty < 1) return;
+
+      const price = getUnitPrice(t);
+
+      let dt = (t.discount_type || t.discountType || '');
+      let dv = Number(t.discount_value ?? t.discountValue ?? 0);
+
+      if(!dt){
+        const pt = (t.promo_type || '').toUpperCase();
+        const pv = Number(t.promo_value ?? 0);
+        if(pt === 'PERCENT' || pt === 'AMOUNT'){
+          dt = pt;
+          dv = pv;
+        }
+      }
+
+      const gross = qty * price;
+      const disc = calcDiscount(gross, { discount_type: dt, discount_value: dv });
+      total += (gross - disc);
+      count += 1;
+    });
+
+    document.getElementById('selCount').innerText = String(count);
+    document.getElementById('selTotal').innerText = rupiah(total);
+  }
+
+  function renderTariffRows(rows){
+    const tbody = document.getElementById('tbodyTariff');
+
+    tbody.innerHTML = rows.map(r=>{
+      const id = Number(r.id || 0);
+      const code = r.tariff_code || '';
+      const name = r.treatment_name || '';
+      const price = getUnitPrice(r);
+
+      const dt = (r.discount_type || r.discountType || '') || '';
+      const dv = Number(r.discount_value ?? r.discountValue ?? 0);
+      const discLabel = dt ? `${dt} ${dv}` : '-';
+
+      const promoLabel = getPromoLabel(r);
+
+      const state = picked.get(id);
+      const checked = state ? 'checked' : '';
+      const qtyVal = state ? String(state.qty || 1) : '1';
+      const rowClass = state ? 'row-picked' : '';
+
+      return `
+        <tr class="${rowClass}" data-id="${id}">
+          <td class="text-center">
+            <input type="checkbox" class="form-check-input chkPick" ${checked}>
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end qtyPick"
+                   value="${qtyVal}" min="1" step="1">
+          </td>
+          <td>${code}</td>
+          <td>${name}</td>
+          <td class="text-end">${rupiah(price)}</td>
+          <td class="text-end">${discLabel}</td>
+          <td>${promoLabel || '-'}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.onclick = null;
+    tbody.oninput = null;
+    tbody.onchange = null;
+
+    function setRowPickedUI(tr, checked){
+      if(!tr) return;
+      tr.classList.toggle('row-picked', !!checked);
+    }
+
+    function syncRowToCache(tr){
+      const id = Number(tr.getAttribute('data-id') || 0);
+      if(!id) return;
+
+      const chk = tr.querySelector('.chkPick');
+      const qtyEl = tr.querySelector('.qtyPick');
+      const qtyVal = parseInt(qtyEl?.value || 1, 10);
+
+      if(chk && chk.checked && qtyVal >= 1){
+        picked.set(id, { qty: qtyVal });
+      }else{
+        picked.delete(id);
+      }
+
+      setRowPickedUI(tr, chk?.checked);
+      refreshSelectedSummary();
+
+      if(dtTariff){
+        dtTariff.order([0,'desc'], [3,'asc']).draw(false);
+      }
+    }
+
+    tbody.onclick = function(e){
+      const target = e.target;
+      if(target.closest('.qtyPick') || target.closest('.chkPick')) return;
+
+      const tr = target.closest('tr');
+      if(!tr) return;
+
+      const chk = tr.querySelector('.chkPick');
+      if(!chk) return;
+
+      chk.checked = !chk.checked;
+      syncRowToCache(tr);
+    };
+
+    tbody.onchange = function(e){
+      if(!e.target.classList.contains('chkPick')) return;
+      const tr = e.target.closest('tr');
+      if(!tr) return;
+      syncRowToCache(tr);
+    };
+
+    tbody.oninput = function(e){
+      if(!e.target.classList.contains('qtyPick')) return;
+      const tr = e.target.closest('tr');
+      if(!tr) return;
+
+      const v = parseInt(e.target.value || 1, 10);
+      if(isNaN(v) || v < 1) e.target.value = 1;
+
+      syncRowToCache(tr);
+    };
+
+    refreshSelectedSummary();
+  }
+
+  $.fn.dataTable.ext.order['dom-checkbox'] = function (settings, col) {
+    return this.api().column(col, {order:'index'}).nodes().map(function (td) {
+      const chk = $('input.chkPick', td);
+      return chk.prop('checked') ? 1 : 0;
+    });
+  };
+
+  function initDataTable(){
+    if(dtTariff){
+      dtTariff.destroy();
+      dtTariff = null;
+    }
+
+    dtTariff = $('#tblTariff').DataTable({
+      paging: true,
+      pageLength: 25,
+      lengthChange: true,
+      ordering: true,
+      info: true,
+      autoWidth: false,
+      dom: 'rtip',
+      language: {
+        emptyTable: "Tidak ada data",
+        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+        infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+        lengthMenu: "Tampilkan _MENU_",
+        paginate: { previous: "Prev", next: "Next" }
+      },
+      columnDefs: [
+        { targets: 0, orderDataType: 'dom-checkbox', searchable: false },
+        { targets: 1, orderable: false, searchable: false }
+      ],
+      order: [[0,'desc'], [3,'asc']]
+    });
+  }
+
+  async function loadAllTariffsOnce(){
+    if(loadedAllTariff) return;
+
+    const tbody = document.getElementById('tbodyTariff');
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">Loading tariff...</td></tr>`;
+
+    const res = await fetch(`/api/tariff?limit=5000`, { headers: { 'Accept':'application/json' } });
+
+    let js = null;
+    try { js = await res.json(); } catch(e){
+      tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center py-3">Response bukan JSON (status ${res.status}).</td></tr>`;
+      return;
+    }
+
+    if(!js.ok){
+      tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center py-3">${js.error || 'Gagal load tariff'}</td></tr>`;
+      return;
+    }
+
+    allTariffs = js.data || js.rows || [];
+    loadedAllTariff = true;
+
+    renderTariffRows(allTariffs);
+    initDataTable();
+
+    const qInput = document.getElementById('qTariff');
+    qInput.value = '';
+    qInput.oninput = function(){
+      if(!dtTariff) return;
+      dtTariff.search(this.value).draw();
+    };
+
+    refreshSelectedSummary();
+  }
+
+  // ===== Modal init =====
+  const modalEl = document.getElementById('modalAdd');
+  const modal = new bootstrap.Modal(modalEl);
+
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    picked.clear();
+
+    const q = document.getElementById('qTariff');
+    if(q) q.value = '';
+
+    if(dtTariff){
+      dtTariff.search('').draw();
+      dtTariff.order([[0,'desc'], [3,'asc']]).draw(false);
+    }
+
+    document.querySelectorAll('#tbodyTariff tr').forEach(tr=>{
+      const chk = tr.querySelector('.chkPick');
+      const qty = tr.querySelector('.qtyPick');
+      if(chk) chk.checked = false;
+      if(qty) qty.value = 1;
+      tr.classList.remove('row-picked');
+    });
+
+    document.getElementById('selCount').innerText = '0';
+    document.getElementById('selTotal').innerText = '0';
+
+    const notes = document.getElementById('notes');
+    if(notes) notes.value = '';
+  });
+
+  const btnOpenModal = document.getElementById('btnOpenModal');
+  if(btnOpenModal){
+    btnOpenModal.addEventListener('click', async ()=>{
+      document.getElementById('notes').value = '';
+      document.getElementById('selCount').innerText = '0';
+      document.getElementById('selTotal').innerText = '0';
+
+      modal.show();
+
+      await loadAllTariffsOnce();
+      setTimeout(()=> document.getElementById('qTariff')?.focus(), 150);
+    });
+  }
+
+  // submit multiple selected
+  const btnSubmit = document.getElementById('btnSubmitTreatment');
+  if(btnSubmit){
+    btnSubmit.addEventListener('click', async ()=>{
+      const notesVal = (document.getElementById('notes')?.value || '') || null;
+
+      const selected = [];
+      picked.forEach((v, tariffId)=>{
+        const qty = parseInt(v.qty || 0, 10);
+        if(!tariffId || qty < 1) return;
+
+        selected.push({
+          tariff_id: Number(tariffId),
+          qty: qty,
+          notes: notesVal
+        });
+      });
+
+      if(selected.length === 0){
+        await swalInfo('Pilih minimal 1 tariff dan pastikan qty >= 1.');
+        return;
+      }
+
+      btnSubmit.disabled = true;
+      swalLoading('Menyimpan treatment...');
+
+      try{
+        for(const payload of selected){
+          const res = await fetch(`/api/pendaftaran/${pendaftaranId}/treatments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept':'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          let js = null;
+          try { js = await res.json(); } catch(e){
+            throw new Error(`Insert gagal: response bukan JSON (status ${res.status})`);
+          }
+
+          if(!js.ok){
+            throw new Error(js.error || 'Gagal tambah treatment');
+          }
+        }
+
+        await swalSuccess('Treatment berhasil disimpan.');
+        window.location.reload();
+      }catch(err){
+        await swalError(err.message || String(err));
+        btnSubmit.disabled = false;
+      }
+    });
+  }
+
+  // delete treatment
+  document.querySelectorAll('.btnDel').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const ok = await swalConfirm({
+        title: 'Hapus treatment ini?',
+        text: 'Data yang dihapus tidak dapat dikembalikan.',
+        icon: 'warning',
+        confirmText: 'Hapus',
+        cancelText: 'Batal'
+      });
+      if(!ok) return;
+
+      const id = btn.getAttribute('data-id');
+      swalLoading('Menghapus...');
+
+      const res = await fetch(`/api/pendaftaran/${pendaftaranId}/treatments/${id}`, {
+        method: 'DELETE',
+        headers: { 'Accept':'application/json' }
+      });
+
+      let js = null;
+      try { js = await res.json(); } catch(e){
+        await swalError(`Response bukan JSON (status ${res.status})`);
+        return;
+      }
+
+      if(!js.ok){
+        await swalError(js.error || 'Gagal hapus');
+        return;
+      }
+
+      await swalSuccess('Treatment berhasil dihapus.');
+      window.location.reload();
+    });
+  });
+
+  // init total awal
+  refreshGrandTotal();
+
+})();
+</script>
+
+{% endblock %}

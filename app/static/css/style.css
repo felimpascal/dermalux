@@ -1,0 +1,6 @@
+.greedy .nav-item {
+    white-space: nowrap;
+}
+.greedy .greedy-dropdown .dropdown-item:hover {
+    background: black;
+}

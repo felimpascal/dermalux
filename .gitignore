@@ -1,0 +1,29 @@
+# virtual env
+.venv/
+venv/
+
+# environment
+.env
+
+# python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# flask / local files
+instance/
+*.sqlite3
+
+# uploads / generated files
+uploads/
+app/uploads/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# logs
+*.log

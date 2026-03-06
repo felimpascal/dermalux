@@ -1,0 +1,253 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">
+      {% if mode == "edit" %}Edit Tarif{% else %}Tambah Tarif{% endif %}
+    </h4>
+    <a class="btn btn-outline-secondary" href="{{ url_for('tariff.tariff_list_page') }}">
+      <i class="bi bi-arrow-left"></i> Kembali
+    </a>
+  </div>
+
+  <form id="frmTariff" method="post" action="{{ url_for('tariff.tariff_save_post') }}" class="card" novalidate>
+    <div class="card-body">
+      {% if row %}
+        <input type="hidden" name="id" value="{{ row.id }}">
+      {% endif %}
+
+      <div class="row g-3">
+
+        <div class="col-md-4">
+          <label class="form-label">Kode Tarif</label>
+          <input class="form-control" name="tariff_code"
+                 value="{{ row.tariff_code if row else '' }}" autocomplete="off" required>
+          <div class="form-text">Contoh: FAC001, PEEL003, SB010</div>
+        </div>
+
+        <div class="col-md-8">
+          <label class="form-label">Nama Treatment</label>
+          <input class="form-control" name="treatment_name"
+                 value="{{ row.treatment_name if row else '' }}" autocomplete="off" required>
+        </div>
+
+        {# KATEGORI: master_tariff.category_id -> master_tariff_category #}
+        <div class="col-md-6">
+          <label class="form-label">Kategori</label>
+          {% set selected_cat = (row.category_id if row else '') %}
+          <select class="form-select" name="category_id" id="category_id" required>
+            <option value="">-- Pilih Kategori --</option>
+            {% for c in (categories or []) %}
+              <option value="{{ c.id }}"
+                {% if selected_cat and (selected_cat|string) == (c.id|string) %}selected{% endif %}>
+                {{ c.category_name }}{% if c.category_code %} ({{ c.category_code }}){% endif %}
+              </option>
+            {% endfor %}
+          </select>
+          <div class="form-text">Kategori diambil dari master_tariff_category.</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Status</label>
+          {% set st = row.is_active if row else 1 %}
+          <select class="form-select" name="is_active">
+            <option value="1" {% if st==1 %}selected{% endif %}>Aktif</option>
+            <option value="0" {% if st==0 %}selected{% endif %}>Nonaktif</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Harga</label>
+          <div class="input-group">
+            <span class="input-group-text">Rp</span>
+            <input class="form-control" name="price" type="number" min="0" step="0.01"
+                   value="{{ row.price if row else 0 }}" required>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Tipe Promo</label>
+          {% set pt = row.promo_type if row else 'none' %}
+          <select class="form-select" name="promo_type" id="promo_type">
+            <option value="none" {% if pt=='none' %}selected{% endif %}>Tidak ada</option>
+            <option value="percent" {% if pt=='percent' %}selected{% endif %}>Persen (%)</option>
+            <option value="amount" {% if pt=='amount' %}selected{% endif %}>Nominal (Rp)</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Nilai Promo</label>
+          <div class="input-group">
+            <span class="input-group-text" id="promo_value_prefix">-</span>
+            <input class="form-control" name="promo_value" id="promo_value" type="number" min="0" step="0.01"
+                   value="{{ row.promo_value if row else 0 }}">
+          </div>
+          <div class="form-text" id="promo_value_hint">Jika tidak ada promo, biarkan 0.</div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Start Date Promo</label>
+          <input class="form-control" name="promo_start" id="promo_start" type="date"
+                 value="{% if row and row.promo_start %}
+                          {% if row.promo_start.strftime is defined %}{{ row.promo_start.strftime('%Y-%m-%d') }}
+                          {% else %}{{ row.promo_start }}
+                          {% endif %}
+                        {% endif %}">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">End Date Promo</label>
+          <input class="form-control" name="promo_end" id="promo_end" type="date"
+                 value="{% if row and row.promo_end %}
+                          {% if row.promo_end.strftime is defined %}{{ row.promo_end.strftime('%Y-%m-%d') }}
+                          {% else %}{{ row.promo_end }}
+                          {% endif %}
+                        {% endif %}">
+        </div>
+
+        {# Preview harga setelah promo #}
+        <div class="col-12">
+          <div class="alert alert-light border mb-0" id="promo_preview_box">
+            <div class="d-flex flex-wrap gap-3 align-items-center">
+              <div><span class="text-muted">Harga:</span> <b id="pv_price">-</b></div>
+              <div><span class="text-muted">Promo:</span> <b id="pv_promo">-</b></div>
+              <div><span class="text-muted">Harga Final:</span> <b id="pv_final">-</b></div>
+              <div class="ms-auto small text-muted">
+                Preview hanya membantu input; perhitungan final tetap di server.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card-footer d-flex justify-content-end gap-2">
+      <a class="btn btn-outline-secondary" href="{{ url_for('tariff.tariff_list_page') }}">
+        Batal
+      </a>
+      <button class="btn btn-primary" type="submit">
+        <i class="bi bi-save"></i> Simpan
+      </button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(function () {
+
+  function fmtRp(n){
+    try {
+      const x = Number(n || 0);
+      return x.toLocaleString('id-ID', { maximumFractionDigits: 0 });
+    } catch(e) {
+      return String(n || '0');
+    }
+  }
+
+  function getNum(val){
+    const x = parseFloat(val || '0');
+    return isNaN(x) ? 0 : x;
+  }
+
+  function togglePromoFields(){
+    const promoType = ($('#promo_type').val() || 'none').trim();
+    const isNone = promoType === 'none';
+
+    const $promoValue = $('#promo_value');
+    const $promoStart = $('#promo_start');
+    const $promoEnd = $('#promo_end');
+
+    $promoValue.prop('disabled', isNone);
+    $promoStart.prop('disabled', isNone);
+    $promoEnd.prop('disabled', isNone);
+
+    if (isNone) {
+      $promoValue.val('0');
+      $promoStart.val('');
+      $promoEnd.val('');
+      $('#promo_value_prefix').text('-');
+      $('#promo_value_hint').text('Tidak ada promo.');
+    } else if (promoType === 'percent') {
+      $('#promo_value_prefix').text('%');
+      $('#promo_value_hint').text('Contoh: 10 artinya diskon 10%.');
+    } else {
+      $('#promo_value_prefix').text('Rp');
+      $('#promo_value_hint').text('Contoh: 20000 artinya potongan Rp 20.000.');
+    }
+
+    updatePreview();
+  }
+
+  function updatePreview(){
+    const price = getNum($('[name="price"]').val());
+    const promoType = ($('#promo_type').val() || 'none').trim();
+    const promoValue = getNum($('#promo_value').val());
+
+    let finalPrice = price;
+    let promoText = '-';
+
+    if (promoType === 'percent') {
+      promoText = promoValue + '%';
+      finalPrice = price - (price * promoValue / 100);
+    } else if (promoType === 'amount') {
+      promoText = 'Rp ' + fmtRp(promoValue);
+      finalPrice = price - promoValue;
+    } else {
+      promoText = 'Tidak ada';
+    }
+
+    if (finalPrice < 0) finalPrice = 0;
+
+    $('#pv_price').text('Rp ' + fmtRp(price));
+    $('#pv_promo').text(promoText);
+    $('#pv_final').text('Rp ' + fmtRp(finalPrice));
+  }
+
+  $('#promo_type').on('change', togglePromoFields);
+  $('[name="price"], #promo_value').on('input', updatePreview);
+
+  togglePromoFields();
+
+  $('#frmTariff').on('submit', function(e){
+    const f = this;
+
+    const code = (f.tariff_code.value || '').trim();
+    const name = (f.treatment_name.value || '').trim();
+    const categoryId = (f.category_id.value || '').trim();
+    const price = getNum(f.price.value);
+
+    const promoType = (f.promo_type.value || 'none').trim();
+    const promoValue = getNum(f.promo_value.value);
+    const promoStart = (f.promo_start.value || '').trim();
+    const promoEnd = (f.promo_end.value || '').trim();
+
+    function showErr(msg){
+      e.preventDefault();
+      window.myAlert(msg, 'error');
+      return false;
+    }
+
+    if (!code) return showErr('Kode tarif wajib diisi.');
+    if (!name) return showErr('Nama treatment wajib diisi.');
+    if (!categoryId) return showErr('Kategori wajib dipilih.');
+    if (price < 0) return showErr('Harga tidak boleh negatif.');
+
+    if (promoType !== 'none') {
+      if (promoValue <= 0) return showErr('Nilai promo harus > 0.');
+      if (!promoStart || !promoEnd) return showErr('Start date dan end date promo wajib diisi.');
+      if (promoStart > promoEnd) return showErr('Start date promo tidak boleh melebihi end date promo.');
+      if (promoType === 'percent' && promoValue > 100) return showErr('Diskon persen tidak boleh > 100.');
+      if (promoType === 'amount' && promoValue > price) return showErr('Diskon nominal tidak boleh melebihi harga.');
+    }
+
+    return true;
+  });
+
+});
+</script>
+{% endblock %}
