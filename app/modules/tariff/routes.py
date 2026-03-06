@@ -243,6 +243,15 @@ def api_tariff_disable_promo(tariff_id: int):
     except AppError as e:
         return _json_error(e)
 
+@tariff_bp.route("/api/tariff/<int:tariff_id>/promo", methods=["PATCH"])
+@require_permission("Tariff.Upsert")
+def api_tariff_set_promo(tariff_id: int):
+    try:
+        payload = request.get_json(silent=True) or {}
+        TariffService.set_promo(tariff_id, payload)
+        return jsonify({"ok": True})
+    except AppError as e:
+        return _json_error(e)
 
 @tariff_bp.route("/api/tariff-category", methods=["GET"])
 @require_permission("Tariff.View")

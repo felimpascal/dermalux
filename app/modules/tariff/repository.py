@@ -408,6 +408,39 @@ class TariffRepository:
         return cur.rowcount
 
     @staticmethod
+    def set_promo(
+        tariff_id: int,
+        promo_type: str,
+        promo_value,
+        promo_start,
+        promo_end,
+    ):
+        db = get_db()
+        cur = db.cursor()
+
+        sql = """
+        UPDATE master_tariff
+        SET
+            promo_type=%s,
+            promo_value=%s,
+            promo_start=%s,
+            promo_end=%s
+        WHERE id=%s
+        """
+        cur.execute(
+            sql,
+            (
+                promo_type,
+                promo_value,
+                promo_start,
+                promo_end,
+                tariff_id,
+            ),
+        )
+        db.commit()
+        return cur.rowcount
+
+    @staticmethod
     def list_categories(active_only: bool = True):
         db = get_db()
         cur = db.cursor(dictionary=True)

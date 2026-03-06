@@ -217,7 +217,7 @@
           <div class="col-sm-6 mb-3">
             <div class="kv-label">Jenis Kelamin</div>
             <input id="p_gender" type="text" class="form-control" readonly
-                   value="{% if patient %}{% if patient.gender == 'L' %}Laki-laki{% elif patient.gender == 'P' %}Perempuan{% else %}{{ patient.gender or '' }}{% endif %}{% endif %}">
+                   value="{% if patient %}{% if patient.gender == 'M' %}Laki-laki{% elif patient.gender == 'F' %}Perempuan{% else %}{{ patient.gender or '' }}{% endif %}{% endif %}">
           </div>
         </div>
 
@@ -592,8 +592,8 @@
 
   function genderLabel(v){
     const x = safeText(v).trim().toUpperCase();
-    if (x === "L") return "Laki-laki";
-    if (x === "P") return "Perempuan";
+    if (x === "M") return "Laki-laki";
+    if (x === "F") return "Perempuan";
     return safeText(v);
   }
 

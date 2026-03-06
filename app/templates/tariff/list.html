@@ -15,7 +15,6 @@
     </div>
 
     <div class="col-md-3">
-      {# dropdown kategori dari master_tariff_category (bukan dari rows) #}
       <select class="form-select" name="category">
         <option value="">Semua Kategori</option>
         {% for c in (categories or []) %}
@@ -50,6 +49,7 @@
       </button>
     </div>
   </form>
+
   <div class="card">
     <div class="table-responsive" style="padding: 1%;">
       <table id="tblTariff" class="table table-sm table-striped table-hover align-middle">
@@ -117,7 +117,6 @@
                 <div class="small text-muted mt-1">
                   {% set ps = r.promo_start %}
                   {% set pe = r.promo_end %}
-                  {# promo_start/promo_end bisa date/datetime/str #}
                   {% if ps and ps.strftime is defined %}{{ ps.strftime('%d/%m/%Y') }}{% elif ps %}{{ ps }}{% else %}-{% endif %}
                   s/d
                   {% if pe and pe.strftime is defined %}{{ pe.strftime('%d/%m/%Y') }}{% elif pe %}{{ pe }}{% else %}-{% endif %}
@@ -153,6 +152,21 @@
                       href="{{ url_for('tariff.tariff_edit_page', tariff_id=r.id) }}">
                       <i class="bi bi-pencil-square me-2"></i>Edit
                     </a>
+                  </li>
+
+                  <li>
+                    <button type="button"
+                            class="dropdown-item btn-set-promo"
+                            data-id="{{ r.id }}"
+                            data-code="{{ r.tariff_code }}"
+                            data-name="{{ r.treatment_name }}"
+                            data-price="{{ r.price or 0 }}"
+                            data-promo-type="{{ r.promo_type or 'none' }}"
+                            data-promo-value="{{ r.promo_value if r.promo_value is not none else '' }}"
+                            data-promo-start="{% if r.promo_start and r.promo_start.strftime is defined %}{{ r.promo_start.strftime('%Y-%m-%d') }}{% elif r.promo_start %}{{ r.promo_start }}{% else %}{% endif %}"
+                            data-promo-end="{% if r.promo_end and r.promo_end.strftime is defined %}{{ r.promo_end.strftime('%Y-%m-%d') }}{% elif r.promo_end %}{{ r.promo_end }}{% else %}{% endif %}">
+                      <i class="bi bi-tags me-2"></i>Set Promo
+                    </button>
                   </li>
 
                   <li><hr class="dropdown-divider"></li>
@@ -214,7 +228,99 @@
       </table>
     </div>
   </div>
-  
+</div>
+
+<div class="modal fade" id="modalSetPromo" tabindex="-1" aria-labelledby="modalSetPromoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <form id="formSetPromo" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalSetPromoLabel">Set Promo Tarif</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="promo_tariff_id">
+
+        <div class="card bg-light border-0 mb-3">
+          <div class="card-body py-3">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label text-muted mb-1">Kode Tarif</label>
+                <div class="fw-semibold" id="info_tariff_code">-</div>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label text-muted mb-1">Nama Treatment</label>
+                <div class="fw-semibold" id="info_tariff_name">-</div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-muted mb-1">Harga Normal</label>
+                <div class="fw-semibold" id="info_tariff_price">0</div>
+              </div>
+            </div>
+
+            <hr class="my-3">
+
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label text-muted mb-1">Promo Saat Ini</label>
+                <div id="info_existing_promo_type">-</div>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label text-muted mb-1">Nilai Promo</label>
+                <div id="info_existing_promo_value">-</div>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label text-muted mb-1">Mulai</label>
+                <div id="info_existing_promo_start">-</div>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label text-muted mb-1">Selesai</label>
+                <div id="info_existing_promo_end">-</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="promo_type" class="form-label">Promo Type</label>
+            <select class="form-select" id="promo_type" name="promo_type" required>
+              <option value="">-- Pilih Promo Type --</option>
+              <option value="percent">Percent</option>
+              <option value="amount">Amount</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="promo_value" class="form-label">Promo Value</label>
+            <input type="text" class="form-control" id="promo_value" name="promo_value" inputmode="numeric" required>
+            <div class="form-text" id="promo_value_help">Isi persen atau nominal potongan.</div>
+          </div>
+
+          <div class="col-md-2">
+            <label for="promo_start" class="form-label">Promo Start</label>
+            <input type="date" class="form-control" id="promo_start" name="promo_start" required>
+          </div>
+
+          <div class="col-md-2">
+            <label for="promo_end" class="form-label">Promo End</label>
+            <input type="date" class="form-control" id="promo_end" name="promo_end" required>
+          </div>
+        </div>
+
+        <div class="alert alert-info mt-3 mb-0">
+          Untuk <b>percent</b>, isi nilai diskon dalam persen. Untuk <b>amount</b>, isi nominal potongan harga.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitPromo">
+          <i class="bi bi-save me-1"></i>Simpan Promo
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
 {% endblock %}
@@ -222,9 +328,73 @@
 {% block scripts %}
 <script>
 $(function () {
+  const modalEl = document.getElementById('modalSetPromo');
+  const modalSetPromo = modalEl ? new bootstrap.Modal(modalEl) : null;
 
-  // Kalau Anda sudah filtering via server, DataTables sebaiknya jangan ikut search/filter lagi.
-  // Gunakan DT hanya untuk responsive, sorting ringan, dan tampilan.
+  function formatThousandSeparator(value) {
+    const digits = String(value || '').replace(/\D/g, '');
+    if (!digits) return '';
+    return new Intl.NumberFormat('id-ID').format(Number(digits));
+  }
+
+  function unformatNumber(value) {
+    return String(value || '').replace(/\D/g, '');
+  }
+
+  $(document).on('input', '#promo_value', function () {
+    const promoType = ($('#promo_type').val() || '').toLowerCase();
+    let raw = unformatNumber($(this).val());
+
+    if (!raw) {
+      $(this).val('');
+      return;
+    }
+
+    if (promoType === 'percent') {
+      // percent jangan pakai separator, cukup angka biasa
+      raw = String(parseInt(raw, 10) || 0);
+      $(this).val(raw);
+    } else {
+      // amount pakai thousand separator
+      $(this).val(formatThousandSeparator(raw));
+    }
+  });
+
+  $('#promo_type').on('change', function () {
+    const promoType = ($(this).val() || '').toLowerCase();
+    const $promoValue = $('#promo_value');
+    let raw = unformatNumber($promoValue.val());
+
+    if (!raw) {
+      $promoValue.val('');
+      return;
+    }
+
+    if (promoType === 'percent') {
+      $promoValue.val(String(parseInt(raw, 10) || 0));
+    } else {
+      $promoValue.val(formatThousandSeparator(raw));
+    }
+  });
+  function formatNumber(num) {
+    const n = Number(num || 0);
+    return n.toLocaleString('id-ID');
+  }
+
+  function formatDateDisplay(val) {
+    if (!val) return '-';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      const [y, m, d] = val.split('-');
+      return `${d}/${m}/${y}`;
+    }
+    return val;
+  }
+
+  function getCsrfToken() {
+    const token = $('meta[name="csrf-token"]').attr('content');
+    return token || '';
+  }
+
   if ($.fn.DataTable) {
     $('#tblTariff').DataTable({
       pageLength: 25,
@@ -304,6 +474,132 @@ $(function () {
     }, () => form.submit());
   });
 
+  $(document).on('click', '.btn-set-promo', function () {
+    const btn = $(this);
+
+    const tariffId = btn.data('id') || '';
+    const code = btn.data('code') || '';
+    const name = btn.data('name') || '';
+    const price = btn.data('price') || 0;
+    const promoType = (btn.data('promo-type') || 'none').toString();
+    const promoValue = btn.data('promo-value');
+    const promoStart = btn.data('promo-start') || '';
+    const promoEnd = btn.data('promo-end') || '';
+
+    $('#promo_tariff_id').val(tariffId);
+
+    $('#info_tariff_code').text(code || '-');
+    $('#info_tariff_name').text(name || '-');
+    $('#info_tariff_price').text('Rp ' + formatNumber(price));
+
+    $('#info_existing_promo_type').text(promoType && promoType !== 'none' ? promoType : '-');
+    $('#info_existing_promo_value').text(
+      promoType === 'percent'
+        ? ((promoValue ?? '') !== '' ? `${promoValue}%` : '-')
+        : promoType === 'amount'
+          ? ((promoValue ?? '') !== '' ? `Rp ${formatNumber(promoValue)}` : '-')
+          : '-'
+    );
+    $('#info_existing_promo_start').text(formatDateDisplay(promoStart));
+    $('#info_existing_promo_end').text(formatDateDisplay(promoEnd));
+
+    $('#promo_type').val(promoType !== 'none' ? promoType : '');
+    $('#promo_value').val((promoValue ?? '') !== '' ? promoValue : '');
+    $('#promo_start').val(promoStart || '');
+    $('#promo_end').val(promoEnd || '');
+
+    updatePromoValueHelp();
+
+    if (modalSetPromo) modalSetPromo.show();
+  });
+
+  function updatePromoValueHelp() {
+    const promoType = ($('#promo_type').val() || '').toLowerCase();
+    let help = 'Isi persen atau nominal potongan.';
+    if (promoType === 'percent') {
+      help = 'Isi angka persen. Contoh: 10 untuk diskon 10%.';
+    } else if (promoType === 'amount') {
+      help = 'Isi nominal potongan harga. Contoh: 50000.';
+    }
+    $('#promo_value_help').text(help);
+  }
+
+  $('#promo_type').on('change', function () {
+    updatePromoValueHelp();
+  });
+
+  $('#formSetPromo').on('submit', async function (e) {
+    e.preventDefault();
+
+    const tariffId = $('#promo_tariff_id').val();
+    const payload = {
+      promo_type: ($('#promo_type').val() || '').trim(),
+      promo_value: ($('#promo_value').val() || '').trim(),
+      promo_start: ($('#promo_start').val() || '').trim(),
+      promo_end: ($('#promo_end').val() || '').trim()
+    };
+
+    if (!tariffId) {
+      if (window.Swal) {
+        Swal.fire('Error', 'Tariff ID tidak ditemukan.', 'error');
+      } else {
+        alert('Tariff ID tidak ditemukan.');
+      }
+      return;
+    }
+
+    const btnSubmit = $('#btnSubmitPromo');
+    btnSubmit.prop('disabled', true);
+
+    try {
+      const resp = await fetch(`/api/tariff/${tariffId}/promo`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify(payload)
+      });
+
+      let data = {};
+      try {
+        data = await resp.json();
+      } catch (err) {
+        data = {};
+      }
+
+      if (!resp.ok || data.ok === false) {
+        const msg = data.message || data.error || 'Gagal menyimpan promo.';
+        throw new Error(msg);
+      }
+
+      if (modalSetPromo) modalSetPromo.hide();
+
+      if (window.Swal) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: 'Promo berhasil disimpan.'
+        });
+      } else {
+        alert('Promo berhasil disimpan.');
+      }
+
+      window.location.reload();
+    } catch (err) {
+      if (window.Swal) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal',
+          text: err.message || 'Terjadi kesalahan saat menyimpan promo.'
+        });
+      } else {
+        alert(err.message || 'Terjadi kesalahan saat menyimpan promo.');
+      }
+    } finally {
+      btnSubmit.prop('disabled', false);
+    }
+  });
 });
 </script>
 {% endblock %}

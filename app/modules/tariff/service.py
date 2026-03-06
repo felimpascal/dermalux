@@ -283,3 +283,36 @@ class TariffService:
         affected = TariffRepository.clear_promo(tariff_id)
         if affected <= 0:
             raise AppError("Gagal menonaktifkan promo.", 400)
+
+    @staticmethod
+    def set_promo(tariff_id: int, data: dict):
+        row = TariffRepository.get_by_id(tariff_id)
+        if not row:
+            raise AppError("Tarif tidak ditemukan.", 404)
+
+        promo_type = _clean_text(data.get("promo_type")).lower()
+        if promo_type not in ALLOWED_PROMO_TYPES:
+            raise AppError("promo_type tidak valid.", 400)
+
+        price = Decimal(str(row["price"]))
+        promo_value = _parse_money(data.get("promo_value"), "diskon/promo")
+        promo_start = _parse_date(data.get("promo_start"))
+        promo_end = _parse_date(data.get("promo_end"))
+
+        promo_type, promo_value, promo_start, promo_end = TariffService._validate_promo(
+            price=price,
+            promo_type=promo_type,
+            promo_value=promo_value,
+            promo_start=promo_start,
+            promo_end=promo_end,
+        )
+
+        affected = TariffRepository.set_promo(
+            tariff_id=tariff_id,
+            promo_type=promo_type,
+            promo_value=float(promo_value.quantize(Decimal("0.01"))),
+            promo_start=promo_start,
+            promo_end=promo_end,
+        )
+        if affected <= 0:
+            raise AppError("Gagal menyimpan promo.", 400)
