@@ -16,8 +16,9 @@ instance/
 *.sqlite3
 
 # uploads / generated files
-app/static/uploads/*
+app/static/uploads/**
 !app/static/uploads/.gitkeep
+!app/static/uploads/diagnosa_pasien/
 !app/static/uploads/diagnosa_pasien/.gitkeep
 
 # OS / editor
