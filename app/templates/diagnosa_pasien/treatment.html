@@ -100,7 +100,7 @@
                 </td>
                 <td class="text-end">{{ "{:,.0f}".format(d.subtotal or 0) }}</td>
                 <td>
-                  {% if header.status == 'draft' %}
+                  {% if header.status in ['draft','confirmed'] %}
                     <button class="btn btn-sm btn-outline-danger btnDel"
                             data-id="{{ d.pendaftaran_treatment_id }}">
                       Hapus
