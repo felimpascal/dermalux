@@ -23,7 +23,7 @@ def create_app():
     # =========================
     # BASIC CONFIG
     # =========================
-    app.config["UPLOAD_FOLDER"] = r"D:\Web Project Client\Dermalux\app\static\uploads"
+    app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads")
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
