@@ -81,10 +81,9 @@ class PatientService:
         p = PatientService._validate_payload(payload, for_update=False)
 
         # Jika Anda TIDAK ingin pasien input patient_code manual, force None di sini.
-        # p["patient_code"] = None
+        p["patient_code"] = None
 
         return PatientRepository.insert(
-            patient_code=p["patient_code"],
             nik=p["nik"],
             full_name=p["full_name"],
             birth_place=p["birth_place"],
