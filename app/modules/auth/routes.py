@@ -21,7 +21,7 @@ def login():
 
     if username == "superadmin" and password == "Januari211!":
         session.clear()
-        session["user_id"] = 0
+        session["user_id"] = "superadmin"
         session["userCode"] = "superadmin"
         session["role"] = "superadmin"
         return redirect(url_for("main.index"))

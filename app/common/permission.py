@@ -37,7 +37,7 @@ def require_permission(permission_code: str, redirect_on_fail: str | None = None
             # =========================
             # ADMIN BYPASS
             # =========================
-            if session.get("role") == "admin":
+            if session.get("role") == "admin" or session.get("role") == "superadmin" :
                 return fn(*args, **kwargs)
 
             # =========================
