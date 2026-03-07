@@ -23,7 +23,7 @@
           <div class="input-group">
             <input id="patient_code" type="text" class="form-control" name="patient_code"
                    value="{{ row.patient_code if row else '' }}" required
-                   placeholder="Ketik kode pasien / klik Cari">
+                   placeholder="Ketik kode pasien / klik Cari" readonly>
             <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalPatient">
               Cari
             </button>
