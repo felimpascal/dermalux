@@ -36,7 +36,7 @@
       </thead>
       <tbody id="tbodyPatients">
         <tr>
-          <td colspan="8" class="text-muted">Memuat data...</td>
+          <td colspan="8" class="text-center text-muted">Memuat data...</td>
         </tr>
       </tbody>
     </table>
@@ -128,12 +128,26 @@
 
   let dt = null;
 
-  function initOrRefreshDataTable() {
-    const table = document.getElementById("tblPatients");
-
+  function destroyDataTableIfExists() {
     if (dt) {
       dt.destroy();
       dt = null;
+    }
+  }
+
+  function initOrRefreshDataTable() {
+    const table = document.getElementById("tblPatients");
+
+    destroyDataTableIfExists();
+
+    const firstRow = tbody.querySelector("tr");
+    if (!firstRow) return;
+
+    const tdCount = firstRow.querySelectorAll("td").length;
+    const hasColspanCell = firstRow.querySelector("td[colspan]");
+
+    if (hasColspanCell || tdCount !== 8) {
+      return;
     }
 
     dt = new DataTable(table, {
@@ -149,6 +163,7 @@
         info: "Menampilkan _START_–_END_ dari _TOTAL_ data",
         infoEmpty: "Tidak ada data",
         zeroRecords: "Tidak ada data yang cocok",
+        emptyTable: "Tidak ada data",
         paginate: {
           first: "Awal",
           last: "Akhir",
@@ -229,16 +244,39 @@
   }
 
   function setLoadingRow(text = "Memuat data...") {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-muted">${escapeHtml(text)}</td></tr>`;
+    destroyDataTableIfExists();
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center text-muted">${escapeHtml(text)}</td>
+      </tr>
+    `;
   }
 
   function setEmptyRow() {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-muted">Tidak ada data.</td></tr>`;
-    initOrRefreshDataTable();
+    destroyDataTableIfExists();
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center text-muted">Tidak ada data pasien.</td>
+      </tr>
+    `;
+  }
+
+  function setErrorRow(message) {
+    destroyDataTableIfExists();
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center text-danger">${escapeHtml(message)}</td>
+      </tr>
+    `;
   }
 
   function renderRows(rows) {
-    if (!rows || rows.length === 0) return setEmptyRow();
+    destroyDataTableIfExists();
+
+    if (!rows || rows.length === 0) {
+      setEmptyRow();
+      return;
+    }
 
     tbody.innerHTML = rows.map(r => `
       <tr>
@@ -309,7 +347,7 @@
       const rows = await apiGet(url);
       renderRows(rows);
     } catch (e) {
-      setLoadingRow("Error: " + e.message);
+      setErrorRow("Error: " + e.message);
     }
   }
 
@@ -347,7 +385,7 @@
     if (!p.address) return "Alamat wajib diisi.";
     if (!p.phone) return "No HP wajib diisi.";
 
-    if (p.phone && p.phone.replace(/\D/g, '').length < 8) {
+    if (p.phone && p.phone.replace(/\D/g, "").length < 8) {
       return "No HP tidak valid (minimal 8 digit).";
     }
 
