@@ -1,8 +1,24 @@
 {% extends "base/base_public.html" %}
 {% block content %}
-
+<style>
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+</style>
 <div class="container py-4" style="max-width: 900px;">
-  <div class="d-flex justify-content-between align-items-start mb-3">
+<div class="d-flex justify-content-between align-items-start mb-3">
+
+  <div class="d-flex align-items-start">
+
+    <!-- LOGO -->
+    <div class="me-3">
+      <img src="{{ url_for('static', filename='images/logo.png') }}"
+           style="height:90px;">
+    </div>
+
+    <!-- JUDUL -->
     <div>
       <h4 class="mb-1">Kwitansi / Receipt</h4>
       <div class="text-muted small">
@@ -10,10 +26,16 @@
         Tanggal: <b>{{ header.tgl_pendaftaran }}</b>
       </div>
     </div>
-    <div class="text-end">
-      <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">Print</button>
-    </div>
+
   </div>
+
+  <div class="text-end">
+    <button class="btn btn-outline-secondary btn-sm no-print" onclick="window.print()">
+      Print
+    </button>
+  </div>
+
+</div>
 
   <div class="card mb-3">
     <div class="card-body">
