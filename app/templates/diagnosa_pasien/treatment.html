@@ -61,7 +61,7 @@
 <div class="d-flex justify-content-between align-items-center mb-2">
   <h5 class="mb-0">Daftar Treatment</h5>
 
-  {% if header.status == 'draft' %}
+  {% if header.status in ['draft','confirmed'] %}
     <button class="btn btn-primary" id="btnOpenModal">+ Tambah Treatment</button>
   {% endif %}
 </div>
