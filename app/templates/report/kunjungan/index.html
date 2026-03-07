@@ -1,0 +1,203 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Report Kunjungan Pasien</h4>
+  </div>
+
+  <!-- FILTER -->
+  <div class="card mb-3">
+    <div class="card-body">
+
+      <div class="row g-2">
+
+        <div class="col-md-3">
+          <label class="form-label">Start Date</label>
+          <input type="date" id="start_date" class="form-control">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">End Date</label>
+          <input type="date" id="end_date" class="form-control">
+        </div>
+
+        <div class="col-md-3 d-grid">
+          <label class="form-label">&nbsp;</label>
+          <button id="btnLoad" class="btn btn-primary">
+            Load Report
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- SUMMARY -->
+  <div class="card mb-4">
+    <div class="card-header">
+      Summary Kunjungan
+    </div>
+
+    <div class="card-body table-responsive">
+
+      <table class="table table-sm table-bordered" id="tblSummary">
+
+        <thead class="table-light">
+          <tr>
+            <th>Kategori Usia</th>
+            <th>Laki-laki</th>
+            <th>Perempuan</th>
+            <th>Tidak diketahui</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+
+        <tbody></tbody>
+
+      </table>
+
+    </div>
+  </div>
+
+
+  <!-- DETAIL -->
+  <div class="card">
+
+    <div class="card-header">
+      Detail Kunjungan
+    </div>
+
+    <div class="card-body table-responsive">
+
+      <table class="table table-sm table-striped table-hover" id="tblDetail">
+
+        <thead class="table-light">
+          <tr>
+            <th>Tanggal</th>
+            <th>Patient Code</th>
+            <th>Nama</th>
+            <th>Gender</th>
+            <th>Usia</th>
+            <th>Kategori Usia</th>
+          </tr>
+        </thead>
+
+        <tbody></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+let tblDetail = null
+
+function loadSummary(){
+
+    let start = $("#start_date").val()
+    let end = $("#end_date").val()
+
+    if(!start || !end){
+        alert("Tanggal harus diisi")
+        return
+    }
+
+    $.get("/api/reports/kunjungan",{
+        start_date:start,
+        end_date:end
+    },function(res){
+
+        if(!res.ok){
+            alert(res.error)
+            return
+        }
+
+        let rows = res.data.rows
+
+        let html = ""
+
+        rows.forEach(r=>{
+
+            html += `
+            <tr>
+                <td>${r.kategori_usia}</td>
+                <td>${r.laki_laki}</td>
+                <td>${r.perempuan}</td>
+                <td>${r.tidak_diketahui}</td>
+                <td><b>${r.total}</b></td>
+            </tr>
+            `
+
+        })
+
+        $("#tblSummary tbody").html(html)
+
+    })
+
+}
+
+
+function loadDetail(){
+
+    let start = $("#start_date").val()
+    let end = $("#end_date").val()
+
+    if(tblDetail){
+        tblDetail.destroy()
+    }
+
+    tblDetail = $("#tblDetail").DataTable({
+
+        ajax:{
+            url:"/api/reports/kunjungan/detail",
+            data:{
+                start_date:start,
+                end_date:end
+            },
+            dataSrc:function(res){
+                if(!res.ok){
+                    alert(res.error)
+                    return []
+                }
+                return res.data.rows
+            }
+        },
+
+        columns:[
+
+            {data:"tanggal_kunjungan"},
+            {data:"patient_code"},
+            {data:"full_name"},
+            {data:"gender"},
+            {data:"usia"},
+            {data:"kategori_usia"}
+
+        ],
+
+        pageLength:25,
+        responsive:true
+
+    })
+
+}
+
+
+$("#btnLoad").click(function(){
+
+    loadSummary()
+    loadDetail()
+
+})
+
+</script>
+
+{% endblock %}

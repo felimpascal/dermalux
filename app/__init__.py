@@ -77,7 +77,9 @@ def create_app():
     from app.modules.diagnosa_pasien import bp as diagnosa_pasien_bp
     from app.modules.diagnosa_pasien import api as diagnosa_api
     from app.modules.riwayat_pasien import riwayat_pasien_bp as riwayat_bp
+    from app.modules.report.kunjungan import bp as report_kunjungan_bp
 
+    app.register_blueprint(report_kunjungan_bp, url_prefix="/api/reports/kunjungan")
     app.register_blueprint(riwayat_bp)
     app.register_blueprint(diagnosa_pasien_bp)
     app.register_blueprint(diagnosa_api)
