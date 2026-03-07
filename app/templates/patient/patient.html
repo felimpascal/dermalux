@@ -178,12 +178,6 @@
     return `${y}-${m}-${d}`;
   }
 
-  function tokenOrThrow() {
-    const token = localStorage.getItem("auth_token");
-    if (!token) throw new Error("Tidak ada token. Silakan login dulu di /api/auth/login-page");
-    return token;
-  }
-
   function showModalError(msg) {
     modalAlert.textContent = msg;
     modalAlert.classList.remove("d-none");
