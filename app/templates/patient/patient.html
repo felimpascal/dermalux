@@ -20,27 +20,27 @@
 </form>
 
 <div class="card">
-    <div class="table-responsive" style="padding: 1%;">
-      <table class="table table-sm table-striped table-hover align-middle" id="tblPatients">
-        <thead class="table-light">
-          <tr>
-            <th style="width:90px;">Kode</th>
-            <th style="width:170px;">NIK</th>
-            <th>Nama</th>
-            <th style="width:130px;">Gender</th>
-            <th style="width:140px;">Tanggal Lahir</th>
-            <th style="width:170px;">No HP</th>
-            <th>Alamat</th>
-            <th style="width:140px;" class="text-end">Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyPatients">
-          <tr>
-            <td colspan="8" class="text-muted">Memuat data...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="table-responsive" style="padding: 1%;">
+    <table class="table table-sm table-striped table-hover align-middle" id="tblPatients">
+      <thead class="table-light">
+        <tr>
+          <th style="width:90px;">Kode</th>
+          <th style="width:170px;">NIK</th>
+          <th>Nama</th>
+          <th style="width:130px;">Gender</th>
+          <th style="width:140px;">Tanggal Lahir</th>
+          <th style="width:170px;">No HP</th>
+          <th>Alamat</th>
+          <th style="width:140px;" class="text-end">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyPatients">
+        <tr>
+          <td colspan="8" class="text-muted">Memuat data...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <!-- Modal Add/Edit -->
@@ -126,13 +126,11 @@
   const modalTitle = document.getElementById("modalTitle");
   const modalAlert = document.getElementById("modalAlert");
 
-  // DataTables instance
   let dt = null;
 
   function initOrRefreshDataTable() {
     const table = document.getElementById("tblPatients");
 
-    // destroy dulu jika sudah pernah init (karena tbody diganti innerHTML)
     if (dt) {
       dt.destroy();
       dt = null;
@@ -141,9 +139,9 @@
     dt = new DataTable(table, {
       pageLength: 10,
       lengthMenu: [10, 25, 50, 100],
-      order: [[0, "asc"]], // default: sort Kode
+      order: [[0, "asc"]],
       columnDefs: [
-        { orderable: false, targets: [7] } // kolom Aksi
+        { orderable: false, targets: [7] }
       ],
       language: {
         search: "Cari (tabel):",
@@ -151,13 +149,17 @@
         info: "Menampilkan _START_–_END_ dari _TOTAL_ data",
         infoEmpty: "Tidak ada data",
         zeroRecords: "Tidak ada data yang cocok",
-        paginate: { first: "Awal", last: "Akhir", next: "Berikutnya", previous: "Sebelumnya" }
+        paginate: {
+          first: "Awal",
+          last: "Akhir",
+          next: "Berikutnya",
+          previous: "Sebelumnya"
+        }
       }
     });
   }
 
   document.getElementById("nik").addEventListener("input", (e) => {
-    // hanya angka, max 16
     e.target.value = (e.target.value || "").replace(/\D/g, "").slice(0, 16);
   });
 
@@ -165,10 +167,8 @@
     if (!val) return "";
     const s = String(val).trim();
 
-    // already ISO
     if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
 
-    // RFC / other
     const dt = new Date(s);
     if (isNaN(dt.getTime())) return "";
 
@@ -176,6 +176,11 @@
     const m = String(dt.getMonth() + 1).padStart(2, "0");
     const d = String(dt.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
+  }
+
+  function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? (meta.getAttribute("content") || "") : "";
   }
 
   function showModalError(msg) {
@@ -198,13 +203,11 @@
     if (!val) return "";
     const s = String(val).trim();
 
-    // "YYYY-MM-DD" / "YYYY-MM-DDTHH:mm:ss"
     if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
       const [y, m, d] = s.slice(0, 10).split("-");
       return `${d}/${m}/${y}`;
     }
 
-    // RFC
     const dt = new Date(s);
     if (!isNaN(dt.getTime())) {
       const dd = String(dt.getDate()).padStart(2, "0");
@@ -225,8 +228,7 @@
       .replaceAll("'", "&#039;");
   }
 
-  function setLoadingRow(text="Memuat data...") {
-    // saat loading/error, jangan init datatable dulu
+  function setLoadingRow(text = "Memuat data...") {
     tbody.innerHTML = `<tr><td colspan="8" class="text-muted">${escapeHtml(text)}</td></tr>`;
   }
 
@@ -261,31 +263,44 @@
   }
 
   async function apiGet(url) {
-    const token = tokenOrThrow();
-    const r = await fetch(url, { headers: { "Authorization": "Bearer " + token }});
+    const r = await fetch(url, {
+      method: "GET"
+    });
+
     const j = await r.json().catch(() => ({}));
-    if (!r.ok || j.ok === false) throw new Error(j.error || `Request gagal (${r.status})`);
+    if (!r.ok || j.ok === false) {
+      throw new Error(j.error || j.message || `Request gagal (${r.status})`);
+    }
     return j.data;
   }
 
   async function apiSend(url, method, payload) {
-    const token = tokenOrThrow();
+    const headers = {
+      "Content-Type": "application/json"
+    };
+
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      headers["X-CSRFToken"] = csrfToken;
+    }
+
     const r = await fetch(url, {
       method,
-      headers: {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
-      },
+      headers,
       body: JSON.stringify(payload)
     });
+
     const j = await r.json().catch(() => ({}));
-    if (!r.ok || j.ok === false) throw new Error(j.error || `Request gagal (${r.status})`);
+    if (!r.ok || j.ok === false) {
+      throw new Error(j.error || j.message || `Request gagal (${r.status})`);
+    }
     return j.data;
   }
 
   async function loadPatients() {
     try {
       setLoadingRow();
+
       const q = qEl.value.trim();
       const url = q
         ? `/api/patients?q=${encodeURIComponent(q)}&limit=50`
@@ -320,7 +335,7 @@
       birth_date: (document.getElementById("birth_date").value || "").trim(),
       gender: (document.getElementById("gender").value || "").trim(),
       address: (document.getElementById("address").value || "").trim(),
-      phone: (document.getElementById("phone").value || "").trim(),
+      phone: (document.getElementById("phone").value || "").trim()
     };
   }
 
@@ -332,17 +347,23 @@
     if (!p.address) return "Alamat wajib diisi.";
     if (!p.phone) return "No HP wajib diisi.";
 
-    if (p.phone && p.phone.replace(/\D/g,'').length < 8) return "No HP tidak valid (minimal 8 digit).";
-    if (p.gender && !["M","F"].includes(p.gender)) return "Jenis kelamin tidak valid.";
+    if (p.phone && p.phone.replace(/\D/g, '').length < 8) {
+      return "No HP tidak valid (minimal 8 digit).";
+    }
+
+    if (p.gender && !["M", "F"].includes(p.gender)) {
+      return "Jenis kelamin tidak valid.";
+    }
 
     if (p.nik) {
       if (!/^\d+$/.test(p.nik)) return "NIK harus berupa angka.";
-      if (p.nik.length !== 16) return "NIK wajib 16 digit (tidak lebih dan tidak kurang).";
+      if (p.nik.length !== 16) return "NIK wajib 16 digit.";
     }
+
     return null;
   }
 
-  async function openAdd() {
+  function openAdd() {
     clearModalError();
     resetForm();
     modalTitle.textContent = "Tambah Pasien";
@@ -357,6 +378,7 @@
       modal.show();
 
       const r = await apiGet(`/api/patients/${id}`);
+
       document.getElementById("patient_id").value = r.id ?? "";
       document.getElementById("nik").value = r.nik ?? "";
       document.getElementById("full_name").value = r.full_name ?? "";
@@ -378,7 +400,10 @@
       const payload = getFormPayload();
 
       const err = validatePayload(payload);
-      if (err) { showModalError(err); return; }
+      if (err) {
+        showModalError(err);
+        return;
+      }
 
       if (!id) {
         await apiSend("/api/patients", "POST", payload);
@@ -393,12 +418,10 @@
     }
   }
 
-  // events
   document.getElementById("btnLoad").addEventListener("click", loadPatients);
   document.getElementById("btnAdd").addEventListener("click", openAdd);
   document.getElementById("btnSave").addEventListener("click", savePatient);
 
-  // enter pada search
   qEl.addEventListener("keydown", (ev) => {
     if (ev.key === "Enter") {
       ev.preventDefault();
@@ -406,10 +429,8 @@
     }
   });
 
-  // expose openEdit to global for onclick
   window.openEdit = openEdit;
 
-  // auto load
   loadPatients();
 </script>
 {% endblock %}
