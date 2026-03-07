@@ -58,7 +58,7 @@ class PendaftaranService:
 
     @staticmethod
     def _ensure_draft(header: Dict):
-        if (header.get("status") or "").strip() != "draft":
+        if (header.get("status") or "").strip() not in ["draft", "confirmed"]:
             raise AppError("Pendaftaran sudah dikonfirmasi/dibatalkan. Tidak boleh diubah.", 400)
 
     @staticmethod
