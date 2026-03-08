@@ -1,51 +1,238 @@
 {% extends "base/base.html" %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="mb-0">Master Pasien</h4>
+<style>
+  .page-head {
+    gap: .75rem;
+  }
+
+  .filter-box,
+  .table-box {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .desktop-list {
+    display: block;
+  }
+
+  .mobile-list {
+    display: none;
+  }
+
+  .patient-card-list {
+    display: grid;
+    gap: .85rem;
+  }
+
+  .patient-card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    overflow: hidden;
+  }
+
+  .patient-card-head {
+    padding: .9rem 1rem .75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    background: #fafafa;
+  }
+
+  .patient-card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.3;
+    margin-bottom: .15rem;
+  }
+
+  .patient-card-subtitle {
+    font-size: .84rem;
+    color: #6c757d;
+  }
+
+  .patient-card-body {
+    padding: .95rem 1rem 1rem;
+  }
+
+  .patient-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .8rem .9rem;
+  }
+
+  .patient-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .patient-label {
+    font-size: .76rem;
+    color: #6c757d;
+    margin-bottom: .12rem;
+  }
+
+  .patient-value {
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .patient-actions {
+    margin-top: .85rem;
+    display: flex;
+    gap: .6rem;
+  }
+
+  .patient-actions .btn {
+    width: 100%;
+  }
+
+  .table-responsive {
+    padding: 1%;
+  }
+
+  .addr-truncate {
+    max-width: 420px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 991.98px) {
+    #tblPatients th,
+    #tblPatients td {
+      padding: .55rem .5rem;
+      font-size: .9rem;
+    }
+
+    .addr-truncate {
+      max-width: 240px;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-head .btn {
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 1.15rem;
+    }
+
+    .filter-box {
+      padding: .95rem !important;
+    }
+
+    .filter-box .form-control,
+    .filter-box .btn,
+    .modal .form-control,
+    .modal .form-select,
+    .modal .btn {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+
+    .desktop-list {
+      display: none;
+    }
+
+    .mobile-list {
+      display: block;
+    }
+
+    .patient-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .modal-dialog {
+      margin: .6rem;
+    }
+
+    .modal-content {
+      border-radius: 1rem;
+    }
+
+    .modal-header,
+    .modal-footer {
+      padding: .9rem 1rem;
+    }
+
+    .modal-body {
+      padding: 1rem;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .patient-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3 page-head">
+  <h4 class="mb-0 page-title">Master Pasien</h4>
   <button id="btnAdd" class="btn btn-success" type="button">
     + Tambah Pasien
   </button>
 </div>
 
-<form class="row g-2 mb-3" onsubmit="return false;">
-  <div class="col-md-9">
+<form class="row g-2 mb-3 filter-box p-3" onsubmit="return false;">
+  <div class="col-12 col-md-9">
     <input id="q" type="text" class="form-control" placeholder="Cari: nama / no hp / kode pasien / nik">
   </div>
-  <div class="col-md-3 d-grid">
+  <div class="col-12 col-md-3 d-grid">
     <button id="btnLoad" class="btn btn-outline-secondary" type="button">
       Filter
     </button>
   </div>
 </form>
 
-<div class="card">
-  <div class="table-responsive" style="padding: 1%;">
-    <table class="table table-sm table-striped table-hover align-middle" id="tblPatients">
-      <thead class="table-light">
-        <tr>
-          <th style="width:90px;">Kode</th>
-          <th style="width:170px;">NIK</th>
-          <th>Nama</th>
-          <th style="width:130px;">Gender</th>
-          <th style="width:140px;">Tanggal Lahir</th>
-          <th style="width:170px;">No HP</th>
-          <th>Alamat</th>
-          <th style="width:140px;" class="text-end">Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="tbodyPatients">
-        <tr>
-          <td colspan="8" class="text-center text-muted">Memuat data...</td>
-        </tr>
-      </tbody>
-    </table>
+<!-- DESKTOP / TABLET -->
+<div class="desktop-list">
+  <div class="card table-box">
+    <div class="table-responsive">
+      <table class="table table-sm table-striped table-hover align-middle mb-0" id="tblPatients">
+        <thead class="table-light">
+          <tr>
+            <th style="width:90px;">Kode</th>
+            <th style="width:170px;">NIK</th>
+            <th>Nama</th>
+            <th style="width:130px;">Gender</th>
+            <th style="width:140px;">Tanggal Lahir</th>
+            <th style="width:170px;">No HP</th>
+            <th>Alamat</th>
+            <th style="width:140px;" class="text-end">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyPatients">
+          <tr>
+            <td colspan="8" class="text-center text-muted">Memuat data...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE -->
+<div class="mobile-list">
+  <div id="mobilePatientsWrap" class="patient-card-list">
+    <div class="card table-box">
+      <div class="card-body text-center text-muted py-4">
+        Memuat data...
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- Modal Add/Edit -->
 <div class="modal fade" id="patientModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+  <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-scrollable">
     <div class="modal-content">
 
       <div class="modal-header">
@@ -119,6 +306,7 @@
 <script>
   const tbody = document.getElementById("tbodyPatients");
   const qEl = document.getElementById("q");
+  const mobileWrap = document.getElementById("mobilePatientsWrap");
 
   const modalEl = document.getElementById("patientModal");
   const modal = new bootstrap.Modal(modalEl);
@@ -128,6 +316,10 @@
 
   let dt = null;
 
+  function isMobileView() {
+    return window.innerWidth < 768;
+  }
+
   function destroyDataTableIfExists() {
     if (dt) {
       dt.destroy();
@@ -136,8 +328,12 @@
   }
 
   function initOrRefreshDataTable() {
-    const table = document.getElementById("tblPatients");
+    if (isMobileView()) {
+      destroyDataTableIfExists();
+      return;
+    }
 
+    const table = document.getElementById("tblPatients");
     destroyDataTableIfExists();
 
     const firstRow = tbody.querySelector("tr");
@@ -184,12 +380,12 @@
 
     if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
 
-    const dt = new Date(s);
-    if (isNaN(dt.getTime())) return "";
+    const dtObj = new Date(s);
+    if (isNaN(dtObj.getTime())) return "";
 
-    const y = dt.getFullYear();
-    const m = String(dt.getMonth() + 1).padStart(2, "0");
-    const d = String(dt.getDate()).padStart(2, "0");
+    const y = dtObj.getFullYear();
+    const m = String(dtObj.getMonth() + 1).padStart(2, "0");
+    const d = String(dtObj.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
   }
 
@@ -223,11 +419,11 @@
       return `${d}/${m}/${y}`;
     }
 
-    const dt = new Date(s);
-    if (!isNaN(dt.getTime())) {
-      const dd = String(dt.getDate()).padStart(2, "0");
-      const mm = String(dt.getMonth() + 1).padStart(2, "0");
-      const yy = dt.getFullYear();
+    const dtObj = new Date(s);
+    if (!isNaN(dtObj.getTime())) {
+      const dd = String(dtObj.getDate()).padStart(2, "0");
+      const mm = String(dtObj.getMonth() + 1).padStart(2, "0");
+      const yy = dtObj.getFullYear();
       return `${dd}/${mm}/${yy}`;
     }
 
@@ -250,6 +446,11 @@
         <td colspan="8" class="text-center text-muted">${escapeHtml(text)}</td>
       </tr>
     `;
+    mobileWrap.innerHTML = `
+      <div class="card table-box">
+        <div class="card-body text-center text-muted py-4">${escapeHtml(text)}</div>
+      </div>
+    `;
   }
 
   function setEmptyRow() {
@@ -258,6 +459,11 @@
       <tr>
         <td colspan="8" class="text-center text-muted">Tidak ada data pasien.</td>
       </tr>
+    `;
+    mobileWrap.innerHTML = `
+      <div class="card table-box">
+        <div class="card-body text-center text-muted py-4">Tidak ada data pasien.</div>
+      </div>
     `;
   }
 
@@ -268,11 +474,66 @@
         <td colspan="8" class="text-center text-danger">${escapeHtml(message)}</td>
       </tr>
     `;
+    mobileWrap.innerHTML = `
+      <div class="card table-box">
+        <div class="card-body text-center text-danger py-4">${escapeHtml(message)}</div>
+      </div>
+    `;
   }
 
-  function renderRows(rows) {
-    destroyDataTableIfExists();
+  function renderMobileRows(rows) {
+    if (!rows || rows.length === 0) {
+      mobileWrap.innerHTML = `
+        <div class="card table-box">
+          <div class="card-body text-center text-muted py-4">Tidak ada data pasien.</div>
+        </div>
+      `;
+      return;
+    }
 
+    mobileWrap.innerHTML = rows.map(r => `
+      <div class="patient-card">
+        <div class="patient-card-head">
+          <div class="patient-card-title">${escapeHtml(r.full_name ?? "")}</div>
+          <div class="patient-card-subtitle">
+            ${escapeHtml(r.patient_code ?? "")} • ${escapeHtml(r.nik ?? "-")}
+          </div>
+        </div>
+
+        <div class="patient-card-body">
+          <div class="patient-grid">
+            <div class="patient-field">
+              <div class="patient-label">Gender</div>
+              <div class="patient-value">${escapeHtml(fmtGender(r.gender) || "-")}</div>
+            </div>
+
+            <div class="patient-field">
+              <div class="patient-label">Tanggal Lahir</div>
+              <div class="patient-value">${escapeHtml(fmtDate(r.birth_date) || "-")}</div>
+            </div>
+
+            <div class="patient-field">
+              <div class="patient-label">No HP</div>
+              <div class="patient-value">${escapeHtml(r.phone ?? "-")}</div>
+            </div>
+
+            <div class="patient-field full">
+              <div class="patient-label">Alamat</div>
+              <div class="patient-value">${escapeHtml(r.address ?? "-")}</div>
+            </div>
+          </div>
+
+          <div class="patient-actions">
+            <button class="btn btn-outline-primary" type="button" onclick="openEdit(${Number(r.id)})">
+              Edit
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function renderDesktopRows(rows) {
     if (!rows || rows.length === 0) {
       setEmptyRow();
       return;
@@ -288,7 +549,7 @@
           ${escapeHtml(fmtDate(r.birth_date))}
         </td>
         <td>${escapeHtml(r.phone ?? "")}</td>
-        <td class="text-truncate" style="max-width:420px;" title="${escapeHtml(r.address ?? "")}">
+        <td class="addr-truncate" title="${escapeHtml(r.address ?? "")}">
           ${escapeHtml(r.address ?? "")}
         </td>
         <td class="text-end">
@@ -296,7 +557,18 @@
         </td>
       </tr>
     `).join("");
+  }
 
+  function renderRows(rows) {
+    destroyDataTableIfExists();
+
+    if (!rows || rows.length === 0) {
+      setEmptyRow();
+      return;
+    }
+
+    renderDesktopRows(rows);
+    renderMobileRows(rows);
     initOrRefreshDataTable();
   }
 
@@ -443,10 +715,17 @@
         return;
       }
 
-      if (!id) {
-        await apiSend("/api/patients", "POST", payload);
-      } else {
-        await apiSend(`/api/patients/${encodeURIComponent(id)}`, "PUT", payload);
+      const btnSave = document.getElementById("btnSave");
+      btnSave.disabled = true;
+
+      try {
+        if (!id) {
+          await apiSend("/api/patients", "POST", payload);
+        } else {
+          await apiSend(`/api/patients/${encodeURIComponent(id)}`, "PUT", payload);
+        }
+      } finally {
+        btnSave.disabled = false;
       }
 
       modal.hide();
@@ -465,6 +744,18 @@
       ev.preventDefault();
       loadPatients();
     }
+  });
+
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (isMobileView()) {
+        destroyDataTableIfExists();
+      } else {
+        initOrRefreshDataTable();
+      }
+    }, 200);
   });
 
   window.openEdit = openEdit;

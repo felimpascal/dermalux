@@ -1,17 +1,159 @@
 {% extends "base/base.html" %}
 {% block content %}
 
+<style>
+  .page-head {
+    gap: .75rem;
+  }
+
+  .main-card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .desktop-list {
+    display: block;
+  }
+
+  .mobile-list {
+    display: none;
+  }
+
+  .perm-card-list {
+    display: grid;
+    gap: .85rem;
+  }
+
+  .perm-card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    overflow: hidden;
+  }
+
+  .perm-card-head {
+    padding: .9rem 1rem .75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    background: #fafafa;
+  }
+
+  .perm-card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.3;
+    margin-bottom: .15rem;
+  }
+
+  .perm-card-subtitle {
+    font-size: .84rem;
+    color: #6c757d;
+  }
+
+  .perm-card-body {
+    padding: .95rem 1rem 1rem;
+  }
+
+  .perm-switch-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .85rem 0 0;
+  }
+
+  .perm-switch-wrap .form-check {
+    margin: 0;
+  }
+
+  .sticky-action-mobile {
+    position: static;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-head .btn {
+      width: 100%;
+    }
+
+    .page-head-right {
+      display: grid !important;
+      grid-template-columns: 1fr;
+      gap: .6rem;
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 1.15rem;
+    }
+
+    .desktop-list {
+      display: none;
+    }
+
+    .mobile-list {
+      display: block;
+    }
+
+    .toolbar-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .6rem;
+    }
+
+    .toolbar-stack .btn {
+      width: 100%;
+    }
+
+    .form-control,
+    .btn {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+
+    .sticky-action-mobile {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(6px);
+      border-top: 1px solid rgba(0,0,0,.08);
+      padding-top: .85rem;
+      margin-top: 1rem;
+    }
+
+    .action-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .6rem;
+    }
+
+    .action-stack .btn {
+      width: 100%;
+    }
+  }
+</style>
+
 <div class="container py-3">
 
-  <div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center justify-content-between mb-3 page-head">
     <div>
-      <h4 class="mb-0">Permissions</h4>
+      <h4 class="mb-0 page-title">Permissions</h4>
       <small class="text-muted">
         User: <strong>{{ user.username }}</strong> ({{ user.role }})
       </small>
     </div>
 
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 page-head-right">
       <a href="{{ url_for('user_mgmt.edit_user', public_id=user.public_id) }}"
          class="btn btn-outline-secondary">
         Kembali
@@ -24,126 +166,155 @@
     </div>
   </div>
 
-
   {% if user.role == 'admin' %}
   <div class="alert alert-info">
-    User ini adalah <strong>admin</strong>.  
-    Admin otomatis full access (bypass permission).  
+    User ini adalah <strong>admin</strong>.
+    Admin otomatis full access (bypass permission).
     Mapping permission tetap boleh disimpan tetapi tidak berpengaruh pada akses admin.
   </div>
   {% endif %}
 
-
-  <div class="card">
-
+  <div class="card main-card">
     <div class="card-body">
 
-      <!-- ========================= -->
       <!-- SEARCH -->
-      <!-- ========================= -->
       <div class="row g-2 align-items-center mb-3">
-
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <input id="permSearch"
                  type="text"
                  class="form-control"
                  placeholder="Cari permission code atau name...">
         </div>
 
-        <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end">
-          <button type="button"
-                  class="btn btn-outline-secondary btn-sm"
-                  id="btnSelectAll">
-            Select All
-          </button>
+        <div class="col-12 col-md-6">
+          <div class="d-flex gap-2 justify-content-md-end toolbar-stack">
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    id="btnSelectAll">
+              Select All
+            </button>
 
-          <button type="button"
-                  class="btn btn-outline-secondary btn-sm"
-                  id="btnClearAll">
-            Clear All
-          </button>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    id="btnClearAll">
+              Clear All
+            </button>
+          </div>
         </div>
-
       </div>
 
-
-      <!-- ========================= -->
       <!-- PERMISSION FORM -->
-      <!-- ========================= -->
       <form method="post"
             action="{{ url_for('user_mgmt.manage_permissions', public_id=user.public_id) }}">
 
-        <div class="table-responsive">
+        <!-- DESKTOP / TABLET -->
+        <div class="desktop-list">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle"
+                   id="permTable">
 
-          <table class="table table-hover align-middle"
-                 id="permTable">
+              <thead class="table-light">
+                <tr>
+                  <th style="width:80px;">Grant</th>
+                  <th>Code</th>
+                  <th>Name</th>
+                </tr>
+              </thead>
 
-            <thead class="table-light">
-              <tr>
-                <th style="width:80px;">Grant</th>
-                <th>Code</th>
-                <th>Name</th>
-              </tr>
-            </thead>
+              <tbody>
+                {% if perms and perms|length > 0 %}
+                  {% for p in perms %}
+                  <tr>
+                    <td>
+                      <input
+                        class="form-check-input perm-check"
+                        type="checkbox"
+                        name="perm_ids"
+                        value="{{ p.id }}"
+                        {% if p.granted %}checked{% endif %}>
+                    </td>
 
-            <tbody>
+                    <td class="perm-code fw-semibold">
+                      {{ p.permission_code }}
+                    </td>
 
-              {% for p in perms %}
+                    <td class="perm-name text-muted">
+                      {{ p.permission_name }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="3" class="text-center py-4 text-muted">
+                      Tidak ada permission.
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
 
-              <tr>
-
-                <td>
-                  <input
-                    class="form-check-input perm-check"
-                    type="checkbox"
-                    name="perm_ids"
-                    value="{{ p.id }}"
-                    {% if p.granted %}checked{% endif %}>
-                </td>
-
-                <td class="perm-code fw-semibold">
-                  {{ p.permission_code }}
-                </td>
-
-                <td class="perm-name text-muted">
-                  {{ p.permission_name }}
-                </td>
-
-              </tr>
-
-              {% endfor %}
-
-            </tbody>
-
-          </table>
-
+            </table>
+          </div>
         </div>
 
+        <!-- MOBILE -->
+        <div class="mobile-list">
+          {% if perms and perms|length > 0 %}
+            <div class="perm-card-list" id="permCardList">
+              {% for p in perms %}
+              <div class="perm-card perm-row-mobile"
+                   data-code="{{ (p.permission_code or '')|lower }}"
+                   data-name="{{ (p.permission_name or '')|lower }}">
+                <div class="perm-card-head">
+                  <div class="perm-card-title perm-code">{{ p.permission_code }}</div>
+                  <div class="perm-card-subtitle perm-name">{{ p.permission_name }}</div>
+                </div>
+
+                <div class="perm-card-body">
+                  <div class="perm-switch-wrap">
+                    <div class="text-muted small">Grant akses</div>
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input perm-check"
+                        type="checkbox"
+                        name="perm_ids"
+                        value="{{ p.id }}"
+                        {% if p.granted %}checked{% endif %}>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="card">
+              <div class="card-body text-center py-4 text-muted">
+                Tidak ada permission.
+              </div>
+            </div>
+          {% endif %}
+        </div>
 
         <!-- BUTTON -->
-        <div class="d-flex gap-2">
+        <div class="sticky-action-mobile">
+          <div class="d-flex gap-2 mt-3 flex-wrap action-stack">
+            <button type="submit"
+                    class="btn btn-primary">
+              Simpan
+            </button>
 
-          <button type="submit"
-                  class="btn btn-primary">
-            Simpan
-          </button>
-
-          <a href="{{ url_for('user_mgmt.edit_user', public_id=user.public_id) }}"
-             class="btn btn-outline-secondary">
-            Batal
-          </a>
-
+            <a href="{{ url_for('user_mgmt.edit_user', public_id=user.public_id) }}"
+               class="btn btn-outline-secondary">
+              Batal
+            </a>
+          </div>
         </div>
 
       </form>
 
     </div>
-
   </div>
 
 </div>
-
-
 
 <script>
 (function () {
@@ -152,56 +323,69 @@
   const table = document.getElementById("permTable");
   const btnSelectAll = document.getElementById("btnSelectAll");
   const btnClearAll = document.getElementById("btnClearAll");
+  const mobileCards = document.querySelectorAll(".perm-row-mobile");
 
-  function filterRows() {
+  function filterDesktopRows(q) {
+    if (!table) return;
 
-    const q = (searchEl.value || "").toLowerCase().trim();
     const rows = table.querySelectorAll("tbody tr");
 
     rows.forEach(tr => {
+      const codeEl = tr.querySelector(".perm-code");
+      const nameEl = tr.querySelector(".perm-name");
 
-      const code = tr.querySelector(".perm-code").textContent.toLowerCase();
-      const name = tr.querySelector(".perm-name").textContent.toLowerCase();
+      if (!codeEl || !nameEl) return;
 
+      const code = (codeEl.textContent || "").toLowerCase();
+      const name = (nameEl.textContent || "").toLowerCase();
       const ok = (q === "") || code.includes(q) || name.includes(q);
 
       tr.style.display = ok ? "" : "none";
-
     });
-
   }
 
-  searchEl.addEventListener("input", filterRows);
+  function filterMobileCards(q) {
+    if (!mobileCards || mobileCards.length === 0) return;
 
+    mobileCards.forEach(card => {
+      const code = card.getAttribute("data-code") || "";
+      const name = card.getAttribute("data-name") || "";
+      const ok = (q === "") || code.includes(q) || name.includes(q);
 
-  btnSelectAll.addEventListener("click", function () {
-
-    table.querySelectorAll("tbody tr").forEach(tr => {
-
-      if (tr.style.display === "none") return;
-
-      const cb = tr.querySelector(".perm-check");
-
-      if (cb) cb.checked = true;
-
+      card.style.display = ok ? "" : "none";
     });
+  }
 
-  });
+  function filterRows() {
+    const q = (searchEl.value || "").toLowerCase().trim();
+    filterDesktopRows(q);
+    filterMobileCards(q);
+  }
 
-
-  btnClearAll.addEventListener("click", function () {
-
-    table.querySelectorAll("tbody tr").forEach(tr => {
-
-      if (tr.style.display === "none") return;
-
-      const cb = tr.querySelector(".perm-check");
-
-      if (cb) cb.checked = false;
-
+  function setVisibleChecks(checked) {
+    document.querySelectorAll(".perm-check").forEach(cb => {
+      const row = cb.closest("tr, .perm-row-mobile");
+      if (!row) return;
+      if (row.style.display === "none") return;
+      cb.checked = checked;
     });
+  }
 
-  });
+  if (searchEl) {
+    searchEl.addEventListener("input", filterRows);
+  }
+
+  if (btnSelectAll) {
+    btnSelectAll.addEventListener("click", function () {
+      setVisibleChecks(true);
+    });
+  }
+
+  if (btnClearAll) {
+    btnClearAll.addEventListener("click", function () {
+      setVisibleChecks(false);
+    });
+  }
 
 })();
 </script>

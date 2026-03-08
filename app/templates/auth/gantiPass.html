@@ -1,70 +1,138 @@
 {% extends "base/base.html" %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow rounded-4">
-                <div class="card-body p-4">
+<style>
+  .password-shell {
+    max-width: 560px;
+    margin: 0 auto;
+  }
 
-                    <h4 class="mb-4 text-center fw-bold">Ganti Password</h4>
+  .password-card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1.25rem;
+    overflow: hidden;
+  }
 
-                    <form method="POST" action="{{ url_for('auth.ganti_password_submit') }}" autocomplete="off">
+  .password-card .card-body {
+    padding: 1.75rem;
+  }
 
-                        <div class="mb-3">
-                            <label class="form-label">Password Lama</label>
-                            <input type="password"
-                                   name="txtPasswordLama"
-                                   class="form-control"
-                                   required
-                                   value="{{ user.passLama }}">
-                        </div>
+  .password-title {
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
 
-                        <div class="mb-3">
-                            <label class="form-label">Password Baru</label>
-                            <input type="password"
-                                   name="txtPasswordBaru"
-                                   class="form-control"
-                                   required
-                                   value="{{ user.passBaru }}">
-                        </div>
+  .form-label {
+    font-weight: 500;
+    margin-bottom: .4rem;
+  }
 
-                        <div class="mb-3">
-                            <label class="form-label">Konfirmasi Password Baru</label>
-                            <input type="password"
-                                   name="txtPasswordKonfirmasi"
-                                   class="form-control"
-                                   required
-                                   value="{{ user.passKonfirmasi }}">
-                        </div>
+  .form-control {
+    min-height: 44px;
+    border-radius: 12px;
+  }
 
-                        <button type="submit" class="btn btn-success w-100">
-                            Simpan Perubahan
-                        </button>
+  .btn-submit {
+    min-height: 46px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
 
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('auth.logout') }}" class="text-danger small">
-                                Logout
-                            </a>
-                        </div>
+  .logout-link {
+    text-decoration: none;
+  }
 
-                    </form>
+  .logout-link:hover {
+    text-decoration: underline;
+  }
 
-                </div>
-            </div>
-        </div>
+  @media (max-width: 767.98px) {
+    .container.py-5 {
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+
+    .password-card .card-body {
+      padding: 1rem;
+    }
+
+    .password-title {
+      font-size: 1.15rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .form-control,
+    .btn-submit {
+      font-size: .95rem;
+    }
+  }
+</style>
+
+<div class="container py-4 py-md-5">
+  <div class="password-shell">
+    <div class="card shadow-sm password-card">
+      <div class="card-body">
+
+        <h4 class="password-title">Ganti Password</h4>
+
+        <form method="POST"
+              action="{{ url_for('auth.ganti_password_submit') }}"
+              autocomplete="off">
+
+          <div class="mb-3">
+            <label class="form-label">Password Lama</label>
+            <input type="password"
+                   name="txtPasswordLama"
+                   class="form-control"
+                   required
+                   autocomplete="current-password">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password Baru</label>
+            <input type="password"
+                   name="txtPasswordBaru"
+                   class="form-control"
+                   required
+                   autocomplete="new-password">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Konfirmasi Password Baru</label>
+            <input type="password"
+                   name="txtPasswordKonfirmasi"
+                   class="form-control"
+                   required
+                   autocomplete="new-password">
+          </div>
+
+          <button type="submit" class="btn btn-success w-100 btn-submit">
+            Simpan Perubahan
+          </button>
+
+          <div class="text-center mt-3">
+            <a href="{{ url_for('auth.logout') }}" class="text-danger small logout-link">
+              Logout
+            </a>
+          </div>
+
+        </form>
+
+      </div>
     </div>
+  </div>
 </div>
 
 <script>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            Swal.fire({
-                icon: 'info',
-                title: 'Informasi',
-                text: '{{ messages[0] }}'
-            });
-        {% endif %}
-    {% endwith %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      Swal.fire({
+        icon: 'info',
+        title: 'Informasi',
+        text: {{ messages[0] | tojson }}
+      });
+    {% endif %}
+  {% endwith %}
 </script>
 {% endblock %}

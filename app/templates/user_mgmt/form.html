@@ -1,15 +1,112 @@
 {% extends "base/base.html" %}
 {% block content %}
 
+<style>
+  .page-head {
+    gap: .75rem;
+  }
+
+  .form-card,
+  .side-card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .form-card .card-body,
+  .side-card .card-body {
+    padding: 1.25rem;
+  }
+
+  .sticky-action-mobile {
+    position: static;
+  }
+
+  .helper-text {
+    color: #6c757d;
+    font-size: .84rem;
+  }
+
+  .warning-box {
+    border-radius: .9rem;
+  }
+
+  @media (max-width: 991.98px) {
+    .container.py-3 {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    .form-card .card-body,
+    .side-card .card-body {
+      padding: 1.1rem;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-head .btn {
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 1.15rem;
+      line-height: 1.35;
+    }
+
+    .form-card .card-body,
+    .side-card .card-body {
+      padding: 1rem;
+    }
+
+    .form-label {
+      margin-bottom: .35rem;
+      font-weight: 500;
+    }
+
+    .form-control,
+    .form-select,
+    .btn {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+
+    .sticky-action-mobile {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(6px);
+      border-top: 1px solid rgba(0,0,0,.08);
+      padding-top: .85rem;
+      margin-top: 1rem;
+    }
+
+    .action-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .6rem;
+    }
+
+    .action-stack .btn {
+      width: 100%;
+    }
+  }
+</style>
+
 <div class="container py-3">
 
-  <div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center justify-content-between mb-3 page-head">
     <div>
       {% if mode == 'create' %}
-        <h4 class="mb-0">Tambah User</h4>
+        <h4 class="mb-0 page-title">Tambah User</h4>
         <small class="text-muted">Buat user baru.</small>
       {% else %}
-        <h4 class="mb-0">Edit User</h4>
+        <h4 class="mb-0 page-title">Edit User</h4>
         <small class="text-muted">Update data user tanpa mengubah password.</small>
       {% endif %}
     </div>
@@ -19,15 +116,12 @@
     </a>
   </div>
 
-
   <div class="row g-3">
 
-    <!-- ========================= -->
     <!-- DATA USER -->
-    <!-- ========================= -->
-    <div class="col-lg-7">
+    <div class="col-12 col-lg-7">
 
-      <div class="card">
+      <div class="card form-card">
         <div class="card-header">
           <strong>Data User</strong>
         </div>
@@ -83,14 +177,13 @@
                 </option>
               </select>
 
-              <small class="text-muted">
+              <div class="helper-text mt-1">
                 Admin otomatis full access (bypass permission).
-              </small>
+              </div>
             </div>
 
             <!-- STATUS -->
             <div class="mb-3">
-
               <label class="form-label">Status</label>
 
               {% set active = (row.is_active if row else 1) %}
@@ -106,7 +199,6 @@
                   Inactive
                 </option>
               </select>
-
             </div>
 
             <!-- PASSWORD (CREATE ONLY) -->
@@ -121,24 +213,29 @@
                 placeholder="Minimal 6 karakter"
                 required>
 
+              <div class="helper-text mt-1">
+                Password awal untuk user baru.
+              </div>
             </div>
             {% endif %}
 
             <!-- BUTTON -->
-            <div class="d-flex gap-2">
+            <div class="sticky-action-mobile">
+              <div class="d-flex gap-2 flex-wrap action-stack">
 
-              <button type="submit" class="btn btn-primary">
-                Simpan
-              </button>
+                <button type="submit" class="btn btn-primary">
+                  Simpan
+                </button>
 
-              {% if mode != 'create' %}
-              <a
-                href="{{ url_for('user_mgmt.manage_permissions', public_id=row.public_id) }}"
-                class="btn btn-outline-secondary">
-                Kelola Permission
-              </a>
-              {% endif %}
+                {% if mode != 'create' %}
+                <a
+                  href="{{ url_for('user_mgmt.manage_permissions', public_id=row.public_id) }}"
+                  class="btn btn-outline-secondary">
+                  Kelola Permission
+                </a>
+                {% endif %}
 
+              </div>
             </div>
 
           </form>
@@ -148,15 +245,11 @@
 
     </div>
 
-
-
-    <!-- ========================= -->
     <!-- RESET PASSWORD -->
-    <!-- ========================= -->
     {% if mode != 'create' %}
-    <div class="col-lg-5">
+    <div class="col-12 col-lg-5">
 
-      <div class="card border-warning">
+      <div class="card side-card border-warning">
 
         <div class="card-header bg-warning-subtle">
           <strong>Reset Password</strong>
@@ -164,16 +257,15 @@
 
         <div class="card-body">
 
-          <p class="text-muted mb-3">
+          <div class="text-muted mb-3">
             Gunakan menu ini jika user lupa password.
             Password lama akan diganti.
-          </p>
+          </div>
 
           <form method="post"
                 action="{{ url_for('user_mgmt.reset_password', public_id=row.public_id) }}">
 
             <div class="mb-3">
-
               <label class="form-label">Password Baru</label>
 
               <input
@@ -183,6 +275,9 @@
                 placeholder="Minimal 6 karakter"
                 required>
 
+              <div class="helper-text mt-1">
+                Gunakan password baru yang aman dan mudah diinformasikan ke user terkait.
+              </div>
             </div>
 
             <button type="submit" class="btn btn-warning w-100">
@@ -194,17 +289,12 @@
         </div>
       </div>
 
-      <!-- PERMISSION BUTTON -->
       <div class="mt-3">
-
         <a
           class="btn btn-outline-dark w-100"
           href="{{ url_for('user_mgmt.manage_permissions', public_id=row.public_id) }}">
-
           Permissions
-
         </a>
-
       </div>
 
     </div>

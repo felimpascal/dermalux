@@ -1,14 +1,175 @@
 {% extends "base/base.html" %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="mb-0">
+<style>
+  .page-head {
+    gap: .75rem;
+  }
+
+  .form-shell {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .form-shell .card-body {
+    padding: 1.25rem;
+  }
+
+  .section-box {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+  }
+
+  .section-title {
+    font-weight: 600;
+    margin-bottom: .85rem;
+  }
+
+  .patient-status {
+    font-size: .85rem;
+  }
+
+  .readonly-panel .form-control,
+  .readonly-panel textarea {
+    background-color: #fff;
+  }
+
+  .sticky-action-mobile {
+    position: static;
+  }
+
+  .modal-patient-table tbody tr:hover {
+    background: #f1f8ff;
+  }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-head .btn {
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 1.15rem;
+    }
+
+    .form-shell .card-body {
+      padding: 1rem;
+    }
+
+    .form-label {
+      margin-bottom: .35rem;
+      font-weight: 500;
+    }
+
+    .form-control,
+    .form-select,
+    .btn {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+
+    textarea.form-control {
+      min-height: 110px;
+    }
+
+    .input-group .btn {
+      min-width: 86px;
+    }
+
+    .section-box {
+      padding: .9rem;
+      border-radius: .9rem;
+    }
+
+    .patient-summary-grid .col-md-3,
+    .patient-summary-grid .col-md-4,
+    .patient-summary-grid .col-md-5,
+    .patient-summary-grid .col-12 {
+      margin-bottom: .15rem;
+    }
+
+    .sticky-action-mobile {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(6px);
+      border-top: 1px solid rgba(0,0,0,.08);
+      padding-top: .85rem;
+      margin-top: 1rem;
+    }
+
+    .action-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .6rem;
+    }
+
+    .action-stack .btn {
+      width: 100%;
+    }
+
+    .modal-dialog {
+      margin: .6rem;
+    }
+
+    .modal-content {
+      border-radius: 1rem;
+    }
+
+    .modal-header,
+    .modal-footer {
+      padding: .85rem 1rem;
+    }
+
+    .modal-body {
+      padding: 1rem;
+    }
+
+    .patient-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-patient-table {
+      min-width: 720px;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1199.98px) {
+    .form-shell .card-body {
+      padding: 1.1rem;
+    }
+
+    .section-box {
+      padding: 1rem;
+    }
+
+    .form-control,
+    .form-select,
+    .btn {
+      min-height: 42px;
+    }
+  }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3 page-head">
+  <h4 class="mb-0 page-title">
     {% if mode == 'edit' %}Edit Pendaftaran{% else %}Tambah Pendaftaran{% endif %}
   </h4>
-  <a class="btn btn-outline-secondary" href="{{ url_for('pendaftaran.pendaftaran_list_page') }}">Kembali</a>
+  <a class="btn btn-outline-secondary" href="{{ url_for('pendaftaran.pendaftaran_list_page') }}">
+    Kembali
+  </a>
 </div>
 
-<div class="card">
+<div class="card form-shell">
   <div class="card-body">
     <form method="POST" action="{{ url_for('pendaftaran.pendaftaran_save_post') }}">
       {% if mode == 'edit' and row %}
@@ -17,65 +178,91 @@
 
       <div class="row g-3">
 
-        <!-- KODE PASIEN + MODAL SEARCH -->
-        <div class="col-md-4">
+        <!-- KODE PASIEN -->
+        <div class="col-12 col-lg-4">
           <label class="form-label">Kode Pasien</label>
           <div class="input-group">
-            <input id="patient_code" type="text" class="form-control" name="patient_code"
-                   value="{{ row.patient_code if row else '' }}" required
-                   placeholder="Ketik kode pasien / klik Cari" readonly>
-            <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalPatient">
+            <input id="patient_code"
+                   type="text"
+                   class="form-control"
+                   name="patient_code"
+                   value="{{ row.patient_code if row else '' }}"
+                   required
+                   placeholder="Ketik kode pasien / klik Cari"
+                   readonly>
+            <button class="btn btn-outline-primary"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalPatient">
               Cari
             </button>
           </div>
-          <div class="form-text">Bisa ketik manual atau klik <b>Cari</b> untuk live search.</div>
+          <div class="form-text">
+            Pilih pasien melalui tombol <b>Cari</b>.
+          </div>
         </div>
 
-        <!-- TANGGAL OTOMATIS -->
-        <div class="col-md-4">
+        <!-- TANGGAL -->
+        <div class="col-12 col-md-6 col-lg-4">
           <label class="form-label">Tanggal Pendaftaran</label>
-          <input id="tgl_pendaftaran" type="datetime-local" class="form-control" name="tgl_pendaftaran"
-                value="{% if row and row.tgl_pendaftaran %}{{ row.tgl_pendaftaran.strftime('%Y-%m-%dT%H:%M:%S') }}{% endif %}"
-                step="1"
-                required>
+          <input id="tgl_pendaftaran"
+                 type="datetime-local"
+                 class="form-control"
+                 name="tgl_pendaftaran"
+                 value="{% if row and row.tgl_pendaftaran %}{{ row.tgl_pendaftaran.strftime('%Y-%m-%dT%H:%M:%S') }}{% endif %}"
+                 step="1"
+                 required>
           <div class="form-text">Otomatis terisi saat tambah. (Detik aktif)</div>
         </div>
 
-        <!-- PANEL VIEW DATA PASIEN (READONLY) -->
+        {% if mode == 'edit' and row %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <label class="form-label">ID Pendaftaran</label>
+          <input type="text" class="form-control" value="{{ row.pendaftaran_id }}" readonly>
+          <div class="form-text">Nomor referensi pendaftaran.</div>
+        </div>
+        {% endif %}
+
+        <!-- DATA PASIEN -->
         <div class="col-12">
-          <div class="border rounded p-3 bg-light">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div class="fw-semibold">Data Pasien (View Only)</div>
-              <div id="patient_status" class="small text-muted">Belum dipilih</div>
+          <div class="section-box readonly-panel">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <div class="section-title mb-0">Data Pasien</div>
+              <div id="patient_status" class="patient-status text-muted">Belum dipilih</div>
             </div>
 
-            <div class="row g-3">
-              <div class="col-md-3">
+            <div class="row g-3 patient-summary-grid">
+              <div class="col-12 col-md-6 col-lg-3">
                 <label class="form-label">NIK</label>
                 <input id="p_nik" type="text" class="form-control" readonly>
               </div>
-              <div class="col-md-5">
+
+              <div class="col-12 col-md-6 col-lg-5">
                 <label class="form-label">Nama Lengkap</label>
                 <input id="p_full_name" type="text" class="form-control" readonly>
               </div>
-              <div class="col-md-4">
+
+              <div class="col-12 col-md-6 col-lg-4">
                 <label class="form-label">No HP</label>
                 <input id="p_phone" type="text" class="form-control" readonly>
               </div>
 
-              <div class="col-md-3">
+              <div class="col-12 col-md-4 col-lg-3">
                 <label class="form-label">Gender</label>
                 <input id="p_gender" type="text" class="form-control" readonly>
               </div>
-              <div class="col-md-3">
+
+              <div class="col-12 col-md-4 col-lg-3">
                 <label class="form-label">Tempat Lahir</label>
                 <input id="p_birth_place" type="text" class="form-control" readonly>
               </div>
-              <div class="col-md-3">
+
+              <div class="col-12 col-md-4 col-lg-3">
                 <label class="form-label">Tanggal Lahir</label>
                 <input id="p_birth_date" type="text" class="form-control" readonly>
               </div>
-              <div class="col-md-3">
+
+              <div class="col-12 col-md-6 col-lg-3">
                 <label class="form-label">Kode Pasien</label>
                 <input id="p_patient_code" type="text" class="form-control" readonly>
               </div>
@@ -85,30 +272,33 @@
                 <textarea id="p_address" class="form-control" rows="2" readonly></textarea>
               </div>
             </div>
-
           </div>
         </div>
 
         <!-- ANAMNESIS -->
         <div class="col-12">
           <label class="form-label">Anamnesis Umum</label>
-          <textarea class="form-control" name="anamnesis_umum" rows="4"
+          <textarea class="form-control"
+                    name="anamnesis_umum"
+                    rows="4"
                     placeholder="Keluhan, riwayat singkat, permintaan pasien...">{{ row.anamnesis_umum if row else '' }}</textarea>
         </div>
 
       </div>
 
-      <div class="mt-4 d-flex gap-2">
-        <button class="btn btn-primary" type="submit">
-          {% if mode == 'edit' %}Simpan Perubahan{% else %}Simpan{% endif %}
-        </button>
+      <div class="mt-4 sticky-action-mobile">
+        <div class="d-flex gap-2 flex-wrap action-stack">
+          <button class="btn btn-primary" type="submit">
+            {% if mode == 'edit' %}Simpan Perubahan{% else %}Simpan{% endif %}
+          </button>
 
-        {% if mode == 'edit' and row %}
-          <a class="btn btn-success"
-             href="{{ url_for('pendaftaran.pendaftaran_treatment_page', pendaftaran_id=row.pendaftaran_id) }}">
-            Lanjut: Tambah Treatment
-          </a>
-        {% endif %}
+          {% if mode == 'edit' and row %}
+            <a class="btn btn-success"
+               href="{{ url_for('pendaftaran.pendaftaran_treatment_page', pendaftaran_id=row.pendaftaran_id) }}">
+              Lanjut: Tambah Treatment
+            </a>
+          {% endif %}
+        </div>
       </div>
     </form>
   </div>
@@ -116,7 +306,7 @@
 
 <!-- MODAL CARI PASIEN -->
 <div class="modal fade" id="modalPatient" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
 
       <div class="modal-header">
@@ -125,11 +315,12 @@
       </div>
 
       <div class="modal-body">
-        <input id="patientSearch" class="form-control"
+        <input id="patientSearch"
+               class="form-control"
                placeholder="Ketik kode pasien / NIK / nama / no HP...">
 
-        <div class="mt-3 table-responsive">
-          <table class="table table-sm table-hover align-middle">
+        <div class="mt-3 patient-table-wrap">
+          <table class="table table-sm table-hover align-middle modal-patient-table">
             <thead>
               <tr>
                 <th style="width: 110px;">Kode</th>
@@ -160,6 +351,7 @@
 <script>
 (function(){
   function pad2(n){ return String(n).padStart(2, "0"); }
+
   function nowLocalDatetimeSeconds(){
     const d = new Date();
     const yyyy = d.getFullYear();
@@ -174,13 +366,11 @@
   const MODE = "{{ mode }}";
   const initialPatientCode = "{{ row.patient_code if row else '' }}";
 
-  // Auto-set tgl_pendaftaran untuk mode tambah (jangan overwrite edit)
   const $tgl = document.getElementById("tgl_pendaftaran");
-  if (MODE !== "edit" && $tgl && (!$tgl.value || $tgl.value.trim()==="")){
+  if (MODE !== "edit" && $tgl && (!$tgl.value || $tgl.value.trim() === "")){
     $tgl.value = nowLocalDatetimeSeconds();
   }
 
-  // ===== View fields =====
   const $status = document.getElementById("patient_status");
   const viewFields = {
     patient_code: document.getElementById("p_patient_code"),
@@ -203,7 +393,7 @@
     viewFields.birth_date.value = "";
     viewFields.address.value = "";
     $status.textContent = msg || "Belum dipilih";
-    $status.className = "small text-muted";
+    $status.className = "patient-status text-muted";
   }
 
   function setPatientView(p){
@@ -216,10 +406,9 @@
     viewFields.birth_date.value = p.birth_date || "";
     viewFields.address.value = p.address || "";
     $status.textContent = "Data pasien terisi";
-    $status.className = "small text-success";
+    $status.className = "patient-status text-success";
   }
 
-  // ===== Fetch patient by code =====
   const $patientCode = document.getElementById("patient_code");
 
   async function safeJson(res){
@@ -235,9 +424,8 @@
 
     try{
       $status.textContent = "Mengambil data pasien...";
-      $status.className = "small text-muted";
+      $status.className = "patient-status text-muted";
 
-      // ✅ endpoint benar: by-code
       const res = await fetch(`/api/patients/by-code/${encodeURIComponent(code)}`, {
         headers: { "Accept": "application/json" }
       });
@@ -245,14 +433,14 @@
       const json = await safeJson(res);
       if(!res.ok || !json || !json.ok){
         clearPatientView("Pasien tidak ditemukan");
-        $status.className = "small text-danger";
+        $status.className = "patient-status text-danger";
         return;
       }
 
       setPatientView(json.data);
     }catch(e){
       clearPatientView("Gagal mengambil data pasien");
-      $status.className = "small text-danger";
+      $status.className = "patient-status text-danger";
       console.error(e);
     }
   }
@@ -267,14 +455,15 @@
     clearPatientView("Belum dipilih");
   }
 
-  // ===== Modal live search =====
   const $q = document.getElementById("patientSearch");
   const $tbody = document.getElementById("patientResult");
 
   function esc(s){
     return (s ?? "").toString()
-      .replaceAll("&","&amp;").replaceAll("<","&lt;")
-      .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
       .replaceAll("'","&#039;");
   }
 
@@ -310,13 +499,13 @@
 
   async function fetchPatients(){
     const q = ($q.value || "").trim();
-
-    // ✅ endpoint benar: GET /api/patients (q, limit)
     const url = `/api/patients?q=${encodeURIComponent(q)}&limit=20`;
 
     const res = await fetch(url, { headers: { "Accept": "application/json" }});
     const json = await safeJson(res);
-    if(!res.ok || !json || !json.ok) throw new Error((json && json.error) ? json.error : "Gagal mencari pasien");
+    if(!res.ok || !json || !json.ok){
+      throw new Error((json && json.error) ? json.error : "Gagal mencari pasien");
+    }
     render(json.data);
   }
 
@@ -336,7 +525,6 @@
     $q.value = "";
     $tbody.innerHTML = "";
   });
-
 })();
 </script>
 

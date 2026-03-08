@@ -1,89 +1,321 @@
 {% extends "base/base.html" %}
 {% block content %}
 
+<style>
+  .page-head {
+    gap: .75rem;
+  }
+
+  .filter-box,
+  .table-box {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .desktop-list {
+    display: block;
+  }
+
+  .mobile-list {
+    display: none;
+  }
+
+  .diagnosa-card-list {
+    display: grid;
+    gap: .85rem;
+  }
+
+  .diagnosa-card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    overflow: hidden;
+  }
+
+  .diagnosa-card-head {
+    padding: .9rem 1rem .75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    background: #fafafa;
+  }
+
+  .diagnosa-card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.3;
+    margin-bottom: .15rem;
+  }
+
+  .diagnosa-card-subtitle {
+    font-size: .84rem;
+    color: #6c757d;
+  }
+
+  .diagnosa-card-body {
+    padding: .95rem 1rem 1rem;
+  }
+
+  .diagnosa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .8rem .9rem;
+  }
+
+  .diagnosa-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .diagnosa-label {
+    font-size: .76rem;
+    color: #6c757d;
+    margin-bottom: .12rem;
+  }
+
+  .diagnosa-value {
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .diagnosa-actions {
+    margin-top: .9rem;
+  }
+
+  .status-badge {
+    min-width: 82px;
+    display: inline-block;
+    text-align: center;
+  }
+
+  .table-responsive {
+    padding: 1%;
+  }
+
+  @media (max-width: 991.98px) {
+    #tblDiagnosa th,
+    #tblDiagnosa td {
+      padding: .55rem .5rem;
+      font-size: .9rem;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-head .btn {
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 1.15rem;
+    }
+
+    .filter-box {
+      padding: .95rem !important;
+    }
+
+    .filter-box .form-control,
+    .filter-box .form-select,
+    .filter-box .btn {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+
+    .desktop-list {
+      display: none;
+    }
+
+    .mobile-list {
+      display: block;
+    }
+
+    .diagnosa-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .diagnosa-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
 <div class="container-fluid">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">Master Diagnosa</h4>
+  <div class="d-flex justify-content-between align-items-center mb-3 page-head">
+    <h4 class="mb-0 page-title">Master Diagnosa</h4>
     <a class="btn btn-primary" href="{{ url_for('diagnosa.diagnosa_new_page') }}">
       <i class="bi bi-plus-circle"></i> Tambah Diagnosa
     </a>
   </div>
 
-  <form class="row g-2 mb-3" method="get" action="{{ url_for('diagnosa.diagnosa_list_page') }}">
-    <div class="col-md-6">
-      <input class="form-control" name="q" value="{{ q }}" placeholder="Cari kode / nama diagnosa">
+  <form class="row g-2 mb-3 filter-box p-3" method="get" action="{{ url_for('diagnosa.diagnosa_list_page') }}">
+    <div class="col-12 col-md-6">
+      <input class="form-control" name="q" value="{{ q or '' }}" placeholder="Cari kode / nama diagnosa">
     </div>
-    <div class="col-md-3">
+
+    <div class="col-12 col-md-3">
       <div class="form-check mt-2">
         <input class="form-check-input" type="checkbox" value="1" name="active" id="active"
                {% if active_only %}checked{% endif %}>
         <label class="form-check-label" for="active">Hanya yang aktif</label>
       </div>
     </div>
-    <div class="col-md-3 text-end">
-      <button class="btn btn-outline-secondary" type="submit">
+
+    <div class="col-12 col-md-3 text-end">
+      <button class="btn btn-outline-secondary w-100" type="submit">
         <i class="bi bi-funnel"></i> Filter
       </button>
     </div>
   </form>
-  <div class="card">
-      <div class="table-responsive" style="padding: 1%;">
-    <table id="tblDiagnosa" class="table table-sm table-striped table-hover align-middle">
-      <thead>
-        <tr>
-          <th style="width: 180px;">Kode Diagnosa</th>
-          <th>Nama Diagnosa</th>
-          <th style="width: 120px;">Status</th>
-          <th style="width: 260px;">Aksi</th>
-        </tr>
-      </thead>
-      <tbody>
+
+  <!-- DESKTOP / TABLET -->
+  <div class="desktop-list">
+    <div class="card table-box">
+      <div class="table-responsive">
+        <table id="tblDiagnosa" class="table table-sm table-striped table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th style="width: 180px;">Kode Diagnosa</th>
+              <th>Nama Diagnosa</th>
+              <th style="width: 120px;">Status</th>
+              <th style="width: 260px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tblDiagnosaBody">
+            {% if rows and rows|length > 0 %}
+              {% for r in rows %}
+              <tr>
+                <td>{{ r.diagnosa_code }}</td>
+                <td>{{ r.diagnosa_name }}</td>
+                <td>
+                  {% if r.is_active == 1 %}
+                    <span class="badge bg-primary status-badge">Aktif</span>
+                  {% else %}
+                    <span class="badge bg-danger status-badge">Nonaktif</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a class="btn btn-sm btn-outline-primary"
+                     href="{{ url_for('diagnosa.diagnosa_edit_page', diagnosa_id=r.id) }}">
+                    <i class="bi bi-pencil-square"></i> Edit
+                  </a>
+
+                  {% if r.is_active == 1 %}
+                  <form method="post"
+                        action="{{ url_for('diagnosa.diagnosa_disable_post', diagnosa_id=r.id) }}"
+                        class="d-inline frm-disable"
+                        data-code="{{ r.diagnosa_code }}"
+                        data-name="{{ r.diagnosa_name }}">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">
+                      <i class="bi bi-slash-circle"></i> Disable
+                    </button>
+                  </form>
+                  {% else %}
+                  <form method="post"
+                        action="{{ url_for('diagnosa.diagnosa_enable_post', diagnosa_id=r.id) }}"
+                        class="d-inline frm-enable"
+                        data-code="{{ r.diagnosa_code }}"
+                        data-name="{{ r.diagnosa_name }}">
+                    <button class="btn btn-sm btn-outline-success" type="submit">
+                      <i class="bi bi-check-circle"></i> Enable
+                    </button>
+                  </form>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row">
+                <td colspan="4" class="text-center text-muted py-4">Data tidak ada.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE -->
+  <div class="mobile-list">
+    {% if rows and rows|length > 0 %}
+      <div class="diagnosa-card-list">
         {% for r in rows %}
-        <tr>
-          <td>{{ r.diagnosa_code }}</td>
-          <td>{{ r.diagnosa_name }}</td>
-          <td>
-            {% if r.is_active == 1 %}
-              <span class="badge bg-primary">Aktif</span>
-            {% else %}
-              <span class="badge bg-danger">Nonaktif</span>
-            {% endif %}
-          </td>
-          <td>
-            <a class="btn btn-sm btn-outline-primary"
-               href="{{ url_for('diagnosa.diagnosa_edit_page', diagnosa_id=r.id) }}">
-              <i class="bi bi-pencil-square"></i> Edit
-            </a>
+          <div class="diagnosa-card">
+            <div class="diagnosa-card-head">
+              <div class="diagnosa-card-title">{{ r.diagnosa_name }}</div>
+              <div class="diagnosa-card-subtitle">{{ r.diagnosa_code }}</div>
+            </div>
 
-            {% if r.is_active == 1 %}
-            <form method="post"
-                  action="{{ url_for('diagnosa.diagnosa_disable_post', diagnosa_id=r.id) }}"
-                  class="d-inline frm-disable"
-                  data-code="{{ r.diagnosa_code }}"
-                  data-name="{{ r.diagnosa_name }}">
-              <button class="btn btn-sm btn-outline-danger" type="submit">
-                <i class="bi bi-slash-circle"></i> Disable
-              </button>
-            </form>
-            {% else %}
-            <form method="post"
-                  action="{{ url_for('diagnosa.diagnosa_enable_post', diagnosa_id=r.id) }}"
-                  class="d-inline frm-enable"
-                  data-code="{{ r.diagnosa_code }}"
-                  data-name="{{ r.diagnosa_name }}">
-              <button class="btn btn-sm btn-outline-success" type="submit">
-                <i class="bi bi-check-circle"></i> Enable
-              </button>
-            </form>
-            {% endif %}
-          </td>
-        </tr>
+            <div class="diagnosa-card-body">
+              <div class="diagnosa-grid">
+                <div class="diagnosa-field">
+                  <div class="diagnosa-label">Kode Diagnosa</div>
+                  <div class="diagnosa-value">{{ r.diagnosa_code }}</div>
+                </div>
+
+                <div class="diagnosa-field">
+                  <div class="diagnosa-label">Status</div>
+                  <div class="diagnosa-value">
+                    {% if r.is_active == 1 %}
+                      <span class="badge bg-primary status-badge">Aktif</span>
+                    {% else %}
+                      <span class="badge bg-danger status-badge">Nonaktif</span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="diagnosa-field full">
+                  <div class="diagnosa-label">Nama Diagnosa</div>
+                  <div class="diagnosa-value">{{ r.diagnosa_name }}</div>
+                </div>
+              </div>
+
+              <div class="diagnosa-actions">
+                <div class="d-grid gap-2">
+                  <a class="btn btn-outline-primary"
+                     href="{{ url_for('diagnosa.diagnosa_edit_page', diagnosa_id=r.id) }}">
+                    <i class="bi bi-pencil-square me-1"></i> Edit
+                  </a>
+
+                  {% if r.is_active == 1 %}
+                  <form method="post"
+                        action="{{ url_for('diagnosa.diagnosa_disable_post', diagnosa_id=r.id) }}"
+                        class="frm-disable m-0"
+                        data-code="{{ r.diagnosa_code }}"
+                        data-name="{{ r.diagnosa_name }}">
+                    <button class="btn btn-outline-danger w-100" type="submit">
+                      <i class="bi bi-slash-circle me-1"></i> Disable
+                    </button>
+                  </form>
+                  {% else %}
+                  <form method="post"
+                        action="{{ url_for('diagnosa.diagnosa_enable_post', diagnosa_id=r.id) }}"
+                        class="frm-enable m-0"
+                        data-code="{{ r.diagnosa_code }}"
+                        data-name="{{ r.diagnosa_name }}">
+                    <button class="btn btn-outline-success w-100" type="submit">
+                      <i class="bi bi-check-circle me-1"></i> Enable
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
         {% endfor %}
-      </tbody>
-    </table>
+      </div>
+    {% else %}
+      <div class="card table-box">
+        <div class="card-body text-center text-muted py-4">
+          Data tidak ada.
+        </div>
+      </div>
+    {% endif %}
   </div>
-  </div>
-
 </div>
 
 {% endblock %}
@@ -91,8 +323,23 @@
 {% block scripts %}
 <script>
 $(function () {
-  // Inisialisasi DataTables: aman meskipun data kosong
-  if ($.fn.DataTable) {
+  function hasRealRows() {
+    const $tbody = $('#tblDiagnosaBody');
+    if ($tbody.length === 0) return false;
+
+    const $rows = $tbody.find('tr');
+    if ($rows.length === 0) return false;
+    if ($rows.length === 1 && $rows.first().hasClass('empty-row')) return false;
+
+    return true;
+  }
+
+  function safeInitDataTable() {
+    if (!$.fn.DataTable) return;
+    if (!$('#tblDiagnosa').length) return;
+    if (!hasRealRows()) return;
+    if ($.fn.DataTable.isDataTable('#tblDiagnosa')) return;
+
     $('#tblDiagnosa').DataTable({
       pageLength: 25,
       order: [],
@@ -102,12 +349,16 @@ $(function () {
         lengthMenu: "Tampilkan _MENU_",
         info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
         infoEmpty: "Menampilkan 0 data",
-        paginate: { previous: "Sebelumnya", next: "Berikutnya" }
+        paginate: {
+          previous: "Sebelumnya",
+          next: "Berikutnya"
+        }
       }
     });
   }
 
-  // SweetAlert confirm disable
+  safeInitDataTable();
+
   $(document).on('submit', '.frm-disable', function (e) {
     e.preventDefault();
     const form = this;
@@ -132,7 +383,6 @@ $(function () {
     });
   });
 
-  // SweetAlert confirm enable
   $(document).on('submit', '.frm-enable', function (e) {
     e.preventDefault();
     const form = this;

@@ -1,20 +1,201 @@
 {% extends "base/base.html" %}
 {% block content %}
 
+<style>
+  .page-head {
+    gap: .75rem;
+  }
+
+  .filter-box,
+  .table-box {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .desktop-list {
+    display: block;
+  }
+
+  .mobile-list {
+    display: none;
+  }
+
+  .tariff-card-list {
+    display: grid;
+    gap: .85rem;
+  }
+
+  .tariff-card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    overflow: hidden;
+  }
+
+  .tariff-card-head {
+    padding: .9rem 1rem .75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    background: #fafafa;
+  }
+
+  .tariff-card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.3;
+    margin-bottom: .15rem;
+  }
+
+  .tariff-card-subtitle {
+    font-size: .84rem;
+    color: #6c757d;
+  }
+
+  .tariff-card-body {
+    padding: .95rem 1rem 1rem;
+  }
+
+  .tariff-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .8rem .9rem;
+  }
+
+  .tariff-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .tariff-label {
+    font-size: .76rem;
+    color: #6c757d;
+    margin-bottom: .12rem;
+  }
+
+  .tariff-value {
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .tariff-actions {
+    margin-top: .9rem;
+  }
+
+  .money {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .promo-wrap {
+    line-height: 1.45;
+  }
+
+  .status-badge {
+    min-width: 82px;
+    display: inline-block;
+    text-align: center;
+  }
+
+  .table-responsive {
+    padding: 1%;
+  }
+
+  .modal-info-box {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: .9rem;
+  }
+
+  @media (max-width: 991.98px) {
+    #tblTariff th,
+    #tblTariff td {
+      padding: .55rem .5rem;
+      font-size: .9rem;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-head .btn {
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 1.15rem;
+    }
+
+    .filter-box {
+      padding: .95rem !important;
+    }
+
+    .filter-box .form-control,
+    .filter-box .form-select,
+    .filter-box .btn,
+    .modal .form-control,
+    .modal .form-select,
+    .modal .btn {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+
+    .desktop-list {
+      display: none;
+    }
+
+    .mobile-list {
+      display: block;
+    }
+
+    .tariff-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .modal-dialog {
+      margin: .6rem;
+    }
+
+    .modal-dialog.modal-lg {
+      max-width: none;
+    }
+
+    .modal-content {
+      border-radius: 1rem;
+    }
+
+    .modal-header,
+    .modal-footer {
+      padding: .9rem 1rem;
+    }
+
+    .modal-body {
+      padding: 1rem;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .tariff-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
 <div class="container-fluid">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">Master Tarif</h4>
+  <div class="d-flex justify-content-between align-items-center mb-3 page-head">
+    <h4 class="mb-0 page-title">Master Tarif</h4>
     <a class="btn btn-primary" href="{{ url_for('tariff.tariff_new_page') }}">
       <i class="bi bi-plus-circle"></i> Tambah Tarif
     </a>
   </div>
 
-  <form class="row g-2 mb-3" method="get" action="{{ url_for('tariff.tariff_list_page') }}">
-    <div class="col-md-4">
+  <form class="row g-2 mb-3 filter-box p-3" method="get" action="{{ url_for('tariff.tariff_list_page') }}">
+    <div class="col-12 col-md-4">
       <input class="form-control" name="q" value="{{ q or '' }}" placeholder="Cari kode / nama treatment">
     </div>
 
-    <div class="col-md-3">
+    <div class="col-12 col-md-3">
       <select class="form-select" name="category">
         <option value="">Semua Kategori</option>
         {% for c in (categories or []) %}
@@ -24,10 +205,10 @@
           </option>
         {% endfor %}
       </select>
-      <div class="form-text">Filter memakai kode kategori (FAC/PEEL/HAIR/SB/DSB/INF/SLIM).</div>
+      <div class="form-text">Filter kode kategori (FAC/PEEL/HAIR/SB/DSB/INF/SLIM).</div>
     </div>
 
-    <div class="col-md-3">
+    <div class="col-12 col-md-3">
       <div class="d-flex flex-column gap-1 mt-1">
         <div class="form-check">
           <input class="form-check-input" type="checkbox" value="1" name="active" id="active"
@@ -43,195 +224,362 @@
       </div>
     </div>
 
-    <div class="col-md-2 text-end">
+    <div class="col-12 col-md-2 text-end">
       <button class="btn btn-outline-secondary w-100" type="submit">
         <i class="bi bi-funnel"></i> Filter
       </button>
     </div>
   </form>
 
-  <div class="card">
-    <div class="table-responsive" style="padding: 1%;">
-      <table id="tblTariff" class="table table-sm table-striped table-hover align-middle">
-        <thead>
-          <tr>
-            <th style="width: 120px;">Kode</th>
-            <th>Nama Treatment</th>
-            <th style="width: 180px;">Kategori</th>
-            <th class="text-end" style="width: 140px;">Harga</th>
-            <th style="width: 240px;">Promo</th>
-            <th style="width: 110px;">Status</th>
-            <th style="width: 120px;" class="text-end">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in rows %}
-          <tr>
-            <td class="fw-semibold">{{ r.tariff_code }}</td>
-            <td>{{ r.treatment_name }}</td>
+  <!-- DESKTOP / TABLET -->
+  <div class="desktop-list">
+    <div class="card table-box">
+      <div class="table-responsive">
+        <table id="tblTariff" class="table table-sm table-striped table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th style="width: 120px;">Kode</th>
+              <th>Nama Treatment</th>
+              <th style="width: 180px;">Kategori</th>
+              <th class="text-end" style="width: 140px;">Harga</th>
+              <th style="width: 240px;">Promo</th>
+              <th style="width: 110px;">Status</th>
+              <th style="width: 120px;" class="text-end">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tblTariffBody">
+            {% if rows and rows|length > 0 %}
+              {% for r in rows %}
+              <tr>
+                <td class="fw-semibold">{{ r.tariff_code }}</td>
+                <td>{{ r.treatment_name }}</td>
 
-            <td>
-              {% if r.category_name %}
-                <div class="d-flex flex-column">
-                  <div>
-                    <span class="badge bg-light text-dark border">{{ r.category_name }}</span>
-                    {% if r.category_code %}
-                      <span class="badge bg-secondary">{{ r.category_code }}</span>
+                <td>
+                  {% if r.category_name %}
+                    <div class="d-flex flex-column">
+                      <div>
+                        <span class="badge bg-light text-dark border">{{ r.category_name }}</span>
+                        {% if r.category_code %}
+                          <span class="badge bg-secondary">{{ r.category_code }}</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+
+                <td class="text-end money">
+                  {{ "{:,.0f}".format(r.price or 0) }}
+                  {% if r.promo_is_active == 1 and r.promo_price is not none %}
+                    <div class="small text-success">
+                      Promo: {{ "{:,.0f}".format(r.promo_price or 0) }}
+                    </div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if r.promo_type != 'none' %}
+                    <div class="promo-wrap">
+                      <div class="d-flex flex-wrap gap-1 align-items-center">
+                        <span class="badge bg-warning text-dark">
+                          {% if r.promo_type == 'percent' %}
+                            Diskon {{ r.promo_value }}%
+                          {% elif r.promo_type == 'amount' %}
+                            Potongan Rp {{ "{:,.0f}".format(r.promo_value or 0) }}
+                          {% else %}
+                            Promo
+                          {% endif %}
+                        </span>
+
+                        {% if r.promo_is_active == 1 %}
+                          <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                          <span class="badge bg-secondary">Tidak aktif</span>
+                        {% endif %}
+                      </div>
+
+                      <div class="small text-muted mt-1">
+                        {% set ps = r.promo_start %}
+                        {% set pe = r.promo_end %}
+                        {% if ps and ps.strftime is defined %}{{ ps.strftime('%d/%m/%Y') }}{% elif ps %}{{ ps }}{% else %}-{% endif %}
+                        s/d
+                        {% if pe and pe.strftime is defined %}{{ pe.strftime('%d/%m/%Y') }}{% elif pe %}{{ pe }}{% else %}-{% endif %}
+                      </div>
+                    </div>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if r.is_active == 1 %}
+                    <span class="badge bg-primary status-badge">Aktif</span>
+                  {% else %}
+                    <span class="badge bg-danger status-badge">Nonaktif</span>
+                  {% endif %}
+                </td>
+
+                <td class="text-end">
+                  <div class="btn-group">
+                    <a class="btn btn-sm btn-outline-primary"
+                      href="{{ url_for('tariff.tariff_edit_page', tariff_id=r.id) }}">
+                      <i class="bi bi-pencil-square"></i>
+                    </a>
+
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <span class="visually-hidden">Actions</span>
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <a class="dropdown-item"
+                          href="{{ url_for('tariff.tariff_edit_page', tariff_id=r.id) }}">
+                          <i class="bi bi-pencil-square me-2"></i>Edit
+                        </a>
+                      </li>
+
+                      <li>
+                        <button type="button"
+                                class="dropdown-item btn-set-promo"
+                                data-id="{{ r.id }}"
+                                data-code="{{ r.tariff_code }}"
+                                data-name="{{ r.treatment_name }}"
+                                data-price="{{ r.price or 0 }}"
+                                data-promo-type="{{ r.promo_type or 'none' }}"
+                                data-promo-value="{{ r.promo_value if r.promo_value is not none else '' }}"
+                                data-promo-start="{% if r.promo_start and r.promo_start.strftime is defined %}{{ r.promo_start.strftime('%Y-%m-%d') }}{% elif r.promo_start %}{{ r.promo_start }}{% else %}{% endif %}"
+                                data-promo-end="{% if r.promo_end and r.promo_end.strftime is defined %}{{ r.promo_end.strftime('%Y-%m-%d') }}{% elif r.promo_end %}{{ r.promo_end }}{% else %}{% endif %}">
+                          <i class="bi bi-tags me-2"></i>Set Promo
+                        </button>
+                      </li>
+
+                      <li><hr class="dropdown-divider"></li>
+
+                      {% if r.is_active == 1 %}
+                      <li>
+                        <form method="post"
+                              action="{{ url_for('tariff.tariff_disable_post', tariff_id=r.id) }}"
+                              class="frm-disable m-0"
+                              data-code="{{ r.tariff_code }}"
+                              data-name="{{ r.treatment_name }}">
+                          <button class="dropdown-item text-danger" type="submit">
+                            <i class="bi bi-slash-circle me-2"></i>Disable
+                          </button>
+                        </form>
+                      </li>
+                      {% else %}
+                      <li>
+                        <form method="post"
+                              action="{{ url_for('tariff.tariff_enable_post', tariff_id=r.id) }}"
+                              class="frm-enable m-0"
+                              data-code="{{ r.tariff_code }}"
+                              data-name="{{ r.treatment_name }}">
+                          <button class="dropdown-item text-success" type="submit">
+                            <i class="bi bi-check-circle me-2"></i>Enable
+                          </button>
+                        </form>
+                      </li>
+                      {% endif %}
+
+                      {% if r.promo_type != 'none' %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                          <form method="post"
+                                action="{{ url_for('tariff.tariff_disable_promo_post', tariff_id=r.id) }}"
+                                class="frm-disable-promo m-0"
+                                data-code="{{ r.tariff_code }}"
+                                data-name="{{ r.treatment_name }}"
+                                data-promo-type="{{ r.promo_type }}"
+                                data-promo-value="{{ r.promo_value }}"
+                                data-promo-start="{% if r.promo_start and r.promo_start.strftime is defined %}{{ r.promo_start.strftime('%d/%m/%Y') }}{% elif r.promo_start %}{{ r.promo_start }}{% else %}-{% endif %}"
+                                data-promo-end="{% if r.promo_end and r.promo_end.strftime is defined %}{{ r.promo_end.strftime('%d/%m/%Y') }}{% elif r.promo_end %}{{ r.promo_end }}{% else %}-{% endif %}">
+                            <button class="dropdown-item text-warning" type="submit">
+                              <i class="bi bi-x-circle me-2"></i>Nonaktif Promo
+                            </button>
+                          </form>
+                        </li>
+                      {% endif %}
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row">
+                <td colspan="7" class="text-center text-muted py-4">Data tidak ada.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE -->
+  <div class="mobile-list">
+    {% if rows and rows|length > 0 %}
+      <div class="tariff-card-list">
+        {% for r in rows %}
+          <div class="tariff-card">
+            <div class="tariff-card-head">
+              <div class="tariff-card-title">{{ r.treatment_name }}</div>
+              <div class="tariff-card-subtitle">{{ r.tariff_code }}</div>
+            </div>
+
+            <div class="tariff-card-body">
+              <div class="tariff-grid">
+                <div class="tariff-field">
+                  <div class="tariff-label">Kategori</div>
+                  <div class="tariff-value">
+                    {% if r.category_name %}
+                      {{ r.category_name }}
+                      {% if r.category_code %} ({{ r.category_code }}){% endif %}
+                    {% else %}
+                      -
                     {% endif %}
                   </div>
                 </div>
-              {% else %}
-                <span class="text-muted">-</span>
-              {% endif %}
-            </td>
 
-            <td class="text-end">
-              {{ "{:,.0f}".format(r.price or 0) }}
-              {% if r.promo_is_active == 1 and r.promo_price is not none %}
-                <div class="small text-success">
-                  Promo: {{ "{:,.0f}".format(r.promo_price or 0) }}
-                </div>
-              {% endif %}
-            </td>
-
-            <td>
-              {% if r.promo_type != 'none' %}
-                <div class="d-flex flex-wrap gap-1 align-items-center">
-                  <span class="badge bg-warning text-dark">
-                    {% if r.promo_type == 'percent' %}
-                      Diskon {{ r.promo_value }}%
-                    {% elif r.promo_type == 'amount' %}
-                      Potongan Rp {{ "{:,.0f}".format(r.promo_value or 0) }}
+                <div class="tariff-field">
+                  <div class="tariff-label">Status</div>
+                  <div class="tariff-value">
+                    {% if r.is_active == 1 %}
+                      <span class="badge bg-primary status-badge">Aktif</span>
                     {% else %}
-                      Promo
+                      <span class="badge bg-danger status-badge">Nonaktif</span>
                     {% endif %}
-                  </span>
-
-                  {% if r.promo_is_active == 1 %}
-                    <span class="badge bg-success">Aktif</span>
-                  {% else %}
-                    <span class="badge bg-secondary">Tidak aktif</span>
-                  {% endif %}
+                  </div>
                 </div>
 
-                <div class="small text-muted mt-1">
-                  {% set ps = r.promo_start %}
-                  {% set pe = r.promo_end %}
-                  {% if ps and ps.strftime is defined %}{{ ps.strftime('%d/%m/%Y') }}{% elif ps %}{{ ps }}{% else %}-{% endif %}
-                  s/d
-                  {% if pe and pe.strftime is defined %}{{ pe.strftime('%d/%m/%Y') }}{% elif pe %}{{ pe }}{% else %}-{% endif %}
+                <div class="tariff-field">
+                  <div class="tariff-label">Harga</div>
+                  <div class="tariff-value money">{{ "{:,.0f}".format(r.price or 0) }}</div>
                 </div>
-              {% else %}
-                <span class="text-muted">-</span>
-              {% endif %}
-            </td>
 
-            <td>
-              {% if r.is_active == 1 %}
-                <span class="badge bg-primary">Aktif</span>
-              {% else %}
-                <span class="badge bg-danger">Nonaktif</span>
-              {% endif %}
-            </td>
+                <div class="tariff-field">
+                  <div class="tariff-label">Promo Price</div>
+                  <div class="tariff-value money">
+                    {% if r.promo_is_active == 1 and r.promo_price is not none %}
+                      {{ "{:,.0f}".format(r.promo_price or 0) }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </div>
+                </div>
 
-            <td class="text-end">
-              <div class="btn-group">
-                <a class="btn btn-sm btn-outline-primary"
-                  href="{{ url_for('tariff.tariff_edit_page', tariff_id=r.id) }}">
-                  <i class="bi bi-pencil-square"></i>
-                </a>
+                <div class="tariff-field full">
+                  <div class="tariff-label">Promo</div>
+                  <div class="tariff-value">
+                    {% if r.promo_type != 'none' %}
+                      <div class="d-flex flex-wrap gap-1 align-items-center mb-1">
+                        <span class="badge bg-warning text-dark">
+                          {% if r.promo_type == 'percent' %}
+                            Diskon {{ r.promo_value }}%
+                          {% elif r.promo_type == 'amount' %}
+                            Potongan Rp {{ "{:,.0f}".format(r.promo_value or 0) }}
+                          {% else %}
+                            Promo
+                          {% endif %}
+                        </span>
 
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split"
-                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <span class="visually-hidden">Actions</span>
-                </button>
+                        {% if r.promo_is_active == 1 %}
+                          <span class="badge bg-success">Aktif</span>
+                        {% else %}
+                          <span class="badge bg-secondary">Tidak aktif</span>
+                        {% endif %}
+                      </div>
 
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <a class="dropdown-item"
-                      href="{{ url_for('tariff.tariff_edit_page', tariff_id=r.id) }}">
-                      <i class="bi bi-pencil-square me-2"></i>Edit
-                    </a>
-                  </li>
+                      <div class="small text-muted">
+                        {% set ps = r.promo_start %}
+                        {% set pe = r.promo_end %}
+                        {% if ps and ps.strftime is defined %}{{ ps.strftime('%d/%m/%Y') }}{% elif ps %}{{ ps }}{% else %}-{% endif %}
+                        s/d
+                        {% if pe and pe.strftime is defined %}{{ pe.strftime('%d/%m/%Y') }}{% elif pe %}{{ pe }}{% else %}-{% endif %}
+                      </div>
+                    {% else %}
+                      -
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
 
-                  <li>
-                    <button type="button"
-                            class="dropdown-item btn-set-promo"
-                            data-id="{{ r.id }}"
-                            data-code="{{ r.tariff_code }}"
-                            data-name="{{ r.treatment_name }}"
-                            data-price="{{ r.price or 0 }}"
-                            data-promo-type="{{ r.promo_type or 'none' }}"
-                            data-promo-value="{{ r.promo_value if r.promo_value is not none else '' }}"
-                            data-promo-start="{% if r.promo_start and r.promo_start.strftime is defined %}{{ r.promo_start.strftime('%Y-%m-%d') }}{% elif r.promo_start %}{{ r.promo_start }}{% else %}{% endif %}"
-                            data-promo-end="{% if r.promo_end and r.promo_end.strftime is defined %}{{ r.promo_end.strftime('%Y-%m-%d') }}{% elif r.promo_end %}{{ r.promo_end }}{% else %}{% endif %}">
-                      <i class="bi bi-tags me-2"></i>Set Promo
-                    </button>
-                  </li>
+              <div class="tariff-actions">
+                <div class="d-grid gap-2">
+                  <a class="btn btn-outline-primary"
+                     href="{{ url_for('tariff.tariff_edit_page', tariff_id=r.id) }}">
+                    <i class="bi bi-pencil-square me-1"></i>Edit
+                  </a>
 
-                  <li><hr class="dropdown-divider"></li>
+                  <button type="button"
+                          class="btn btn-outline-secondary btn-set-promo"
+                          data-id="{{ r.id }}"
+                          data-code="{{ r.tariff_code }}"
+                          data-name="{{ r.treatment_name }}"
+                          data-price="{{ r.price or 0 }}"
+                          data-promo-type="{{ r.promo_type or 'none' }}"
+                          data-promo-value="{{ r.promo_value if r.promo_value is not none else '' }}"
+                          data-promo-start="{% if r.promo_start and r.promo_start.strftime is defined %}{{ r.promo_start.strftime('%Y-%m-%d') }}{% elif r.promo_start %}{{ r.promo_start }}{% else %}{% endif %}"
+                          data-promo-end="{% if r.promo_end and r.promo_end.strftime is defined %}{{ r.promo_end.strftime('%Y-%m-%d') }}{% elif r.promo_end %}{{ r.promo_end }}{% else %}{% endif %}">
+                    <i class="bi bi-tags me-1"></i>Set Promo
+                  </button>
 
                   {% if r.is_active == 1 %}
-                  <li>
                     <form method="post"
                           action="{{ url_for('tariff.tariff_disable_post', tariff_id=r.id) }}"
                           class="frm-disable m-0"
                           data-code="{{ r.tariff_code }}"
                           data-name="{{ r.treatment_name }}">
-                      <button class="dropdown-item text-danger" type="submit">
-                        <i class="bi bi-slash-circle me-2"></i>Disable
+                      <button class="btn btn-outline-danger w-100" type="submit">
+                        <i class="bi bi-slash-circle me-1"></i>Disable
                       </button>
                     </form>
-                  </li>
                   {% else %}
-                  <li>
                     <form method="post"
                           action="{{ url_for('tariff.tariff_enable_post', tariff_id=r.id) }}"
                           class="frm-enable m-0"
                           data-code="{{ r.tariff_code }}"
                           data-name="{{ r.treatment_name }}">
-                      <button class="dropdown-item text-success" type="submit">
-                        <i class="bi bi-check-circle me-2"></i>Enable
+                      <button class="btn btn-outline-success w-100" type="submit">
+                        <i class="bi bi-check-circle me-1"></i>Enable
                       </button>
                     </form>
-                  </li>
                   {% endif %}
 
                   {% if r.promo_type != 'none' %}
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                      <form method="post"
-                            action="{{ url_for('tariff.tariff_disable_promo_post', tariff_id=r.id) }}"
-                            class="frm-disable-promo m-0"
-                            data-code="{{ r.tariff_code }}"
-                            data-name="{{ r.treatment_name }}"
-                            data-promo-type="{{ r.promo_type }}"
-                            data-promo-value="{{ r.promo_value }}"
-                            data-promo-start="{% if r.promo_start and r.promo_start.strftime is defined %}{{ r.promo_start.strftime('%d/%m/%Y') }}{% elif r.promo_start %}{{ r.promo_start }}{% else %}-{% endif %}"
-                            data-promo-end="{% if r.promo_end and r.promo_end.strftime is defined %}{{ r.promo_end.strftime('%d/%m/%Y') }}{% elif r.promo_end %}{{ r.promo_end }}{% else %}-{% endif %}">
-                        <button class="dropdown-item text-warning" type="submit">
-                          <i class="bi bi-x-circle me-2"></i>Nonaktif Promo
-                        </button>
-                      </form>
-                    </li>
+                    <form method="post"
+                          action="{{ url_for('tariff.tariff_disable_promo_post', tariff_id=r.id) }}"
+                          class="frm-disable-promo m-0"
+                          data-code="{{ r.tariff_code }}"
+                          data-name="{{ r.treatment_name }}"
+                          data-promo-type="{{ r.promo_type }}"
+                          data-promo-value="{{ r.promo_value }}"
+                          data-promo-start="{% if r.promo_start and r.promo_start.strftime is defined %}{{ r.promo_start.strftime('%d/%m/%Y') }}{% elif r.promo_start %}{{ r.promo_start }}{% else %}-{% endif %}"
+                          data-promo-end="{% if r.promo_end and r.promo_end.strftime is defined %}{{ r.promo_end.strftime('%d/%m/%Y') }}{% elif r.promo_end %}{{ r.promo_end }}{% else %}-{% endif %}">
+                      <button class="btn btn-outline-warning w-100" type="submit">
+                        <i class="bi bi-x-circle me-1"></i>Nonaktif Promo
+                      </button>
+                    </form>
                   {% endif %}
-                </ul>
+                </div>
               </div>
-            </td>
-          </tr>
-          {% endfor %}
-
-          {% if rows|length == 0 %}
-          <tr><td colspan="7" class="text-center text-muted">Data tidak ada.</td></tr>
-          {% endif %}
-        </tbody>
-      </table>
-    </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card table-box">
+        <div class="card-body text-center text-muted py-4">
+          Data tidak ada.
+        </div>
+      </div>
+    {% endif %}
   </div>
 </div>
 
 <div class="modal fade" id="modalSetPromo" tabindex="-1" aria-labelledby="modalSetPromoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-scrollable">
     <form id="formSetPromo" class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="modalSetPromoLabel">Set Promo Tarif</h5>
@@ -241,18 +589,18 @@
       <div class="modal-body">
         <input type="hidden" id="promo_tariff_id">
 
-        <div class="card bg-light border-0 mb-3">
+        <div class="card bg-light border-0 mb-3 modal-info-box">
           <div class="card-body py-3">
             <div class="row g-3">
-              <div class="col-md-3">
+              <div class="col-12 col-md-3">
                 <label class="form-label text-muted mb-1">Kode Tarif</label>
                 <div class="fw-semibold" id="info_tariff_code">-</div>
               </div>
-              <div class="col-md-5">
+              <div class="col-12 col-md-5">
                 <label class="form-label text-muted mb-1">Nama Treatment</label>
                 <div class="fw-semibold" id="info_tariff_name">-</div>
               </div>
-              <div class="col-md-4">
+              <div class="col-12 col-md-4">
                 <label class="form-label text-muted mb-1">Harga Normal</label>
                 <div class="fw-semibold" id="info_tariff_price">0</div>
               </div>
@@ -261,19 +609,19 @@
             <hr class="my-3">
 
             <div class="row g-3">
-              <div class="col-md-3">
+              <div class="col-12 col-md-3">
                 <label class="form-label text-muted mb-1">Promo Saat Ini</label>
                 <div id="info_existing_promo_type">-</div>
               </div>
-              <div class="col-md-3">
+              <div class="col-12 col-md-3">
                 <label class="form-label text-muted mb-1">Nilai Promo</label>
                 <div id="info_existing_promo_value">-</div>
               </div>
-              <div class="col-md-3">
+              <div class="col-12 col-md-3">
                 <label class="form-label text-muted mb-1">Mulai</label>
                 <div id="info_existing_promo_start">-</div>
               </div>
-              <div class="col-md-3">
+              <div class="col-12 col-md-3">
                 <label class="form-label text-muted mb-1">Selesai</label>
                 <div id="info_existing_promo_end">-</div>
               </div>
@@ -282,7 +630,7 @@
         </div>
 
         <div class="row g-3">
-          <div class="col-md-4">
+          <div class="col-12 col-md-4">
             <label for="promo_type" class="form-label">Promo Type</label>
             <select class="form-select" id="promo_type" name="promo_type" required>
               <option value="">-- Pilih Promo Type --</option>
@@ -291,18 +639,18 @@
             </select>
           </div>
 
-          <div class="col-md-4">
+          <div class="col-12 col-md-4">
             <label for="promo_value" class="form-label">Promo Value</label>
             <input type="text" class="form-control" id="promo_value" name="promo_value" inputmode="numeric" required>
             <div class="form-text" id="promo_value_help">Isi persen atau nominal potongan.</div>
           </div>
 
-          <div class="col-md-2">
+          <div class="col-12 col-md-2">
             <label for="promo_start" class="form-label">Promo Start</label>
             <input type="date" class="form-control" id="promo_start" name="promo_start" required>
           </div>
 
-          <div class="col-md-2">
+          <div class="col-12 col-md-2">
             <label for="promo_end" class="form-label">Promo End</label>
             <input type="date" class="form-control" id="promo_end" name="promo_end" required>
           </div>
@@ -331,6 +679,39 @@ $(function () {
   const modalEl = document.getElementById('modalSetPromo');
   const modalSetPromo = modalEl ? new bootstrap.Modal(modalEl) : null;
 
+  function hasRealTariffRows() {
+    const $tbody = $('#tblTariffBody');
+    if ($tbody.length === 0) return false;
+    const $rows = $tbody.find('tr');
+    if ($rows.length === 0) return false;
+    if ($rows.length === 1 && $rows.first().hasClass('empty-row')) return false;
+    return true;
+  }
+
+  function safeInitDataTable() {
+    if (!$.fn.DataTable) return;
+    if (!$('#tblTariff').length) return;
+    if (!hasRealTariffRows()) return;
+    if ($.fn.DataTable.isDataTable('#tblTariff')) return;
+
+    $('#tblTariff').DataTable({
+      pageLength: 25,
+      order: [],
+      searching: false,
+      paging: true,
+      info: true,
+      language: {
+        emptyTable: "Tidak ada data",
+        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+        infoEmpty: "Tidak ada data",
+        paginate: {
+          previous: "Prev",
+          next: "Next"
+        }
+      }
+    });
+  }
+
   function formatThousandSeparator(value) {
     const digits = String(value || '').replace(/\D/g, '');
     if (!digits) return '';
@@ -351,11 +732,9 @@ $(function () {
     }
 
     if (promoType === 'percent') {
-      // percent jangan pakai separator, cukup angka biasa
       raw = String(parseInt(raw, 10) || 0);
       $(this).val(raw);
     } else {
-      // amount pakai thousand separator
       $(this).val(formatThousandSeparator(raw));
     }
   });
@@ -367,6 +746,7 @@ $(function () {
 
     if (!raw) {
       $promoValue.val('');
+      updatePromoValueHelp();
       return;
     }
 
@@ -375,7 +755,10 @@ $(function () {
     } else {
       $promoValue.val(formatThousandSeparator(raw));
     }
+
+    updatePromoValueHelp();
   });
+
   function formatNumber(num) {
     const n = Number(num || 0);
     return n.toLocaleString('id-ID');
@@ -395,15 +778,7 @@ $(function () {
     return token || '';
   }
 
-  if ($.fn.DataTable) {
-    $('#tblTariff').DataTable({
-      pageLength: 25,
-      order: [],
-      searching: false,
-      paging: true,
-      info: true
-    });
-  }
+  safeInitDataTable();
 
   function confirmWithSwal(opts, onYes){
     if (!window.Swal) { onYes(); return; }
@@ -504,7 +879,15 @@ $(function () {
     $('#info_existing_promo_end').text(formatDateDisplay(promoEnd));
 
     $('#promo_type').val(promoType !== 'none' ? promoType : '');
-    $('#promo_value').val((promoValue ?? '') !== '' ? promoValue : '');
+    if ((promoValue ?? '') !== '') {
+      if (promoType === 'amount') {
+        $('#promo_value').val(formatThousandSeparator(promoValue));
+      } else {
+        $('#promo_value').val(promoValue);
+      }
+    } else {
+      $('#promo_value').val('');
+    }
     $('#promo_start').val(promoStart || '');
     $('#promo_end').val(promoEnd || '');
 
@@ -519,22 +902,21 @@ $(function () {
     if (promoType === 'percent') {
       help = 'Isi angka persen. Contoh: 10 untuk diskon 10%.';
     } else if (promoType === 'amount') {
-      help = 'Isi nominal potongan harga. Contoh: 50000.';
+      help = 'Isi nominal potongan harga. Contoh: 50.000.';
     }
     $('#promo_value_help').text(help);
   }
-
-  $('#promo_type').on('change', function () {
-    updatePromoValueHelp();
-  });
 
   $('#formSetPromo').on('submit', async function (e) {
     e.preventDefault();
 
     const tariffId = $('#promo_tariff_id').val();
+    const promoType = ($('#promo_type').val() || '').trim().toLowerCase();
+    const rawPromoValue = ($('#promo_value').val() || '').trim();
+
     const payload = {
-      promo_type: ($('#promo_type').val() || '').trim(),
-      promo_value: ($('#promo_value').val() || '').trim(),
+      promo_type: promoType,
+      promo_value: promoType === 'amount' ? unformatNumber(rawPromoValue) : rawPromoValue,
       promo_start: ($('#promo_start').val() || '').trim(),
       promo_end: ($('#promo_end').val() || '').trim()
     };
@@ -545,6 +927,21 @@ $(function () {
       } else {
         alert('Tariff ID tidak ditemukan.');
       }
+      return;
+    }
+
+    if (!payload.promo_type) {
+      Swal.fire('Validasi', 'Promo Type wajib dipilih.', 'warning');
+      return;
+    }
+
+    if (!payload.promo_value) {
+      Swal.fire('Validasi', 'Promo Value wajib diisi.', 'warning');
+      return;
+    }
+
+    if (!payload.promo_start || !payload.promo_end) {
+      Swal.fire('Validasi', 'Promo Start dan Promo End wajib diisi.', 'warning');
       return;
     }
 

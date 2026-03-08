@@ -11,22 +11,197 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='sweetalert/sweetalert2.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css">
-
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
 
     <!-- ================= GLOBAL STYLE ================= -->
     <style>
+        :root{
+            --topbar-height: 60px;
+            --content-padding-x: 16px;
+            --content-padding-y: 16px;
+            --card-radius: 16px;
+        }
+
+        html, body {
+            min-height: 100%;
+        }
+
         body {
             margin: 0;
             color: #484848;
             background: url("{{ url_for('static', filename='images/background.jpg') }}") repeat fixed;
+            padding-top: var(--topbar-height);
         }
-        thead { background: #ddd; }
-        .table-hover > tbody > tr:hover { background-color: #ccffff; }
 
-        @media only screen and (max-width: 767px) { .hideOnPhone { display:none; } }
-        @media only screen and (min-width: 768px) { .hideOnWeb { display:none; } }
+        thead {
+            background: #ddd;
+        }
+
+        .table-hover > tbody > tr:hover {
+            background-color: #ccffff;
+        }
+
+        .app-navbar {
+            min-height: var(--topbar-height);
+            box-shadow: 0 2px 10px rgba(0,0,0,.12);
+            z-index: 1030;
+        }
+
+        .app-navbar .navbar-brand,
+        .app-navbar .nav-link {
+            font-size: .95rem;
+        }
+
+        .app-navbar .dropdown-menu {
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,.18);
+        }
+
+        .app-shell {
+            padding: var(--content-padding-y) var(--content-padding-x);
+        }
+
+        .app-content-card {
+            background-color: rgba(255,255,255,0.92);
+            min-height: calc(100vh - var(--topbar-height) - (var(--content-padding-y) * 2));
+            padding: 16px;
+            border: 0;
+            border-radius: var(--card-radius);
+            box-shadow: 0 6px 18px rgba(0,0,0,.08);
+            overflow: visible;
+        }
+
+        .dropdown-menu {
+            z-index: 1080;
+        }
+
+        .navbar-collapse {
+            overflow: visible;
+        }
+
+        .navbar-nav .dropdown-menu {
+            position: absolute;
+        }
+
+        .hideOnPhone {
+            display: initial;
+        }
+
+        .hideOnWeb {
+            display: none;
+        }
+
+        @media only screen and (max-width: 767px) {
+            .hideOnPhone {
+                display: none !important;
+            }
+
+            .hideOnWeb {
+                display: initial !important;
+            }
+        }
+
+        /* ================= PHONE PORTRAIT ================= */
+        @media (max-width: 767.98px) {
+            :root{
+                --topbar-height: 56px;
+                --content-padding-x: 10px;
+                --content-padding-y: 10px;
+                --card-radius: 14px;
+            }
+
+            body {
+                background-size: cover;
+                background-attachment: scroll;
+            }
+
+            .app-navbar .container-fluid {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .app-navbar .navbar-brand,
+            .app-navbar .nav-link {
+                font-size: .95rem;
+            }
+
+            .app-navbar .navbar-toggler {
+                padding: .35rem .55rem;
+                border-radius: 10px;
+            }
+
+            .app-navbar .navbar-collapse {
+                margin-top: .6rem;
+                background: rgba(33, 37, 41, 0.98);
+                border-radius: 14px;
+                padding: .5rem;
+            }
+
+            .app-navbar .navbar-nav .nav-link {
+                padding: .75rem .85rem;
+                border-radius: 10px;
+            }
+
+            .app-navbar .dropdown-menu {
+                position: static !important;
+                float: none;
+                width: 100%;
+                margin-top: .35rem;
+                border-radius: 10px;
+                box-shadow: none;
+            }
+
+            .app-navbar .dropdown-item {
+                padding: .75rem .9rem;
+                white-space: normal;
+            }
+
+            .app-content-card {
+                min-height: calc(100vh - var(--topbar-height) - 20px);
+                padding: 12px;
+                border-radius: 14px;
+            }
+        }
+
+        /* ================= TABLET LANDSCAPE ================= */
+        @media (min-width: 768px) and (max-width: 1199.98px) {
+            :root{
+                --topbar-height: 62px;
+                --content-padding-x: 14px;
+                --content-padding-y: 14px;
+                --card-radius: 16px;
+            }
+
+            .app-navbar .container-fluid {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .app-navbar .nav-link {
+                font-size: .9rem;
+                padding-left: .6rem;
+                padding-right: .6rem;
+            }
+
+            .app-content-card {
+                padding: 14px;
+            }
+        }
+
+        /* ================= DESKTOP ================= */
+        @media (min-width: 1200px) {
+            :root{
+                --topbar-height: 60px;
+                --content-padding-x: 16px;
+                --content-padding-y: 16px;
+            }
+
+            .app-content-card {
+                padding: 16px;
+            }
+        }
     </style>
 
     {% block head %}{% endblock %}
@@ -35,29 +210,25 @@
 <body>
 
 <!-- ================= NAVBAR ================= -->
-<nav class="greedy navbar navbar-expand-sm bg-dark navbar-dark fixed-top">
+<nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top app-navbar">
     <div class="container-fluid">
+        <a class="navbar-brand fw-semibold" href="{{ url_for('main.index') }}">Dermalux</a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="navbar-collapse collapse">
-            <ul class="navbar-nav me-auto">
-
-                <!-- Brand/Home -->
-                <li class="nav-item">
-                    <a class="nav-link fw-semibold" href="{{ url_for('main.index') }}">Dermalux</a>
-                </li>
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
                 <!-- MASTER -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Master</a>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="{{ url_for('main.patient_page') }}">Pasien</a>
-                        <a class="dropdown-item" href="{{ url_for('tariff.tariff_list_page')}}">Tarif</a>
-                        <a class="dropdown-item" href="{{ url_for('diagnosa.diagnosa_list_page') }}">Diagnosa</a>
-                    </div>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('main.patient_page') }}">Pasien</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('tariff.tariff_list_page')}}">Tarif</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('diagnosa.diagnosa_list_page') }}">Diagnosa</a></li>
+                    </ul>
                 </li>
 
                 <li class="nav-item">
@@ -79,53 +250,60 @@
                 <!-- REPORT -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Report</a>
-
-                    <div class="dropdown-menu">
-
-                        <a class="dropdown-item" href="#">
-                            Laporan Kunjungan Pasien
-                        </a>
-
-                        <a class="dropdown-item" href="#">
-                            Laporan Pendapatan
-                        </a>
-
-                        <a class="dropdown-item" href="#">
-                            Laporan Diagnosa
-                        </a>
-
-                        <a class="dropdown-item" href="#">
-                            Laporan Diagnosa & Pendapatan
-                        </a>
-
-                    </div>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                Laporan Kunjungan Pasien
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                Laporan Pendapatan
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                Laporan Diagnosa
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                Laporan Diagnosa & Pendapatan
+                            </a>
+                        </li>
+                    </ul>
                 </li>
-
             </ul>
 
             <!-- ================= USER MENU (KANAN) ================= -->
-            <ul class="navbar-nav">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                         User ({{ session.get('userCode', 'Guest') }})
                     </a>
-                    <div class="dropdown-menu dropdown-menu-end">
-                        <a class="dropdown-item" href="{{ url_for('auth.ganti_password_page') }}">Ganti Password</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Log Out</a>
-                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('auth.ganti_password_page') }}">
+                                Ganti Password
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                Log Out
+                            </a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
-
         </div>
     </div>
 </nav>
 
 <!-- ================= CONTENT ================= -->
- 
-<div class="container-fluid" style="margin-top:60px;">
-    <div class="card shadow-sm" style="background-color: rgba(255,255,255,0.9); min-height:90vh; padding: 1%;">
-    {% block content %}{% endblock %}
+<div class="container-fluid app-shell">
+    <div class="card shadow-sm app-content-card">
+        {% block content %}{% endblock %}
     </div>
 </div>
 

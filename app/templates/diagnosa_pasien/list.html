@@ -27,15 +27,145 @@
 
   .card-info .value {
     font-weight: 500;
+    word-break: break-word;
+  }
+
+  .page-head {
+    gap: .75rem;
+  }
+
+  .page-actions {
+    gap: .5rem;
+  }
+
+  .desktop-list {
+    display: block;
+  }
+
+  .mobile-list {
+    display: none;
+  }
+
+  .diagnosa-card-list {
+    display: grid;
+    gap: .85rem;
+  }
+
+  .diagnosa-card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    overflow: hidden;
+  }
+
+  .diagnosa-card-head {
+    padding: .9rem 1rem .75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    background: #fafafa;
+  }
+
+  .diagnosa-card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.3;
+    margin-bottom: .15rem;
+  }
+
+  .diagnosa-card-subtitle {
+    font-size: .84rem;
+    color: #6c757d;
+  }
+
+  .diagnosa-card-body {
+    padding: .95rem 1rem 1rem;
+  }
+
+  .diagnosa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .8rem .9rem;
+  }
+
+  .diagnosa-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .diagnosa-label {
+    font-size: .76rem;
+    color: #6c757d;
+    margin-bottom: .12rem;
+  }
+
+  .diagnosa-value {
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .diagnosa-actions {
+    margin-top: .9rem;
+  }
+
+  .table-box,
+  .info-box {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  @media (max-width: 991.98px) {
+    .truncate-120 { max-width: 160px; }
+    .truncate-200 { max-width: 260px; }
+  }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-actions {
+      display: grid !important;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+
+    .page-actions .btn {
+      width: 100%;
+    }
+
+    .desktop-list {
+      display: none;
+    }
+
+    .mobile-list {
+      display: block;
+    }
+
+    .diagnosa-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .mobile-action-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .5rem;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .diagnosa-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 page-head">
   <div>
     <h4 class="mb-0">Diagnosa Pasien</h4>
     <small class="text-muted">Daftar diagnosa berdasarkan pendaftaran</small>
   </div>
-  <div>
+  <div class="d-flex page-actions">
     <a href="{{ url_for('diagnosa_pasien.list_pasien') }}"
       class="btn btn-outline-secondary">
       Kembali
@@ -47,15 +177,15 @@
   </div>
 </div>
 
-<div class="card mb-3 card-info" style="padding: 1%;">
+<div class="card mb-3 card-info info-box" style="padding: 1%;">
   <div class="card-body">
     <div class="row g-3">
-      <div class="col-md-2">
+      <div class="col-6 col-md-2">
         <div class="label">ID Pendaftaran</div>
         <div class="value">{{ pendaftaran.pendaftaran_id }}</div>
       </div>
 
-      <div class="col-md-2">
+      <div class="col-6 col-md-2">
         <div class="label">Tanggal</div>
         <div class="value">
           {% if pendaftaran.tgl_pendaftaran %}
@@ -66,17 +196,17 @@
         </div>
       </div>
 
-      <div class="col-md-2">
+      <div class="col-6 col-md-2">
         <div class="label">Kode Pasien</div>
         <div class="value">{{ pendaftaran.patient_code or '-' }}</div>
       </div>
 
-      <div class="col-md-3">
+      <div class="col-12 col-md-3">
         <div class="label">Nama Pasien</div>
         <div class="value">{{ pendaftaran.full_name or '-' }}</div>
       </div>
 
-      <div class="col-md-1">
+      <div class="col-6 col-md-1">
         <div class="label">Umur</div>
         <div class="value">
           {% if pendaftaran.age_years is not none %}
@@ -87,12 +217,12 @@
         </div>
       </div>
 
-      <div class="col-md-2">
+      <div class="col-6 col-md-2">
         <div class="label">No HP</div>
         <div class="value">{{ pendaftaran.phone or '-' }}</div>
       </div>
 
-      <div class="col-md-12">
+      <div class="col-12">
         <div class="label">Anamnesis Umum</div>
         <div class="value">{{ pendaftaran.anamnesis_umum or '-' }}</div>
       </div>
@@ -100,117 +230,209 @@
   </div>
 </div>
 
-<div class="card" style="padding: 1%;">
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table id="tblDiagnosa" class="table table-striped mb-0 w-100">
-        <thead class="table-light">
-          <tr>
-            <th style="width: 80px;">ID</th>
-            <th style="width: 120px;">Tanggal</th>
-            <th style="width: 90px;">Jam</th>
-            <th style="width: 100px;">Dokter ID</th>
-            <th style="width: 220px;">Keluhan Utama</th>
-            <th style="width: 280px;">Assessment</th>
-            <th style="width: 140px;" class="text-center">Jml Diagnosa</th>
-            <th style="width: 120px;" class="text-center">Jml Foto</th>
-            <th style="width: 150px;" class="text-center">Aksi</th>
-          </tr>
-        </thead>
+<!-- DESKTOP / TABLET -->
+<div class="desktop-list">
+  <div class="card table-box" style="padding: 1%;">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table id="tblDiagnosa" class="table table-striped mb-0 w-100">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 80px;">ID</th>
+              <th style="width: 120px;">Tanggal</th>
+              <th style="width: 90px;">Jam</th>
+              <th style="width: 100px;">Dokter ID</th>
+              <th style="width: 220px;">Keluhan Utama</th>
+              <th style="width: 280px;">Assessment</th>
+              <th style="width: 140px;" class="text-center">Jml Diagnosa</th>
+              <th style="width: 120px;" class="text-center">Jml Foto</th>
+              <th style="width: 150px;" class="text-center">Aksi</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          {% if rows %}
-            {% for r in rows %}
-              <tr>
-                <td>{{ r.diagnosa_id }}</td>
+          <tbody>
+            {% if rows %}
+              {% for r in rows %}
+                <tr>
+                  <td>{{ r.diagnosa_id }}</td>
 
-                <td>
-                  {% if r.tgl_diagnosa %}
-                    {{ r.tgl_diagnosa.strftime('%d/%m/%Y') }}
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
+                  <td>
+                    {% if r.tgl_diagnosa %}
+                      {{ r.tgl_diagnosa.strftime('%d/%m/%Y') }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
 
-                <td>
-                  {% if r.tgl_diagnosa %}
-                    {{ r.tgl_diagnosa.strftime('%H:%M') }}
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
+                  <td>
+                    {% if r.tgl_diagnosa %}
+                      {{ r.tgl_diagnosa.strftime('%H:%M') }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
 
-                <td>{{ r.dokter_nama or '-' }}</td>
+                  <td>{{ r.dokter_nama or '-' }}</td>
 
-                <td class="truncate-120" title="{{ r.keluhan_utama or '' }}">
-                  {{ r.keluhan_utama or '-' }}
-                </td>
+                  <td class="truncate-120" title="{{ r.keluhan_utama or '' }}">
+                    {{ r.keluhan_utama or '-' }}
+                  </td>
 
-                <td class="truncate-200" title="{{ r.assessment or '' }}">
-                  {{ r.assessment or '-' }}
-                </td>
+                  <td class="truncate-200" title="{{ r.assessment or '' }}">
+                    {{ r.assessment or '-' }}
+                  </td>
 
-                <td class="text-center">{{ r.total_detail or 0 }}</td>
-                <td class="text-center">{{ r.total_foto or 0 }}</td>
+                  <td class="text-center">{{ r.total_detail or 0 }}</td>
+                  <td class="text-center">{{ r.total_foto or 0 }}</td>
 
-                <td class="text-center">
-                  <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            data-bs-boundary="viewport"
-                            data-bs-display="static"
-                            aria-expanded="false">
-                      Actions
-                    </button>
+                  <td class="text-center">
+                    <div class="dropdown">
+                      <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                              type="button"
+                              data-bs-toggle="dropdown"
+                              data-bs-boundary="viewport"
+                              data-bs-display="static"
+                              aria-expanded="false">
+                        Actions
+                      </button>
 
-                    <ul class="dropdown-menu dropdown-menu-end">
-                      <li>
-                        <a class="dropdown-item"
-                           href="{{ url_for('diagnosa_pasien.view_page', diagnosa_id=r.diagnosa_id) }}">
-                          Lihat
-                        </a>
-                      </li>
+                      <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                          <a class="dropdown-item"
+                             href="{{ url_for('diagnosa_pasien.view_page', diagnosa_id=r.diagnosa_id) }}">
+                            Lihat
+                          </a>
+                        </li>
 
-                      <li>
-                        <a class="dropdown-item"
-                           href="{{ url_for('diagnosa_pasien.edit_page', diagnosa_id=r.diagnosa_id) }}">
-                          Edit
-                        </a>
-                      </li>
+                        <li>
+                          <a class="dropdown-item"
+                             href="{{ url_for('diagnosa_pasien.edit_page', diagnosa_id=r.diagnosa_id) }}">
+                            Edit
+                          </a>
+                        </li>
 
-                      <li><hr class="dropdown-divider"></li>
+                        <li><hr class="dropdown-divider"></li>
 
-                      <li>
-                        <form method="POST"
-                              class="form-delete-diagnosa"
-                              data-title="Hapus diagnosa?"
-                              data-text="Data diagnosa akan dihapus dari daftar aktif."
-                              action="{{ url_for('diagnosa_pasien.delete_submit', diagnosa_id=r.diagnosa_id) }}">
-                          <input type="hidden" name="next" value="{{ request.full_path }}">
-                          <button type="submit" class="dropdown-item text-danger">
-                            Hapus
-                          </button>
-                        </form>
-                      </li>
-                    </ul>
-                  </div>
-                </td>
+                        <li>
+                          <form method="POST"
+                                class="form-delete-diagnosa"
+                                data-title="Hapus diagnosa?"
+                                data-text="Data diagnosa akan dihapus dari daftar aktif."
+                                action="{{ url_for('diagnosa_pasien.delete_submit', diagnosa_id=r.diagnosa_id) }}">
+                            <input type="hidden" name="next" value="{{ request.full_path }}">
+                            <button type="submit" class="dropdown-item text-danger">
+                              Hapus
+                            </button>
+                          </form>
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row">
+                <td colspan="9" class="text-center text-muted py-4">Belum ada data diagnosa.</td>
               </tr>
-            {% endfor %}
-          {% endif %}
-        </tbody>
-      </table>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- MOBILE -->
+<div class="mobile-list">
+  {% if rows %}
+    <div class="diagnosa-card-list">
+      {% for r in rows %}
+        <div class="diagnosa-card">
+          <div class="diagnosa-card-head">
+            <div class="diagnosa-card-title">
+              Diagnosa #{{ r.diagnosa_id }}
+            </div>
+            <div class="diagnosa-card-subtitle">
+              {% if r.tgl_diagnosa %}
+                {{ r.tgl_diagnosa.strftime('%d/%m/%Y %H:%M') }}
+              {% else %}
+                -
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="diagnosa-card-body">
+            <div class="diagnosa-grid">
+              <div class="diagnosa-field">
+                <div class="diagnosa-label">Dokter</div>
+                <div class="diagnosa-value">{{ r.dokter_nama or '-' }}</div>
+              </div>
+
+              <div class="diagnosa-field">
+                <div class="diagnosa-label">Jml Diagnosa</div>
+                <div class="diagnosa-value">{{ r.total_detail or 0 }}</div>
+              </div>
+
+              <div class="diagnosa-field">
+                <div class="diagnosa-label">Jml Foto</div>
+                <div class="diagnosa-value">{{ r.total_foto or 0 }}</div>
+              </div>
+
+              <div class="diagnosa-field full">
+                <div class="diagnosa-label">Keluhan Utama</div>
+                <div class="diagnosa-value">{{ r.keluhan_utama or '-' }}</div>
+              </div>
+
+              <div class="diagnosa-field full">
+                <div class="diagnosa-label">Assessment</div>
+                <div class="diagnosa-value">{{ r.assessment or '-' }}</div>
+              </div>
+            </div>
+
+            <div class="diagnosa-actions">
+              <div class="mobile-action-stack">
+                <a class="btn btn-outline-primary"
+                   href="{{ url_for('diagnosa_pasien.view_page', diagnosa_id=r.diagnosa_id) }}">
+                  Lihat
+                </a>
+
+                <a class="btn btn-outline-secondary"
+                   href="{{ url_for('diagnosa_pasien.edit_page', diagnosa_id=r.diagnosa_id) }}">
+                  Edit
+                </a>
+
+                <form method="POST"
+                      class="form-delete-diagnosa"
+                      data-title="Hapus diagnosa?"
+                      data-text="Data diagnosa akan dihapus dari daftar aktif."
+                      action="{{ url_for('diagnosa_pasien.delete_submit', diagnosa_id=r.diagnosa_id) }}">
+                  <input type="hidden" name="next" value="{{ request.full_path }}">
+                  <button type="submit" class="btn btn-outline-danger w-100">
+                    Hapus
+                  </button>
+                </form>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card table-box">
+      <div class="card-body text-center text-muted py-4">
+        Belum ada data diagnosa.
+      </div>
+    </div>
+  {% endif %}
+</div>
+
 {% endblock %}
 
 {% block scripts %}
   {{ super() }}
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
@@ -238,27 +460,38 @@
       return res.isConfirmed;
     }
 
+    function hasRealRows(){
+      const tbody = document.querySelector('#tblDiagnosa tbody');
+      if(!tbody) return false;
+      const rows = tbody.querySelectorAll('tr');
+      if(!rows.length) return false;
+      if(rows.length === 1 && rows[0].classList.contains('empty-row')) return false;
+      return true;
+    }
+
     $(function () {
-      $('#tblDiagnosa').DataTable({
-        pageLength: 10,
-        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-        order: [[0, 'desc']],
-        columnDefs: [
-          { targets: [6, 7, 8], orderable: false },
-          { targets: [6, 7, 8], searchable: false },
-          { targets: [6, 7, 8], className: 'text-center' }
-        ],
-        language: {
-          search: "Cari:",
-          lengthMenu: "Tampilkan _MENU_ data",
-          info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-          infoEmpty: "Tidak ada data",
-          infoFiltered: "(filter dari _MAX_ data)",
-          zeroRecords: "Data tidak ditemukan",
-          emptyTable: "Belum ada data diagnosa.",
-          paginate: { previous: "Prev", next: "Next" }
-        }
-      });
+      if ($.fn.DataTable && $('#tblDiagnosa').length && hasRealRows()) {
+        $('#tblDiagnosa').DataTable({
+          pageLength: 10,
+          lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+          order: [[0, 'desc']],
+          columnDefs: [
+            { targets: [6, 7, 8], orderable: false },
+            { targets: [6, 7, 8], searchable: false },
+            { targets: [6, 7, 8], className: 'text-center' }
+          ],
+          language: {
+            search: "Cari:",
+            lengthMenu: "Tampilkan _MENU_ data",
+            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+            infoEmpty: "Tidak ada data",
+            infoFiltered: "(filter dari _MAX_ data)",
+            zeroRecords: "Data tidak ditemukan",
+            emptyTable: "Belum ada data diagnosa.",
+            paginate: { previous: "Prev", next: "Next" }
+          }
+        });
+      }
 
       $(document).on('submit', 'form.form-delete-diagnosa', async function(e){
         e.preventDefault();

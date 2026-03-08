@@ -31,27 +31,257 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  .page-toolbar {
+    gap: .75rem;
+  }
+
+  .filter-card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: .75rem;
+  }
+
+  .desktop-wrap {
+    display: block;
+  }
+
+  .mobile-wrap {
+    display: none;
+  }
+
+  .table-responsive table td,
+  .table-responsive table th {
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .status-badge {
+    text-transform: lowercase;
+    min-width: 84px;
+    display: inline-block;
+    text-align: center;
+  }
+
+  .amount-text {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mobile-list {
+    display: grid;
+    gap: .875rem;
+  }
+
+  .mobile-item {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    overflow: hidden;
+  }
+
+  .mobile-item .head {
+    padding: .9rem 1rem .75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    background: #fafafa;
+  }
+
+  .mobile-item .head-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: .75rem;
+  }
+
+  .mobile-item .title {
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.25rem;
+    margin-bottom: .15rem;
+  }
+
+  .mobile-item .subtitle {
+    font-size: .85rem;
+    color: #6c757d;
+  }
+
+  .mobile-item .body {
+    padding: .9rem 1rem 1rem 1rem;
+  }
+
+  .mobile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem .9rem;
+    margin-bottom: .75rem;
+  }
+
+  .mobile-field {
+    min-width: 0;
+  }
+
+  .mobile-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .mobile-label {
+    font-size: .75rem;
+    color: #6c757d;
+    margin-bottom: .15rem;
+  }
+
+  .mobile-value {
+    font-size: .92rem;
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .mobile-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: .35rem;
+  }
+
+  .mobile-actions .dropdown {
+    width: 100%;
+  }
+
+  .mobile-actions .btn {
+    width: 100%;
+  }
+
+  @media (max-width: 991.98px) {
+    .table-responsive {
+      min-height: auto;
+      padding-bottom: 120px;
+    }
+
+    #tblPendaftaran {
+      font-size: .88rem;
+    }
+
+    #tblPendaftaran th,
+    #tblPendaftaran td {
+      padding: .55rem .5rem;
+    }
+
+    .truncate-120 {
+      max-width: 240px;
+    }
+
+    .truncate-200 {
+      max-width: 220px;
+    }
+  }
+
+  /* Tablet landscape */
+  @media (min-width: 768px) and (max-width: 1199.98px) {
+    .page-title {
+      font-size: 1.25rem;
+    }
+
+    .filter-card .form-control,
+    .filter-card .form-select,
+    .filter-card .btn {
+      min-height: 42px;
+    }
+
+    #tblPendaftaran {
+      font-size: .85rem;
+    }
+
+    #tblPendaftaran th:nth-child(8),
+    #tblPendaftaran td:nth-child(8) {
+      min-width: 220px;
+      max-width: 220px;
+      white-space: normal;
+    }
+
+    #tblPendaftaran th:nth-child(5),
+    #tblPendaftaran td:nth-child(5) {
+      min-width: 180px;
+      max-width: 180px;
+    }
+
+    #tblPendaftaran th:nth-child(12),
+    #tblPendaftaran td:nth-child(12) {
+      min-width: 120px;
+    }
+  }
+
+  /* Phone portrait */
+  @media (max-width: 767.98px) {
+    .page-toolbar {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-toolbar .btn {
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 1.15rem;
+    }
+
+    .filter-card {
+      padding: .9rem !important;
+    }
+
+    .filter-card .row {
+      --bs-gutter-x: .6rem;
+      --bs-gutter-y: .6rem;
+    }
+
+    .filter-card .form-control,
+    .filter-card .form-select,
+    .filter-card .btn {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+
+    .desktop-wrap {
+      display: none;
+    }
+
+    .mobile-wrap {
+      display: block;
+    }
+
+    .mobile-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .mobile-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="mb-0">Pendaftaran</h4>
+<div class="d-flex justify-content-between align-items-center mb-3 page-toolbar">
+  <h4 class="mb-0 page-title">Pendaftaran</h4>
   <a class="btn btn-primary" href="{{ url_for('pendaftaran.pendaftaran_new_page') }}">
     + Tambah Pendaftaran
   </a>
 </div>
 
-<form class="row g-2 mb-3" method="GET" action="{{ url_for('pendaftaran.pendaftaran_list_page') }}">
-  <div class="col-md-2">
+<form class="row g-2 mb-3 filter-card p-3"
+      method="GET"
+      action="{{ url_for('pendaftaran.pendaftaran_list_page') }}">
+  <div class="col-12 col-md-3 col-lg-2">
     <input type="date" class="form-control" name="date" value="{{ date or '' }}">
   </div>
 
-  <div class="col-md-4">
-    <input type="text" class="form-control" name="q"
+  <div class="col-12 col-md-5 col-lg-4">
+    <input type="text"
+           class="form-control"
+           name="q"
            placeholder="Cari: kode pasien / nama / no hp / anamnesis / ID"
            value="{{ q or '' }}">
   </div>
 
-  <div class="col-md-2">
+  <div class="col-12 col-md-2 col-lg-2">
     <select class="form-select" name="status">
       <option value="" {% if not status %}selected{% endif %}>Semua Status</option>
       <option value="draft" {% if status=='draft' %}selected{% endif %}>Draft</option>
@@ -61,159 +291,312 @@
     </select>
   </div>
 
-  <div class="col-md-2 d-grid">
+  <div class="col-12 col-md-2 col-lg-2 d-grid">
     <button class="btn btn-outline-secondary">Filter</button>
   </div>
 </form>
 
-<div class="card" style="padding: 1%;">
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table id="tblPendaftaran" class="table table-striped mb-0 w-100">
-        <thead class="table-light">
-          <tr>
-            <th style="width: 90px;">ID</th>
-            <th style="width: 120px;">Tanggal</th>
-            <th style="width: 90px;">Jam</th>
+<!-- DESKTOP + TABLET -->
+<div class="desktop-wrap">
+  <div class="card" style="padding: 1%;">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table id="tblPendaftaran" class="table table-striped mb-0 w-100">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 90px;">ID</th>
+              <th style="width: 120px;">Tanggal</th>
+              <th style="width: 90px;">Jam</th>
 
-            <th style="width: 150px;">Kode Pasien</th>
-            <th style="width: 240px;">Nama Pasien</th>
-            <th style="width: 80px;" class="text-end">Umur</th>
-            <th style="width: 140px;">No HP</th>
+              <th style="width: 150px;">Kode Pasien</th>
+              <th style="width: 240px;">Nama Pasien</th>
+              <th style="width: 80px;" class="text-end">Umur</th>
+              <th style="width: 140px;">No HP</th>
 
-            <th>Anamnesis Umum</th>
-            <th style="width: 140px;" class="text-end">Nominal</th>
-            <th style="width: 120px;" class="text-end">Paid</th>
-            <th style="width: 80px;">Status</th>
-            <th style="width: 140px;" class="text-center">Aksi</th>
-          </tr>
-        </thead>
+              <th>Anamnesis Umum</th>
+              <th style="width: 140px;" class="text-end">Nominal</th>
+              <th style="width: 120px;" class="text-end">Paid</th>
+              <th style="width: 80px;">Status</th>
+              <th style="width: 140px;" class="text-center">Aksi</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          {% if rows %}
-            {% for r in rows %}
-              <tr>
-                <td>{{ r.pendaftaran_id }}</td>
-                <td>{{ r.tgl_pendaftaran.strftime('%d/%m/%Y') }}</td>
-                <td>{{ r.tgl_pendaftaran.strftime('%H:%M') }}</td>
+          <tbody>
+            {% if rows %}
+              {% for r in rows %}
+                <tr>
+                  <td>{{ r.pendaftaran_id }}</td>
+                  <td>{{ r.tgl_pendaftaran.strftime('%d/%m/%Y') }}</td>
+                  <td>{{ r.tgl_pendaftaran.strftime('%H:%M') }}</td>
 
-                <td>{{ r.patient_code }}</td>
+                  <td>{{ r.patient_code }}</td>
 
-                <td class="truncate-200" title="{{ r.full_name or '' }}">
-                  {{ r.full_name or '-' }}
-                </td>
+                  <td class="truncate-200" title="{{ r.full_name or '' }}">
+                    {{ r.full_name or '-' }}
+                  </td>
 
-                <td class="text-end">
-                  {% if r.age_years is not none %}
-                    {{ r.age_years }}
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
+                  <td class="text-end">
+                    {% if r.age_years is not none %}
+                      {{ r.age_years }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
 
-                <td>{{ r.phone or '-' }}</td>
+                  <td>{{ r.phone or '-' }}</td>
 
-                <td class="truncate-120" title="{{ r.anamnesis_umum or '' }}">
-                  {{ (r.anamnesis_umum or '') }}
-                </td>
+                  <td class="truncate-120" title="{{ r.anamnesis_umum or '' }}">
+                    {{ r.anamnesis_umum or '-' }}
+                  </td>
 
-                <td class="text-end">
-                  {{ "{:,.0f}".format(r.total or 0) }}
-                </td>
+                  <td class="text-end amount-text">
+                    {{ "{:,.0f}".format(r.total or 0) }}
+                  </td>
 
-                <td class="text-end">
-                  {{ "{:,.0f}".format(r.paidAmount or 0) }}
-                </td>
+                  <td class="text-end amount-text">
+                    {{ "{:,.0f}".format(r.paidAmount or 0) }}
+                  </td>
 
-                <td>
-                  {% if r.status == 'draft' %}
-                    <span class="badge bg-warning text-dark">draft</span>
-                  {% elif r.status == 'confirmed' %}
-                    <span class="badge bg-success">confirmed</span>
-                  {% elif r.status == 'paid' %}
-                    <span class="badge bg-primary">paid</span>
-                  {% elif r.status == 'canceled' %}
-                    <span class="badge bg-secondary">canceled</span>
-                  {% else %}
-                    <span class="badge bg-light text-dark">{{ r.status }}</span>
-                  {% endif %}
-                </td>
+                  <td>
+                    {% if r.status == 'draft' %}
+                      <span class="badge bg-warning text-dark status-badge">draft</span>
+                    {% elif r.status == 'confirmed' %}
+                      <span class="badge bg-success status-badge">confirmed</span>
+                    {% elif r.status == 'paid' %}
+                      <span class="badge bg-primary status-badge">paid</span>
+                    {% elif r.status == 'canceled' %}
+                      <span class="badge bg-secondary status-badge">canceled</span>
+                    {% else %}
+                      <span class="badge bg-light text-dark status-badge">{{ r.status }}</span>
+                    {% endif %}
+                  </td>
 
-                <td class="text-center">
-                  
-                  <div class="dropdown">
-                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false">
-                    Actions
-                  </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                      <li>
-                        <a class="dropdown-item"
-                           href="{{ url_for('pendaftaran.pendaftaran_edit_page', pendaftaran_id=r.pendaftaran_id) }}">
-                          Detail Header
-                        </a>
-                      </li>
-
-                      <li>
-                        <a class="dropdown-item"
-                           href="{{ url_for('pendaftaran.pendaftaran_treatment_page', pendaftaran_id=r.pendaftaran_id) }}">
-                          Treatment
-                        </a>
-                      </li>
-
-
-                      {% if r.status == 'confirmed' %}
-                        <li><hr class="dropdown-divider"></li>
-
+                  <td class="text-center">
+                    <div class="dropdown">
+                      <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                              type="button"
+                              data-bs-toggle="dropdown"
+                              aria-expanded="false">
+                        Actions
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                          <form method="POST"
-                                class="form-paid"
-                                data-title="Set pendaftaran menjadi PAID?"
-                                data-text="Masukkan nominal rupiah yang diterima."
-                                data-total="{{ (r.total or 0) }}"
-                                action="{{ url_for('pendaftaran.pendaftaran_paid_post', pendaftaran_id=r.pendaftaran_id) }}">
-                            <input type="hidden" name="paid_amount" value="">
-                            <button type="submit" class="dropdown-item text-primary">
-                              Paid
-                            </button>
-                          </form>
-                        </li>
-                      {% endif %}
-
-                      {% if r.status == 'paid' %}
-                        <li><hr class="dropdown-divider"></li>
-
-                        <li>
-                          <button type="button"
-                                  class="dropdown-item text-success btn-share-receipt"
-                                  data-token="{{ r.receipt_token or '' }}"
-                                  data-phone="{{ r.phone or '' }}">
-                            Share Receipt
-                          </button>
+                          <a class="dropdown-item"
+                             href="{{ url_for('pendaftaran.pendaftaran_edit_page', pendaftaran_id=r.pendaftaran_id) }}">
+                            Detail Header
+                          </a>
                         </li>
 
                         <li>
                           <a class="dropdown-item"
-                             href="{{ url_for('pendaftaran.receipt_public_page', token=(r.receipt_token or '')) }}"
-                             target="_blank" rel="noopener">
-                            Buka Receipt
+                             href="{{ url_for('pendaftaran.pendaftaran_treatment_page', pendaftaran_id=r.pendaftaran_id) }}">
+                            Treatment
                           </a>
                         </li>
 
-                      {% endif %}
-                    </ul>
-                  </div>
-                </td>
-              </tr>
-            {% endfor %}
-          {% endif %}
-        </tbody>
+                        {% if r.status == 'confirmed' %}
+                          <li><hr class="dropdown-divider"></li>
 
-      </table>
+                          <li>
+                            <form method="POST"
+                                  class="form-paid"
+                                  data-title="Set pendaftaran menjadi PAID?"
+                                  data-text="Masukkan nominal rupiah yang diterima."
+                                  data-total="{{ (r.total or 0) }}"
+                                  action="{{ url_for('pendaftaran.pendaftaran_paid_post', pendaftaran_id=r.pendaftaran_id) }}">
+                              <input type="hidden" name="paid_amount" value="">
+                              <button type="submit" class="dropdown-item text-primary">
+                                Paid
+                              </button>
+                            </form>
+                          </li>
+                        {% endif %}
+
+                        {% if r.status == 'paid' %}
+                          <li><hr class="dropdown-divider"></li>
+
+                          <li>
+                            <button type="button"
+                                    class="dropdown-item text-success btn-share-receipt"
+                                    data-token="{{ r.receipt_token or '' }}"
+                                    data-phone="{{ r.phone or '' }}">
+                              Share Receipt
+                            </button>
+                          </li>
+
+                          <li>
+                            <a class="dropdown-item"
+                               href="{{ url_for('pendaftaran.receipt_public_page', token=(r.receipt_token or '')) }}"
+                               target="_blank" rel="noopener">
+                              Buka Receipt
+                            </a>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
+</div>
+
+<!-- PHONE VIEW -->
+<div class="mobile-wrap">
+  {% if rows %}
+    <div class="mobile-list">
+      {% for r in rows %}
+        <div class="mobile-item">
+          <div class="head">
+            <div class="head-top">
+              <div class="flex-grow-1">
+                <div class="title">{{ r.full_name or '-' }}</div>
+                <div class="subtitle">
+                  ID #{{ r.pendaftaran_id }} • {{ r.patient_code or '-' }}
+                </div>
+              </div>
+
+              <div class="text-end">
+                {% if r.status == 'draft' %}
+                  <span class="badge bg-warning text-dark status-badge">draft</span>
+                {% elif r.status == 'confirmed' %}
+                  <span class="badge bg-success status-badge">confirmed</span>
+                {% elif r.status == 'paid' %}
+                  <span class="badge bg-primary status-badge">paid</span>
+                {% elif r.status == 'canceled' %}
+                  <span class="badge bg-secondary status-badge">canceled</span>
+                {% else %}
+                  <span class="badge bg-light text-dark status-badge">{{ r.status }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="body">
+            <div class="mobile-grid">
+              <div class="mobile-field">
+                <div class="mobile-label">Tanggal</div>
+                <div class="mobile-value">{{ r.tgl_pendaftaran.strftime('%d/%m/%Y') }}</div>
+              </div>
+
+              <div class="mobile-field">
+                <div class="mobile-label">Jam</div>
+                <div class="mobile-value">{{ r.tgl_pendaftaran.strftime('%H:%M') }}</div>
+              </div>
+
+              <div class="mobile-field">
+                <div class="mobile-label">Umur</div>
+                <div class="mobile-value">
+                  {% if r.age_years is not none %}
+                    {{ r.age_years }} tahun
+                  {% else %}
+                    -
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="mobile-field">
+                <div class="mobile-label">No. HP</div>
+                <div class="mobile-value">{{ r.phone or '-' }}</div>
+              </div>
+
+              <div class="mobile-field">
+                <div class="mobile-label">Nominal</div>
+                <div class="mobile-value amount-text">{{ "{:,.0f}".format(r.total or 0) }}</div>
+              </div>
+
+              <div class="mobile-field">
+                <div class="mobile-label">Paid</div>
+                <div class="mobile-value amount-text">{{ "{:,.0f}".format(r.paidAmount or 0) }}</div>
+              </div>
+
+              <div class="mobile-field full">
+                <div class="mobile-label">Anamnesis Umum</div>
+                <div class="mobile-value">{{ r.anamnesis_umum or '-' }}</div>
+              </div>
+            </div>
+
+            <div class="mobile-actions">
+              <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                  Actions
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end w-100">
+                  <li>
+                    <a class="dropdown-item"
+                       href="{{ url_for('pendaftaran.pendaftaran_edit_page', pendaftaran_id=r.pendaftaran_id) }}">
+                      Detail Header
+                    </a>
+                  </li>
+
+                  <li>
+                    <a class="dropdown-item"
+                       href="{{ url_for('pendaftaran.pendaftaran_treatment_page', pendaftaran_id=r.pendaftaran_id) }}">
+                      Treatment
+                    </a>
+                  </li>
+
+                  {% if r.status == 'confirmed' %}
+                    <li><hr class="dropdown-divider"></li>
+
+                    <li>
+                      <form method="POST"
+                            class="form-paid"
+                            data-title="Set pendaftaran menjadi PAID?"
+                            data-text="Masukkan nominal rupiah yang diterima."
+                            data-total="{{ (r.total or 0) }}"
+                            action="{{ url_for('pendaftaran.pendaftaran_paid_post', pendaftaran_id=r.pendaftaran_id) }}">
+                        <input type="hidden" name="paid_amount" value="">
+                        <button type="submit" class="dropdown-item text-primary">
+                          Paid
+                        </button>
+                      </form>
+                    </li>
+                  {% endif %}
+
+                  {% if r.status == 'paid' %}
+                    <li><hr class="dropdown-divider"></li>
+
+                    <li>
+                      <button type="button"
+                              class="dropdown-item text-success btn-share-receipt"
+                              data-token="{{ r.receipt_token or '' }}"
+                              data-phone="{{ r.phone or '' }}">
+                        Share Receipt
+                      </button>
+                    </li>
+
+                    <li>
+                      <a class="dropdown-item"
+                         href="{{ url_for('pendaftaran.receipt_public_page', token=(r.receipt_token or '')) }}"
+                         target="_blank" rel="noopener">
+                        Buka Receipt
+                      </a>
+                    </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="card-body text-center text-muted py-4">
+        Belum ada data.
+      </div>
+    </div>
+  {% endif %}
 </div>
 
 {% endblock %}
@@ -235,6 +618,19 @@
         allowEscapeKey: false,
         didOpen: () => Swal.showLoading()
       });
+    }
+
+    async function swalConfirm({ title, text, icon, confirmText, cancelText }){
+      const res = await Swal.fire({
+        title: title || 'Anda yakin?',
+        text: text || '',
+        icon: icon || 'question',
+        showCancelButton: true,
+        confirmButtonText: confirmText || 'Ya',
+        cancelButtonText: cancelText || 'Batal',
+        reverseButtons: true
+      });
+      return res.isConfirmed;
     }
 
     function formatRupiahDigits(digits){
@@ -375,11 +771,22 @@
       });
     }
 
-    $(function () {
-      $('#tblPendaftaran').DataTable({
+    function isPhoneView(){
+      return window.innerWidth < 768;
+    }
+
+    let dtPendaftaran = null;
+
+    function initDesktopTable(){
+      if(isPhoneView()) return;
+      if($.fn.DataTable.isDataTable('#tblPendaftaran')) return;
+
+      dtPendaftaran = $('#tblPendaftaran').DataTable({
         pageLength: 10,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         order: [[0, 'desc']],
+        autoWidth: false,
+        scrollX: false,
         columnDefs: [
           { targets: [11], orderable: false, searchable: false },
           { targets: [10], orderable: false },
@@ -395,6 +802,28 @@
           emptyTable: "Belum ada data.",
           paginate: { previous: "Prev", next: "Next" }
         }
+      });
+    }
+
+    function destroyDesktopTable(){
+      if($.fn.DataTable.isDataTable('#tblPendaftaran')){
+        $('#tblPendaftaran').DataTable().destroy();
+      }
+    }
+
+    $(function () {
+      initDesktopTable();
+
+      let resizeTimer = null;
+      $(window).on('resize', function(){
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function(){
+          if(isPhoneView()){
+            destroyDesktopTable();
+          }else{
+            initDesktopTable();
+          }
+        }, 200);
       });
 
       $(document).on('submit', 'form.form-confirm, form.form-cancel', async function(e){
@@ -439,9 +868,7 @@
           didOpen: () => {
             const input = Swal.getInput();
             if(!input) return;
-
             input.value = '';
-
             input.addEventListener('input', () => {
               formatRupiahWithCaret(input);
             });

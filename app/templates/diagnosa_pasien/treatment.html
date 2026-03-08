@@ -3,13 +3,233 @@
 {% block content %}
 
 <style>
-  /* highlight row yang terpilih */
   #tblTariff tbody tr.row-picked { background: rgba(25,135,84,.08); }
-  /* biar kelihatan row bisa diklik */
   #tblTariff tbody tr { cursor: pointer; }
+
+  .page-head {
+    gap: .75rem;
+  }
+
+  .page-actions {
+    gap: .5rem;
+  }
+
+  .summary-box {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    padding: .9rem 1rem;
+    background: #fff;
+  }
+
+  .summary-label {
+    color: #6c757d;
+    font-size: .8rem;
+    margin-bottom: .15rem;
+  }
+
+  .summary-value {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+
+  .desktop-list {
+    display: block;
+  }
+
+  .mobile-list {
+    display: none;
+  }
+
+  .list-card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .treatment-mobile-wrap {
+    display: grid;
+    gap: .85rem;
+  }
+
+  .treatment-mobile-item {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    overflow: hidden;
+  }
+
+  .treatment-mobile-head {
+    padding: .9rem 1rem .75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    background: #fafafa;
+  }
+
+  .treatment-mobile-title {
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: .15rem;
+  }
+
+  .treatment-mobile-subtitle {
+    color: #6c757d;
+    font-size: .84rem;
+  }
+
+  .treatment-mobile-body {
+    padding: .95rem 1rem 1rem;
+  }
+
+  .treatment-mobile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .8rem .9rem;
+  }
+
+  .tm-field {
+    min-width: 0;
+  }
+
+  .tm-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .tm-label {
+    font-size: .76rem;
+    color: #6c757d;
+    margin-bottom: .12rem;
+  }
+
+  .tm-value {
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .tm-actions {
+    margin-top: .9rem;
+  }
+
+  .money {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .tariff-table-wrap {
+    max-height: 420px;
+    overflow: auto;
+  }
+
+  .modal-sticky-summary {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: .9rem;
+    padding: .8rem .9rem;
+    background: #f8f9fa;
+  }
+
+  .sum-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+    align-items: center;
+  }
+
+  .sum-label {
+    font-size: .78rem;
+    color: #6c757d;
+    margin-bottom: .1rem;
+  }
+
+  .sum-value {
+    font-weight: 700;
+  }
+
+  @media (max-width: 991.98px) {
+    .modal-dialog.modal-xl {
+      max-width: 95vw;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-actions {
+      display: grid !important;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+
+    .page-actions .btn {
+      width: 100%;
+    }
+
+    .desktop-list {
+      display: none;
+    }
+
+    .mobile-list {
+      display: block;
+    }
+
+    .treatment-mobile-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .modal-dialog {
+      margin: .6rem;
+    }
+
+    .modal-dialog.modal-xl {
+      max-width: none;
+    }
+
+    #modalAdd .modal-dialog {
+      max-width: none;
+    }
+
+    #modalAdd .modal-content {
+      border-radius: 1rem;
+    }
+
+    #modalAdd .modal-body,
+    #modalAdd .modal-header,
+    #modalAdd .modal-footer {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    #modalAdd .form-control,
+    #modalAdd .btn {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+
+    .tariff-table-wrap {
+      max-height: 50vh;
+    }
+
+    .sum-grid {
+      grid-template-columns: 1fr;
+      gap: .6rem;
+    }
+
+    .mobile-action-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .5rem;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .treatment-mobile-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 page-head">
   <div>
     <h4 class="mb-0">Treatment Pendaftaran #{{ header.pendaftaran_id }}</h4>
     <div class="text-muted small">
@@ -28,7 +248,7 @@
     </div>
   </div>
 
-  <div class="d-flex gap-2">
+  <div class="d-flex page-actions">
     <a class="btn btn-outline-secondary" href="{{ url_for('diagnosa_pasien.list_pasien') }}">Kembali</a>
     
     {% if header.status == 'draft' %}
@@ -38,7 +258,6 @@
         <button class="btn btn-success" type="submit">Confirm</button>
       </form>
     {% endif %}
-
 
     {% if header.status == 'confirmed' %}
       <form method="POST"
@@ -51,14 +270,14 @@
   </div>
 </div>
 
-<div class="card mb-3">
+<div class="card mb-3 list-card">
   <div class="card-body">
     <div class="mb-2"><b>Anamnesis Umum</b></div>
     <div class="text-muted">{{ header.anamnesis_umum or '-' }}</div>
   </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-2">
+<div class="d-flex justify-content-between align-items-center mb-2 page-head">
   <h5 class="mb-0">Daftar Treatment</h5>
 
   {% if header.status in ['draft','confirmed'] %}
@@ -66,72 +285,141 @@
   {% endif %}
 </div>
 
-<div class="card">
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-striped mb-0">
-        <thead class="table-light">
-          <tr>
-            <th style="width: 90px;">ID</th>
-            <th style="width: 140px;">Kode</th>
-            <th>Nama Treatment</th>
-            <th style="width: 90px;" class="text-end">Qty</th>
-            <th style="width: 160px;" class="text-end">Harga</th>
-            <th style="width: 160px;" class="text-end">Diskon</th>
-            <th style="width: 160px;" class="text-end">Subtotal</th>
-            <th style="width: 120px;">Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyTreatments">
-          {% if rows %}
-            {% for d in rows %}
-              <tr>
-                <td>{{ d.pendaftaran_treatment_id }}</td>
-                <td>{{ d.tariff_code or '' }}</td>
-                <td>{{ d.treatment_name_snapshot }}</td>
-                <td class="text-end">{{ d.qty }}</td>
-                <td class="text-end">{{ "{:,.0f}".format(d.unit_price or 0) }}</td>
-                <td class="text-end">
+<!-- DESKTOP / TABLET -->
+<div class="desktop-list">
+  <div class="card list-card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 90px;">ID</th>
+              <th style="width: 140px;">Kode</th>
+              <th>Nama Treatment</th>
+              <th style="width: 90px;" class="text-end">Qty</th>
+              <th style="width: 160px;" class="text-end">Harga</th>
+              <th style="width: 160px;" class="text-end">Diskon</th>
+              <th style="width: 160px;" class="text-end">Subtotal</th>
+              <th style="width: 120px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyTreatments">
+            {% if rows %}
+              {% for d in rows %}
+                <tr>
+                  <td>{{ d.pendaftaran_treatment_id }}</td>
+                  <td>{{ d.tariff_code or '' }}</td>
+                  <td>{{ d.treatment_name_snapshot }}</td>
+                  <td class="text-end">{{ d.qty }}</td>
+                  <td class="text-end money">{{ "{:,.0f}".format(d.unit_price or 0) }}</td>
+                  <td class="text-end">
+                    {% if d.discount_type %}
+                      {{ d.discount_type }} {{ d.discount_value }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                  <td class="text-end money">{{ "{:,.0f}".format(d.subtotal or 0) }}</td>
+                  <td>
+                    {% if header.status in ['draft','confirmed'] %}
+                      <button class="btn btn-sm btn-outline-danger btnDel"
+                              data-id="{{ d.pendaftaran_treatment_id }}">
+                        Hapus
+                      </button>
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="8" class="text-center py-4 text-muted">Belum ada treatment.</td></tr>
+            {% endif %}
+          </tbody>
+          <tfoot class="table-light">
+            <tr>
+              <th colspan="6" class="text-end">Total</th>
+              <th class="text-end money" id="grandTotal">0</th>
+              <th></th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE -->
+<div class="mobile-list">
+  {% if rows %}
+    <div class="treatment-mobile-wrap" id="mobileTreatmentWrap">
+      {% for d in rows %}
+        <div class="treatment-mobile-item">
+          <div class="treatment-mobile-head">
+            <div class="treatment-mobile-title">{{ d.treatment_name_snapshot }}</div>
+            <div class="treatment-mobile-subtitle">
+              ID {{ d.pendaftaran_treatment_id }} • {{ d.tariff_code or '-' }}
+            </div>
+          </div>
+
+          <div class="treatment-mobile-body">
+            <div class="treatment-mobile-grid">
+              <div class="tm-field">
+                <div class="tm-label">Qty</div>
+                <div class="tm-value">{{ d.qty }}</div>
+              </div>
+
+              <div class="tm-field">
+                <div class="tm-label">Harga</div>
+                <div class="tm-value money">{{ "{:,.0f}".format(d.unit_price or 0) }}</div>
+              </div>
+
+              <div class="tm-field">
+                <div class="tm-label">Diskon</div>
+                <div class="tm-value">
                   {% if d.discount_type %}
                     {{ d.discount_type }} {{ d.discount_value }}
                   {% else %}
                     -
                   {% endif %}
-                </td>
-                <td class="text-end">{{ "{:,.0f}".format(d.subtotal or 0) }}</td>
-                <td>
-                  {% if header.status in ['draft','confirmed'] %}
-                    <button class="btn btn-sm btn-outline-danger btnDel"
-                            data-id="{{ d.pendaftaran_treatment_id }}">
-                      Hapus
-                    </button>
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          {% else %}
-            <tr><td colspan="8" class="text-center py-4 text-muted">Belum ada treatment.</td></tr>
-          {% endif %}
-        </tbody>
-        <tfoot class="table-light">
-          <tr>
-            <th colspan="6" class="text-end">Total</th>
-            <th class="text-end" id="grandTotal">0</th>
-            <th></th>
-          </tr>
-        </tfoot>
-      </table>
+                </div>
+              </div>
+
+              <div class="tm-field">
+                <div class="tm-label">Subtotal</div>
+                <div class="tm-value money">{{ "{:,.0f}".format(d.subtotal or 0) }}</div>
+              </div>
+            </div>
+
+            {% if header.status in ['draft','confirmed'] %}
+              <div class="tm-actions">
+                <button class="btn btn-outline-danger btnDel w-100"
+                        data-id="{{ d.pendaftaran_treatment_id }}">
+                  Hapus
+                </button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
     </div>
-  </div>
+
+    <div class="summary-box mt-3">
+      <div class="summary-label">Total</div>
+      <div class="summary-value money" id="grandTotalMobile">0</div>
+    </div>
+  {% else %}
+    <div class="card list-card">
+      <div class="card-body text-center py-4 text-muted">
+        Belum ada treatment.
+      </div>
+    </div>
+  {% endif %}
 </div>
 
-<!-- =========================
-     Modal: Tambah Treatment
-     ========================= -->
+<!-- Modal: Tambah Treatment -->
 <div class="modal fade" id="modalAdd" tabindex="-1">
-  <div class="modal-dialog modal-xl">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-sm-down">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Tambah Treatment</h5>
@@ -140,7 +428,7 @@
 
       <div class="modal-body">
         <div class="row g-2">
-          <div class="col-md-12">
+          <div class="col-12">
             <label class="form-label">Cari Tarif</label>
             <input type="text" class="form-control" id="qTariff" placeholder="Ketik nama / kode tarif...">
             <div class="form-text">
@@ -154,7 +442,7 @@
 
         <hr>
 
-        <div class="table-responsive" style="max-height: 420px; overflow:auto;">
+        <div class="table-responsive tariff-table-wrap">
           <table class="table table-sm table-hover align-middle w-100" id="tblTariff">
             <thead>
               <tr>
@@ -175,20 +463,25 @@
 
         <hr>
 
-        <div class="row g-2 align-items-end">
-          <div class="col-md-6">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-6">
             <label class="form-label">Catatan (opsional)</label>
             <input type="text" class="form-control" id="notes" placeholder="mis: paket, catatan dokter, dll">
           </div>
 
-          <div class="col-md-3">
-            <div class="small text-muted">Total item terpilih</div>
-            <div class="fw-semibold" id="selCount">0</div>
-          </div>
-
-          <div class="col-md-3 text-end">
-            <div class="small text-muted">Total (preview)</div>
-            <div class="fw-semibold" id="selTotal">0</div>
+          <div class="col-12 col-md-6">
+            <div class="modal-sticky-summary">
+              <div class="sum-grid">
+                <div>
+                  <div class="sum-label">Total item terpilih</div>
+                  <div class="sum-value" id="selCount">0</div>
+                </div>
+                <div class="text-md-end">
+                  <div class="sum-label">Total (preview)</div>
+                  <div class="sum-value money" id="selTotal">0</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -209,7 +502,6 @@
 
 {% block scripts %}
 
-{# Jika DataTables & jQuery sudah ada di base.html, Anda boleh HAPUS 3 baris CDN di bawah #}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
@@ -218,9 +510,6 @@
 (function(){
   const pendaftaranId = {{ header.pendaftaran_id }};
 
-  // =========================
-  // SweetAlert2 helpers
-  // =========================
   function swalError(msg){
     return Swal.fire({ icon:'error', title:'Gagal', text: msg || 'Terjadi kesalahan.' });
   }
@@ -266,9 +555,6 @@
     return n.toLocaleString('id-ID');
   }
 
-  // =========================
-  // Confirm pendaftaran (SweetAlert)
-  // =========================
   const formConfirm = document.getElementById('formConfirm');
   if(formConfirm){
     formConfirm.addEventListener('submit', async (e)=>{
@@ -288,16 +574,12 @@
     });
   }
 
-  // =========================
-  // Paid pendaftaran (SweetAlert input nominal)
-  // =========================
   const formPaid = document.getElementById('formPaid');
   if(formPaid){
     formPaid.addEventListener('submit', async (e)=>{
       e.preventDefault();
 
-      // default: total dari footer
-      const defaultTotal = (document.getElementById('grandTotal')?.innerText || '').trim();
+      const defaultTotal = (document.getElementById('grandTotal')?.innerText || document.getElementById('grandTotalMobile')?.innerText || '').trim();
 
       const res = await Swal.fire({
         icon: 'question',
@@ -336,13 +618,11 @@
       if(!res.isConfirmed) return;
 
       document.getElementById('paid_amount').value = res.value;
-
       swalLoading('Menyimpan pembayaran...');
       formPaid.submit();
     });
   }
 
-  // Diskon UI: pakai field diskon permanen jika ada, fallback promo bila ada (client-side preview saja)
   function calcDiscount(gross, item){
     const dt = (item.discount_type || item.discountType || '').toUpperCase();
     const dv = Number(item.discount_value ?? item.discountValue ?? 0);
@@ -360,7 +640,6 @@
     return Number(item.final_price ?? item.finalPrice ?? item.price ?? 0);
   }
 
-  // Anda saat ini belum punya promo_code; tampilkan ringkas promo_type/value (opsional)
   function getPromoLabel(item){
     const pt = (item.promo_type || '').toUpperCase();
     const pv = Number(item.promo_value ?? 0);
@@ -370,7 +649,6 @@
     return '';
   }
 
-  // key tariff_id -> { qty:int }
   const picked = new Map();
 
   let allTariffs = [];
@@ -379,14 +657,19 @@
 
   function refreshGrandTotal(){
     let total = 0;
+
     document.querySelectorAll('#tbodyTreatments tr').forEach(tr=>{
       const td = tr.querySelector('td:nth-child(7)');
       if(!td) return;
       const raw = (td.innerText || '0').replace(/\./g,'').replace(/,/g,'');
       total += (Number(raw) || 0);
     });
+
     const el = document.getElementById('grandTotal');
     if(el) el.innerText = rupiah(total);
+
+    const elMobile = document.getElementById('grandTotalMobile');
+    if(elMobile) elMobile.innerText = rupiah(total);
   }
 
   function refreshSelectedSummary(){
@@ -599,7 +882,6 @@
     refreshSelectedSummary();
   }
 
-  // ===== Modal init =====
   const modalEl = document.getElementById('modalAdd');
   const modal = new bootstrap.Modal(modalEl);
 
@@ -643,7 +925,6 @@
     });
   }
 
-  // submit multiple selected
   const btnSubmit = document.getElementById('btnSubmitTreatment');
   if(btnSubmit){
     btnSubmit.addEventListener('click', async ()=>{
@@ -696,7 +977,6 @@
     });
   }
 
-  // delete treatment
   document.querySelectorAll('.btnDel').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const ok = await swalConfirm({
@@ -732,9 +1012,7 @@
     });
   });
 
-  // init total awal
   refreshGrandTotal();
-
 })();
 </script>
 

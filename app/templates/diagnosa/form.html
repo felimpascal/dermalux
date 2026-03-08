@@ -1,34 +1,129 @@
 {% extends "base/base.html" %}
 {% block content %}
 
+<style>
+  .page-head {
+    gap: .75rem;
+  }
+
+  .form-shell {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .form-shell .card-body {
+    padding: 1.25rem;
+  }
+
+  .sticky-action-mobile {
+    position: static;
+  }
+
+  input[readonly] {
+    background: #f5f5f5;
+  }
+
+  @media (max-width: 991.98px) {
+    .form-shell .card-body {
+      padding: 1.1rem;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-head .btn {
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 1.15rem;
+      line-height: 1.35;
+    }
+
+    .form-shell .card-body {
+      padding: 1rem;
+    }
+
+    .form-label {
+      margin-bottom: .35rem;
+      font-weight: 500;
+    }
+
+    .form-control,
+    .form-select,
+    .btn {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+
+    .sticky-action-mobile {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(6px);
+      border-top: 1px solid rgba(0,0,0,.08);
+      padding-top: .85rem;
+      margin-top: 1rem;
+    }
+
+    .action-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .6rem;
+    }
+
+    .action-stack .btn {
+      width: 100%;
+    }
+  }
+</style>
+
 <div class="container-fluid">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">{% if mode == "edit" %}Edit Diagnosa{% else %}Tambah Diagnosa{% endif %}</h4>
+  <div class="d-flex justify-content-between align-items-center mb-3 page-head">
+    <h4 class="mb-0 page-title">
+      {% if mode == "edit" %}Edit Diagnosa{% else %}Tambah Diagnosa{% endif %}
+    </h4>
     <a class="btn btn-outline-secondary" href="{{ url_for('diagnosa.diagnosa_list_page') }}">
       <i class="bi bi-arrow-left"></i> Kembali
     </a>
   </div>
 
-  <form id="frmDiagnosa" method="post" action="{{ url_for('diagnosa.diagnosa_save_post') }}" class="card" novalidate>
+  <form id="frmDiagnosa"
+        method="post"
+        action="{{ url_for('diagnosa.diagnosa_save_post') }}"
+        class="card form-shell"
+        novalidate>
     <div class="card-body">
       {% if row %}
         <input type="hidden" name="id" value="{{ row.id }}">
       {% endif %}
 
       <div class="row g-3">
-        <div class="col-md-4">
+        <div class="col-12 col-md-6 col-lg-4">
           <label class="form-label">Kode Diagnosa</label>
-          <input class="form-control" name="diagnosa_code"
-                 value="{{ row.diagnosa_code if row else '' }}" autocomplete="off">
+          <input class="form-control"
+                 name="diagnosa_code"
+                 value="{{ row.diagnosa_code if row else '' }}"
+                 autocomplete="off"
+                 {% if mode == "edit" %}readonly{% endif %}>
+          <div class="form-text">Contoh: DGN001, DGN002, ACNE01</div>
         </div>
 
-        <div class="col-md-8">
+        <div class="col-12 col-md-6 col-lg-8">
           <label class="form-label">Nama Diagnosa</label>
-          <input class="form-control" name="diagnosa_name"
-                 value="{{ row.diagnosa_name if row else '' }}" autocomplete="off">
+          <input class="form-control"
+                 name="diagnosa_name"
+                 value="{{ row.diagnosa_name if row else '' }}"
+                 autocomplete="off">
         </div>
 
-        <div class="col-md-4">
+        <div class="col-12 col-md-6 col-lg-4">
           <label class="form-label">Status</label>
           {% set st = row.is_active if row else 1 %}
           <select class="form-select" name="is_active">
@@ -39,10 +134,15 @@
       </div>
     </div>
 
-    <div class="card-footer text-end">
-      <button class="btn btn-primary" type="submit">
-        <i class="bi bi-save"></i> Simpan
-      </button>
+    <div class="card-footer sticky-action-mobile">
+      <div class="d-flex justify-content-end gap-2 flex-wrap action-stack">
+        <a class="btn btn-outline-secondary" href="{{ url_for('diagnosa.diagnosa_list_page') }}">
+          Batal
+        </a>
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-save"></i> Simpan
+        </button>
+      </div>
     </div>
   </form>
 </div>

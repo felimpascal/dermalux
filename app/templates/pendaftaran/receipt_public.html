@@ -1,114 +1,524 @@
-{% extends "base/base_public.html" %}
-{% block content %}
-<style>
-@media print {
-  .no-print {
-    display: none !important;
-  }
-}
-</style>
-<div class="container py-4" style="max-width: 900px;">
-<div class="d-flex justify-content-between align-items-start mb-3">
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kwitansi / Receipt</title>
 
-  <div class="d-flex align-items-start">
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-5.3.8-dist/css/bootstrap.min.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
 
-    <!-- LOGO -->
-    <div class="me-3">
-      <img src="{{ url_for('static', filename='images/logo.png') }}"
-           style="height:90px;">
-    </div>
+  <style>
+    :root{
+      --page-bg: #f5f7fb;
+      --card-border: rgba(0,0,0,.08);
+      --text-muted2: #6c757d;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+    }
 
-    <!-- JUDUL -->
-    <div>
-      <h4 class="mb-1">Kwitansi / Receipt</h4>
-      <div class="text-muted small">
-        No. Pendaftaran: <b>#{{ header.pendaftaran_id }}</b><br>
-        Tanggal: <b>{{ header.tgl_pendaftaran }}</b>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--page-bg);
+      color: #212529;
+      font-size: 14px;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .receipt-page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 20px 14px 36px;
+    }
+
+    .receipt-card {
+      background: #fff;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 26px rgba(0,0,0,.05);
+      overflow: hidden;
+    }
+
+    .receipt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 18px 18px 10px;
+    }
+
+    .receipt-brand {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .receipt-logo {
+      width: 88px;
+      height: 88px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .receipt-title-wrap {
+      min-width: 0;
+    }
+
+    .receipt-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: .35rem;
+    }
+
+    .receipt-subtitle {
+      color: var(--text-muted2);
+      font-size: .92rem;
+      line-height: 1.5;
+    }
+
+    .receipt-tools {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+
+    .section-block {
+      padding: 0 18px 18px;
+    }
+
+    .info-card {
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .info-card-body {
+      padding: 14px 16px;
+    }
+
+    .patient-grid {
+      display: grid;
+      grid-template-columns: 2fr 100px 1.2fr;
+      gap: 12px 18px;
+    }
+
+    .label-sm {
+      color: var(--text-muted2);
+      font-size: .8rem;
+      margin-bottom: 2px;
+    }
+
+    .value-md {
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .table-card {
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .receipt-table {
+      margin: 0;
+      min-width: 760px;
+      vertical-align: middle;
+    }
+
+    .receipt-table thead th {
+      background: #f8f9fa;
+      font-size: .88rem;
+      white-space: nowrap;
+    }
+
+    .receipt-table td,
+    .receipt-table th {
+      padding: 10px 12px;
+    }
+
+    .receipt-table tfoot th {
+      background: #f8f9fa;
+    }
+
+    .amount {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .summary-mobile {
+      display: none;
+    }
+
+    .summary-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .summary-item {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .summary-item .name {
+      color: var(--text-muted2);
+      font-size: .9rem;
+    }
+
+    .summary-item .val {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .summary-item.total .val,
+    .summary-item.total .name {
+      font-size: 1rem;
+      color: #212529;
+    }
+
+    .receipt-footer-note {
+      color: var(--text-muted2);
+      font-size: .82rem;
+      text-align: center;
+      margin-top: 14px;
+    }
+
+    .no-print {
+      display: inline-flex;
+    }
+
+    /* PHONE */
+    @media (max-width: 767.98px) {
+      html, body {
+        font-size: 13px;
+      }
+
+      .receipt-page {
+        padding: 10px 8px 24px;
+      }
+
+      .receipt-card {
+        border-radius: 14px;
+      }
+
+      .receipt-header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 14px 14px 8px;
+      }
+
+      .receipt-brand {
+        gap: 10px;
+      }
+
+      .receipt-logo {
+        width: 64px;
+        height: 64px;
+      }
+
+      .receipt-title {
+        font-size: 1.1rem;
+        margin-bottom: .2rem;
+      }
+
+      .receipt-subtitle {
+        font-size: .84rem;
+      }
+
+      .receipt-tools {
+        width: 100%;
+      }
+
+      .receipt-tools .btn {
+        flex: 1 1 auto;
+      }
+
+      .section-block {
+        padding: 0 14px 14px;
+      }
+
+      .info-card-body {
+        padding: 12px;
+      }
+
+      .patient-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .receipt-table {
+        min-width: 680px;
+        font-size: .84rem;
+      }
+
+      .receipt-table td,
+      .receipt-table th {
+        padding: 8px 10px;
+      }
+
+      .table-summary-desktop {
+        display: none;
+      }
+
+      .summary-mobile {
+        display: block;
+      }
+    }
+
+    /* TABLET */
+    @media (min-width: 768px) and (max-width: 1199.98px) {
+      .receipt-page {
+        max-width: 1000px;
+        padding: 16px 14px 28px;
+      }
+
+      .receipt-logo {
+        width: 78px;
+        height: 78px;
+      }
+
+      .receipt-title {
+        font-size: 1.3rem;
+      }
+
+      .patient-grid {
+        grid-template-columns: 1.5fr .8fr 1.1fr;
+      }
+
+      .receipt-table {
+        min-width: 760px;
+      }
+    }
+
+    /* DESKTOP */
+    @media (min-width: 1200px) {
+      .receipt-page {
+        max-width: 1040px;
+      }
+    }
+
+    /* PRINT */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 12mm;
+      }
+
+      html, body {
+        background: #fff !important;
+      }
+
+      .receipt-page {
+        max-width: 100%;
+        padding: 0;
+      }
+
+      .receipt-card,
+      .info-card,
+      .table-card,
+      .summary-item {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+      }
+
+      .receipt-card {
+        border-radius: 0;
+      }
+
+      .receipt-header {
+        padding: 0 0 10px 0;
+      }
+
+      .section-block {
+        padding: 0 0 12px 0;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .table-wrap {
+        overflow: visible !important;
+      }
+
+      .receipt-table {
+        min-width: 100% !important;
+        font-size: 12px;
+      }
+
+      .summary-mobile {
+        display: none !important;
+      }
+
+      .table-summary-desktop {
+        display: table-footer-group !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="receipt-page">
+  <div class="receipt-card">
+
+    <!-- HEADER -->
+    <div class="receipt-header">
+      <div class="receipt-brand">
+        <img
+          src="{{ url_for('static', filename='images/logo.png') }}"
+          alt="Logo"
+          class="receipt-logo"
+        >
+
+        <div class="receipt-title-wrap">
+          <div class="receipt-title">Kwitansi / Receipt</div>
+          <div class="receipt-subtitle">
+            No. Pendaftaran: <b>#{{ header.pendaftaran_id }}</b><br>
+            Tanggal: <b>{{ header.tgl_pendaftaran }}</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="receipt-tools no-print">
+        <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+          Print
+        </button>
       </div>
     </div>
 
-  </div>
+    <!-- INFO PASIEN -->
+    <div class="section-block">
+      <div class="info-card">
+        <div class="info-card-body">
+          <div class="patient-grid">
+            <div>
+              <div class="label-sm">Nama Pasien</div>
+              <div class="value-md">{{ header.full_name or '-' }}</div>
+            </div>
 
-  <div class="text-end">
-    <button class="btn btn-outline-secondary btn-sm no-print" onclick="window.print()">
-      Print
-    </button>
-  </div>
+            <div>
+              <div class="label-sm">Umur</div>
+              <div class="value-md">{{ header.age_years if header.age_years is not none else '-' }}</div>
+            </div>
 
-</div>
+            <div>
+              <div class="label-sm">No HP</div>
+              <div class="value-md">{{ header.phone or '-' }}</div>
+            </div>
 
-  <div class="card mb-3">
-    <div class="card-body">
-      <div class="row g-2">
-        <div class="col-md-6">
-          <div class="text-muted small">Nama Pasien</div>
-          <div class="fw-semibold">{{ header.full_name or '-' }}</div>
-        </div>
-        <div class="col-md-2">
-          <div class="text-muted small">Umur</div>
-          <div class="fw-semibold">{{ header.age_years if header.age_years is not none else '-' }}</div>
-        </div>
-        <div class="col-md-4">
-          <div class="text-muted small">No HP</div>
-          <div class="fw-semibold">{{ header.phone or '-' }}</div>
-        </div>
-        <div class="col-md-12">
-          <div class="text-muted small">Alamat</div>
-          <div class="fw-semibold">{{ header.address or '-' }}</div>
+            <div style="grid-column: 1 / -1;">
+              <div class="label-sm">Alamat</div>
+              <div class="value-md">{{ header.address or '-' }}</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="card mb-3">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-striped mb-0">
-          <thead class="table-light">
-            <tr>
-              <th style="width: 60px;">No</th>
-              <th style="width: 140px;">Kode</th>
-              <th>Nama Treatment</th>
-              <th class="text-end" style="width: 90px;">Qty</th>
-              <th class="text-end" style="width: 140px;">Harga</th>
-              <th class="text-end" style="width: 140px;">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if details %}
-              {% for d in details %}
+    <!-- TABLE DETAIL -->
+    <div class="section-block">
+      <div class="table-card">
+        <div class="table-wrap">
+          <table class="table table-striped receipt-table mb-0">
+            <thead>
               <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ d.tariff_code or '' }}</td>
-                <td>{{ d.treatment_name_snapshot }}</td>
-                <td class="text-end">{{ d.qty }}</td>
-                <td class="text-end">{{ "{:,.0f}".format(d.unit_price or 0) }}</td>
-                <td class="text-end">{{ "{:,.0f}".format(d.subtotal or 0) }}</td>
+                <th style="width: 60px;">No</th>
+                <th style="width: 140px;">Kode</th>
+                <th>Nama Treatment</th>
+                <th class="amount" style="width: 90px;">Qty</th>
+                <th class="amount" style="width: 140px;">Harga</th>
+                <th class="amount" style="width: 140px;">Subtotal</th>
               </tr>
-              {% endfor %}
-            {% else %}
-              <tr><td colspan="6" class="text-center text-muted py-3">Tidak ada detail.</td></tr>
-            {% endif %}
-          </tbody>
-          <tfoot class="table-light">
-            <tr>
-              <th colspan="5" class="text-end">Total</th>
-              <th class="text-end">{{ "{:,.0f}".format(total or 0) }}</th>
-            </tr>
-            <tr>
-              <th colspan="5" class="text-end">Paid Amount</th>
-              <th class="text-end">{{ "{:,.0f}".format(paid or 0) }}</th>
-            </tr>
-            <tr>
-              <th colspan="5" class="text-end">Kembalian</th>
-              <th class="text-end">{{ "{:,.0f}".format(change or 0) }}</th>
-            </tr>
-          </tfoot>
-        </table>
+            </thead>
+
+            <tbody>
+              {% if details %}
+                {% for d in details %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ d.tariff_code or '' }}</td>
+                  <td>{{ d.treatment_name_snapshot }}</td>
+                  <td class="amount">{{ d.qty }}</td>
+                  <td class="amount">{{ "{:,.0f}".format(d.unit_price or 0) }}</td>
+                  <td class="amount">{{ "{:,.0f}".format(d.subtotal or 0) }}</td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-3">Tidak ada detail.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+
+            <tfoot class="table-summary-desktop">
+              <tr>
+                <th colspan="5" class="amount">Total</th>
+                <th class="amount">{{ "{:,.0f}".format(total or 0) }}</th>
+              </tr>
+              <tr>
+                <th colspan="5" class="amount">Paid Amount</th>
+                <th class="amount">{{ "{:,.0f}".format(paid or 0) }}</th>
+              </tr>
+              <tr>
+                <th colspan="5" class="amount">Kembalian</th>
+                <th class="amount">{{ "{:,.0f}".format(change or 0) }}</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
 
+    <!-- SUMMARY MOBILE -->
+    <div class="section-block summary-mobile">
+      <div class="summary-stack">
+        <div class="summary-item total">
+          <div class="name">Total</div>
+          <div class="val">{{ "{:,.0f}".format(total or 0) }}</div>
+        </div>
+        <div class="summary-item">
+          <div class="name">Paid Amount</div>
+          <div class="val">{{ "{:,.0f}".format(paid or 0) }}</div>
+        </div>
+        <div class="summary-item">
+          <div class="name">Kembalian</div>
+          <div class="val">{{ "{:,.0f}".format(change or 0) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <div class="receipt-footer-note">
+        Receipt ini dibuat otomatis oleh sistem.
+      </div>
+    </div>
+
+  </div>
 </div>
 
-{% endblock %}
+<script src="{{ url_for('static', filename='bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html>

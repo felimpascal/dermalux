@@ -2,48 +2,82 @@
 {% block content %}
 
 <style>
-  .card-section { margin-bottom: 1rem; }
+  .card-section {
+    margin-bottom: 1rem;
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
   .section-title {
     font-size: 1rem;
     font-weight: 600;
     margin-bottom: .75rem;
   }
-  .required-star { color: #dc3545; }
-  .table-responsive { overflow-x: auto; overflow-y: visible; }
-  .table td, .table th { vertical-align: middle; }
+
+  .required-star {
+    color: #dc3545;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table td,
+  .table th {
+    vertical-align: middle;
+  }
+
   .text-muted-xs {
     font-size: 12px;
     color: #6c757d;
   }
+
   .info-label {
     font-size: 12px;
     color: #6c757d;
     margin-bottom: 2px;
   }
+
   .info-value {
     font-weight: 500;
+    word-break: break-word;
   }
+
   .photo-chip {
     border: 1px solid #dee2e6;
-    border-radius: .5rem;
+    border-radius: .75rem;
     padding: .75rem;
     background: #fff;
-    height: 100%;
+    height: auto;
   }
+
   .photo-chip .title {
     font-weight: 600;
     margin-bottom: .25rem;
   }
-  .sticky-footer-actions {
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
-    background: #fff;
-    border-top: 1px solid #e9ecef;
-    padding-top: .75rem;
-    margin-top: 1rem;
+
+  .photo-preview-existing {
+    width: 100%;
+    height: 220px;
+    border: 1px solid #dee2e6;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #f8f9fa;
   }
-  .photo-preview-box {
+
+  .photo-preview-existing img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo-preview-input {
     width: 120px;
     height: 120px;
     border: 1px solid #dee2e6;
@@ -54,19 +88,145 @@
     overflow: hidden;
     background: #f8f9fa;
   }
-  .photo-preview-box img {
+
+  .photo-preview-input img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
+
   .preview-placeholder {
     font-size: 12px;
     color: #6c757d;
     text-align: center;
     padding: 8px;
   }
+
   .tom-select .ts-control {
     min-height: 38px;
+  }
+
+  .page-head {
+    gap: .75rem;
+  }
+
+  .page-actions {
+    gap: .5rem;
+  }
+
+  .section-toolbar {
+    gap: .75rem;
+  }
+
+  .table-min-diagnosa {
+    min-width: 760px;
+  }
+
+  .table-min-photo {
+    min-width: 980px;
+  }
+
+  .existing-photo-grid {
+    row-gap: .75rem;
+    margin-bottom: 1rem;
+  }
+
+  .sticky-footer-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: rgba(255,255,255,.96);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid #e9ecef;
+    padding-top: .75rem;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 991.98px) {
+    .container-fluid {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    .sticky-footer-actions {
+      position: static;
+      background: transparent;
+      backdrop-filter: none;
+      border-top: 0;
+      padding-top: 0;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-actions {
+      display: grid !important;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+
+    .page-actions .btn {
+      width: 100%;
+    }
+
+    .card-section .card-body {
+      padding: 1rem;
+    }
+
+    .form-control,
+    .form-select,
+    .btn,
+    .input-group-text {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+
+    textarea.form-control {
+      min-height: 110px;
+    }
+
+    .section-toolbar {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .section-toolbar .btn {
+      width: 100%;
+    }
+
+    .photo-preview-existing {
+      height: 180px;
+    }
+
+    .photo-preview-input {
+      width: 96px;
+      height: 96px;
+    }
+
+    .sticky-footer-actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(6px);
+      border-top: 1px solid #e9ecef;
+      padding-top: .85rem;
+      margin-top: 1rem;
+    }
+
+    .sticky-footer-actions .action-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .6rem;
+    }
+
+    .sticky-footer-actions .btn {
+      width: 100%;
+    }
   }
 </style>
 
@@ -74,7 +234,7 @@
 {% set current_user_id = session.get('user_id', '') %}
 {% set current_user_code = session.get('userCode', '-') %}
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 page-head">
   <div>
     <h4 class="mb-0">
       {% if mode == 'edit' %}
@@ -92,7 +252,7 @@
     </small>
   </div>
 
-  <div>
+  <div class="d-flex page-actions">
     <a href="{{ url_for('diagnosa_pasien.list_page', pendaftaran_id=h.pendaftaran_id) }}"
       class="btn btn-outline-secondary">
       Batal
@@ -129,12 +289,12 @@
       <div class="section-title">Informasi Pendaftaran</div>
 
       <div class="row g-3">
-        <div class="col-md-2">
+        <div class="col-12 col-md-4 col-lg-2">
           <div class="info-label">ID Pendaftaran</div>
           <div class="info-value">{{ h.pendaftaran_id or '-' }}</div>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-12 col-md-4 col-lg-2">
           <div class="info-label">Tanggal Pendaftaran</div>
           <div class="info-value">
             {% if h.tgl_pendaftaran %}
@@ -145,17 +305,17 @@
           </div>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-12 col-md-4 col-lg-2">
           <div class="info-label">Kode Pasien</div>
           <div class="info-value">{{ h.patient_code or '-' }}</div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-12 col-md-6 col-lg-3">
           <div class="info-label">Nama Pasien</div>
           <div class="info-value">{{ h.full_name or '-' }}</div>
         </div>
 
-        <div class="col-md-1">
+        <div class="col-6 col-md-3 col-lg-1">
           <div class="info-label">Umur</div>
           <div class="info-value">
             {% if h.age_years is not none %}
@@ -166,12 +326,12 @@
           </div>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-6 col-md-3 col-lg-2">
           <div class="info-label">No HP</div>
           <div class="info-value">{{ h.phone or '-' }}</div>
         </div>
 
-        <div class="col-md-12">
+        <div class="col-12">
           <div class="info-label">Anamnesis Umum</div>
           <div class="info-value">{{ h.anamnesis_umum or '-' }}</div>
         </div>
@@ -184,7 +344,7 @@
       <div class="section-title">Assessment Dokter</div>
 
       <div class="row g-3">
-        <div class="col-md-3">
+        <div class="col-12 col-md-6 col-lg-3">
           <label class="form-label">Tanggal Diagnosa <span class="required-star">*</span></label>
           <input type="datetime-local"
                  class="form-control"
@@ -192,7 +352,7 @@
                  value="{% if data and data.header and data.header.tgl_diagnosa %}{{ data.header.tgl_diagnosa.strftime('%Y-%m-%dT%H:%M') }}{% elif h.tgl_pendaftaran %}{{ h.tgl_pendaftaran.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
         </div>
 
-        <div class="col-md-3">
+        <div class="col-12 col-md-6 col-lg-3">
           <label class="form-label">Dokter</label>
           <input type="text"
                  class="form-control"
@@ -202,7 +362,7 @@
           <div class="text-muted-xs mt-1">Dokter diambil otomatis dari session login.</div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-lg-6">
           <label class="form-label">Keluhan Utama</label>
           <input type="text"
                  class="form-control"
@@ -211,7 +371,7 @@
                  placeholder="Contoh: Jerawat aktif sejak 3 bulan">
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Jenis Kulit</label>
           <input type="text"
                  class="form-control"
@@ -220,7 +380,7 @@
                  placeholder="Contoh: berminyak / kering / kombinasi / sensitif">
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Lokasi Keluhan</label>
           <input type="text"
                  class="form-control"
@@ -229,7 +389,7 @@
                  placeholder="Contoh: wajah, pipi kanan-kiri, dagu">
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Durasi Keluhan</label>
           <input type="text"
                  class="form-control"
@@ -238,7 +398,7 @@
                  placeholder="Contoh: 3 bulan">
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Riwayat Alergi</label>
           <textarea class="form-control"
                     name="riwayat_alergi"
@@ -246,7 +406,7 @@
                     placeholder="Riwayat alergi obat / skincare / bahan tertentu">{% if data and data.header %}{{ data.header.riwayat_alergi or '' }}{% endif %}</textarea>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Riwayat Perawatan</label>
           <textarea class="form-control"
                     name="riwayat_perawatan"
@@ -254,7 +414,7 @@
                     placeholder="Riwayat treatment / skincare / tindakan sebelumnya">{% if data and data.header %}{{ data.header.riwayat_perawatan or '' }}{% endif %}</textarea>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Anamnesis Dokter</label>
           <textarea class="form-control"
                     name="anamnesis_dokter"
@@ -262,7 +422,7 @@
                     placeholder="Catatan anamnesis dari dokter">{% if data and data.header %}{{ data.header.anamnesis_dokter or '' }}{% endif %}</textarea>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Pemeriksaan Fisik</label>
           <textarea class="form-control"
                     name="pemeriksaan_fisik"
@@ -270,7 +430,7 @@
                     placeholder="Hasil pemeriksaan fisik / objektif">{% if data and data.header %}{{ data.header.pemeriksaan_fisik or '' }}{% endif %}</textarea>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Assessment</label>
           <textarea class="form-control"
                     name="assessment"
@@ -278,7 +438,7 @@
                     placeholder="Ringkasan assessment dokter">{% if data and data.header %}{{ data.header.assessment or '' }}{% endif %}</textarea>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Rencana Tindakan</label>
           <textarea class="form-control"
                     name="rencana_tindakan"
@@ -286,7 +446,7 @@
                     placeholder="Rencana treatment / tindakan / terapi">{% if data and data.header %}{{ data.header.rencana_tindakan or '' }}{% endif %}</textarea>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Edukasi Pasien</label>
           <textarea class="form-control"
                     name="edukasi_pasien"
@@ -294,7 +454,7 @@
                     placeholder="Edukasi / instruksi untuk pasien">{% if data and data.header %}{{ data.header.edukasi_pasien or '' }}{% endif %}</textarea>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Saran Kontrol</label>
           <textarea class="form-control"
                     name="saran_kontrol"
@@ -307,7 +467,7 @@
 
   <div class="card card-section">
     <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="d-flex justify-content-between align-items-center mb-2 section-toolbar">
         <div class="section-title mb-0">Detail Diagnosa <span class="required-star">*</span></div>
         <button type="button" class="btn btn-sm btn-primary" id="btnAddDiagnosaRow">
           + Tambah Diagnosa
@@ -319,7 +479,7 @@
       </div>
 
       <div class="table-responsive" style="min-height: 20vh;">
-        <table class="table table-bordered align-middle mb-0" id="tblDiagnosaDetail">
+        <table class="table table-bordered align-middle mb-0 table-min-diagnosa" id="tblDiagnosaDetail">
           <thead class="table-light">
             <tr>
               <th style="width: 70px;" class="text-center">Utama</th>
@@ -336,7 +496,7 @@
 
   <div class="card card-section">
     <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="d-flex justify-content-between align-items-center mb-2 section-toolbar">
         <div class="section-title mb-0">Foto Diagnosa (Opsional)</div>
         <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddPhotoRow">
           + Tambah Foto
@@ -350,16 +510,16 @@
       {% if mode == 'edit' and data and data.photos %}
         <div class="mb-3">
           <label class="form-label">Foto Existing</label>
-          <div class="row g-2">
+          <div class="row g-2 existing-photo-grid">
             {% for p in data.photos %}
-              <div class="col-md-4">
+              <div class="col-12 col-md-6 col-lg-4">
                 <div class="photo-chip">
                   <div class="mb-2">
-                    <div class="photo-preview-box">
+                    <div class="photo-preview-existing">
                       {% if p.file_path %}
                         <img src="{{ url_for('static', filename='uploads/' ~ p.file_path) }}"
                              alt="{{ p.file_name or 'Foto diagnosa' }}"
-                             onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=&quot;preview-placeholder&quot;>Preview tidak tersedia</div>';">
+                             onerror="this.style.display='none'; this.parentNode.innerHTML='&lt;div class=&quot;preview-placeholder&quot;&gt;Preview tidak tersedia&lt;/div&gt;';">
                       {% else %}
                         <div class="preview-placeholder">Preview tidak tersedia</div>
                       {% endif %}
@@ -393,7 +553,7 @@
       {% endif %}
 
       <div class="table-responsive">
-        <table class="table table-bordered align-middle mb-0" id="tblPhotoInput">
+        <table class="table table-bordered align-middle mb-0 table-min-photo" id="tblPhotoInput">
           <thead class="table-light">
             <tr>
               <th style="width: 140px;">Jenis Foto</th>
@@ -408,6 +568,22 @@
           <tbody id="photoBody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <div class="sticky-footer-actions">
+    <div class="d-flex gap-2 flex-wrap action-stack">
+      <a href="{{ url_for('diagnosa_pasien.list_page', pendaftaran_id=h.pendaftaran_id) }}"
+         class="btn btn-outline-secondary">
+        Batal
+      </a>
+      <button type="submit" class="btn btn-primary" form="formDiagnosa">
+        {% if mode == 'edit' %}Update Diagnosa{% else %}Simpan Diagnosa{% endif %}
+      </button>
+      <a href="{{ url_for('diagnosa_pasien.list_page', pendaftaran_id=h.pendaftaran_id) }}"
+         class="btn btn-outline-secondary">
+        Kembali
+      </a>
     </div>
   </div>
 
@@ -570,7 +746,7 @@
           <input type="datetime-local" class="form-control input-taken-at" value="${nowValue}">
         </td>
         <td>
-          <div class="photo-preview-box preview-box">
+          <div class="photo-preview-input preview-box">
             <div class="preview-placeholder">Belum ada preview</div>
           </div>
         </td>

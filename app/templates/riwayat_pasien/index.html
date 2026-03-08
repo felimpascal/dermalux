@@ -134,15 +134,151 @@
     color: #6c757d;
   }
 
+  .page-head {
+    gap: .75rem;
+  }
+
+  .desktop-riwayat {
+    display: block;
+  }
+
+  .mobile-riwayat {
+    display: none;
+  }
+
+  .riwayat-card-list {
+    display: grid;
+    gap: .9rem;
+  }
+
+  .riwayat-item {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    overflow: hidden;
+  }
+
+  .riwayat-item-head {
+    padding: .9rem 1rem .75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    background: #fafafa;
+  }
+
+  .riwayat-item-title {
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: .15rem;
+  }
+
+  .riwayat-item-subtitle {
+    color: #6c757d;
+    font-size: .84rem;
+  }
+
+  .riwayat-item-body {
+    padding: .95rem 1rem 1rem;
+  }
+
+  .riwayat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .8rem .9rem;
+  }
+
+  .ri-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .ri-label {
+    font-size: .76rem;
+    color: #6c757d;
+    margin-bottom: .12rem;
+  }
+
+  .ri-value {
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .ri-actions {
+    margin-top: .85rem;
+  }
+
+  .ri-collapse-card {
+    margin-top: .85rem;
+  }
+
+  .money {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   @media (max-width: 991.98px) {
     .sticky-panel {
       position: static;
       top: auto;
     }
   }
+
+  @media (max-width: 767.98px) {
+    .page-head {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+
+    .page-head .btn {
+      width: 100%;
+    }
+
+    .desktop-riwayat {
+      display: none;
+    }
+
+    .mobile-riwayat {
+      display: block;
+    }
+
+    .riwayat-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .modal-dialog {
+      margin: .6rem;
+    }
+
+    #modalPatient .modal-dialog,
+    #photoPreviewModal .modal-dialog {
+      max-width: none;
+    }
+
+    #modalPatient .modal-content,
+    #photoPreviewModal .modal-content {
+      border-radius: 1rem;
+    }
+
+    #modalPatient .modal-body,
+    #photoPreviewModal .modal-body {
+      padding: 1rem;
+    }
+
+    #modalPatient .form-control,
+    #modalPatient .btn,
+    #formSearchRiwayat .form-control,
+    #formSearchRiwayat .btn {
+      min-height: 44px;
+      font-size: .95rem;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .riwayat-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 page-head">
   <div>
     <h4 class="mb-1">Riwayat Pasien</h4>
     <div class="text-muted small">Cari pasien berdasarkan kode pasien, lalu tampilkan riwayat diagnosa, treatment, dan foto before/after.</div>
@@ -151,7 +287,7 @@
 
 <form id="formSearchRiwayat" method="GET" action="{{ url_for('riwayat_pasien.riwayat_pasien_page') }}" class="mb-3">
   <div class="row g-2 align-items-end">
-    <div class="col-lg-4 col-md-6">
+    <div class="col-12 col-lg-4 col-md-6">
       <label class="form-label">Kode Pasien</label>
       <div class="input-group">
         <input
@@ -169,12 +305,12 @@
       </div>
     </div>
 
-    <div class="col-auto">
-      <button type="submit" class="btn btn-primary">Tampilkan Riwayat</button>
+    <div class="col-12 col-md-auto">
+      <button type="submit" class="btn btn-primary w-100">Tampilkan Riwayat</button>
     </div>
 
-    <div class="col-auto">
-      <a href="{{ url_for('riwayat_pasien.riwayat_pasien_page') }}" class="btn btn-outline-secondary">
+    <div class="col-12 col-md-auto">
+      <a href="{{ url_for('riwayat_pasien.riwayat_pasien_page') }}" class="btn btn-outline-secondary w-100">
         Reset
       </a>
     </div>
@@ -257,233 +393,462 @@
 
       <div class="card-body">
         {% if patient and riwayat %}
-          <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle table-riwayat">
-              <thead class="table-light">
-                <tr>
-                  <th style="width: 56px;">#</th>
-                  <th style="min-width: 140px;">Tanggal</th>
-                  <th style="min-width: 120px;">Pendaftaran</th>
-                  <th style="min-width: 140px;">Dokter</th>
-                  <th style="min-width: 220px;">Diagnosa</th>
-                  <th style="min-width: 220px;">Treatment</th>
-                  <th style="min-width: 120px;">Before</th>
-                  <th style="min-width: 120px;">After</th>
-                  <th style="width: 90px;">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for row in riwayat %}
+
+          <!-- DESKTOP / TABLET -->
+          <div class="desktop-riwayat">
+            <div class="table-responsive">
+              <table class="table table-bordered table-hover align-middle table-riwayat">
+                <thead class="table-light">
                   <tr>
-                    <td class="text-center">{{ loop.index }}</td>
+                    <th style="width: 56px;">#</th>
+                    <th style="min-width: 140px;">Tanggal</th>
+                    <th style="min-width: 120px;">Pendaftaran</th>
+                    <th style="min-width: 140px;">Dokter</th>
+                    <th style="min-width: 220px;">Diagnosa</th>
+                    <th style="min-width: 220px;">Treatment</th>
+                    <th style="min-width: 120px;">Before</th>
+                    <th style="min-width: 120px;">After</th>
+                    <th style="width: 90px;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in riwayat %}
+                    <tr>
+                      <td class="text-center">{{ loop.index }}</td>
 
-                    <td>
-                      <div class="fw-semibold">{{ row.tgl_diagnosa or '-' }}</div>
-                    </td>
+                      <td>
+                        <div class="fw-semibold">{{ row.tgl_diagnosa or '-' }}</div>
+                      </td>
 
-                    <td>
-                      <div class="fw-semibold">#{{ row.pendaftaran_id }}</div>
-                      <div class="small text-muted">{{ row.tgl_pendaftaran or '-' }}</div>
-                    </td>
+                      <td>
+                        <div class="fw-semibold">#{{ row.pendaftaran_id }}</div>
+                        <div class="small text-muted">{{ row.tgl_pendaftaran or '-' }}</div>
+                      </td>
 
-                    <td>
-                      <div class="fw-semibold">{{ row.dokter_nama or '-' }}</div>
-                      {% if row.jenis_kulit %}
-                        <div class="small text-muted mt-1">Jenis kulit: {{ row.jenis_kulit }}</div>
-                      {% endif %}
-                    </td>
+                      <td>
+                        <div class="fw-semibold">{{ row.dokter_nama or '-' }}</div>
+                        {% if row.jenis_kulit %}
+                          <div class="small text-muted mt-1">Jenis kulit: {{ row.jenis_kulit }}</div>
+                        {% endif %}
+                      </td>
 
-                    <td>
-                      {% if row.diagnosa_detail %}
-                        {% for d in row.diagnosa_detail %}
-                          <div class="mb-1">
-                            <span class="chip {% if d.is_primary %}chip-primary{% endif %}">
-                              {{ d.diagnosa_name or '-' }}
-                              {% if d.is_primary %} - Utama{% endif %}
-                            </span>
-                          </div>
-                          {% if d.note %}
-                            <div class="small text-muted mb-2">{{ d.note }}</div>
-                          {% endif %}
-                        {% endfor %}
-                      {% else %}
-                        <span class="text-muted">-</span>
-                      {% endif %}
-                    </td>
-
-                    <td>
-                      {% if row.treatments %}
-                        {% for t in row.treatments %}
-                          <div class="mb-2">
-                            <div class="fw-semibold">
-                              {{ t.treatment_name or t.treatment_name_snapshot or '-' }}
+                      <td>
+                        {% if row.diagnosa_detail %}
+                          {% for d in row.diagnosa_detail %}
+                            <div class="mb-1">
+                              <span class="chip {% if d.is_primary %}chip-primary{% endif %}">
+                                {{ d.diagnosa_name or '-' }}
+                                {% if d.is_primary %} - Utama{% endif %}
+                              </span>
                             </div>
-                            <div class="small text-muted">
-                              Qty: {{ t.qty or 0 }} |
-                              Harga: {{ "{:,.0f}".format((t.unit_price or 0)|float).replace(",", ".") }} |
-                              Subtotal: {{ "{:,.0f}".format((t.subtotal or 0)|float).replace(",", ".") }}
+                            {% if d.note %}
+                              <div class="small text-muted mb-2">{{ d.note }}</div>
+                            {% endif %}
+                          {% endfor %}
+                        {% else %}
+                          <span class="text-muted">-</span>
+                        {% endif %}
+                      </td>
+
+                      <td>
+                        {% if row.treatments %}
+                          {% for t in row.treatments %}
+                            <div class="mb-2">
+                              <div class="fw-semibold">
+                                {{ t.treatment_name or t.treatment_name_snapshot or '-' }}
+                              </div>
+                              <div class="small text-muted">
+                                Qty: {{ t.qty or 0 }} |
+                                Harga: {{ "{:,.0f}".format((t.unit_price or 0)|float).replace(",", ".") }} |
+                                Subtotal: {{ "{:,.0f}".format((t.subtotal or 0)|float).replace(",", ".") }}
+                              </div>
+                              {% if t.notes %}
+                                <div class="small text-muted">{{ t.notes }}</div>
+                              {% endif %}
                             </div>
-                            {% if t.notes %}
-                              <div class="small text-muted">{{ t.notes }}</div>
+                          {% endfor %}
+                        {% else %}
+                          <span class="text-muted">-</span>
+                        {% endif %}
+                      </td>
+
+                      <td>
+                        {% if row.foto_before %}
+                          <div class="thumb-wrap">
+                            {% for f in row.foto_before[:3] %}
+                              <div
+                                class="thumb-item"
+                                data-bs-toggle="modal"
+                                data-bs-target="#photoPreviewModal"
+                                data-img="{{ f.file_path or '' }}"
+                                data-title="Before - {{ row.patient_code or '' }} - Diagnosa #{{ row.diagnosa_id }}"
+                                data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
+                              >
+                                <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'before' }}">
+                              </div>
+                            {% endfor %}
+                            {% if row.foto_before_count > 3 %}
+                              <div class="thumb-empty">+{{ row.foto_before_count - 3 }}</div>
                             {% endif %}
                           </div>
-                        {% endfor %}
-                      {% else %}
-                        <span class="text-muted">-</span>
-                      {% endif %}
-                    </td>
+                        {% else %}
+                          <div class="thumb-empty">Kosong</div>
+                        {% endif %}
+                      </td>
 
-                    <td>
-                      {% if row.foto_before %}
-                        <div class="thumb-wrap">
-                          {% for f in row.foto_before[:3] %}
-                            <div
-                              class="thumb-item"
-                              data-bs-toggle="modal"
-                              data-bs-target="#photoPreviewModal"
-                              data-img="{{ f.file_path or '' }}"
-                              data-title="Before - {{ row.patient_code or '' }} - Diagnosa #{{ row.diagnosa_id }}"
-                              data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
-                            >
-                              <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'before' }}">
+                      <td>
+                        {% if row.foto_after %}
+                          <div class="thumb-wrap">
+                            {% for f in row.foto_after[:3] %}
+                              <div
+                                class="thumb-item"
+                                data-bs-toggle="modal"
+                                data-bs-target="#photoPreviewModal"
+                                data-img="{{ f.file_path or '' }}"
+                                data-title="After - {{ row.patient_code or '' }} - Diagnosa #{{ row.diagnosa_id }}"
+                                data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
+                              >
+                                <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'after' }}">
+                              </div>
+                            {% endfor %}
+                            {% if row.foto_after_count > 3 %}
+                              <div class="thumb-empty">+{{ row.foto_after_count - 3 }}</div>
+                            {% endif %}
+                          </div>
+                        {% else %}
+                          <div class="thumb-empty">Kosong</div>
+                        {% endif %}
+                      </td>
+
+                      <td class="text-center">
+                        <button
+                          class="btn btn-sm btn-outline-primary"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#detail-{{ row.diagnosa_id }}"
+                          aria-expanded="false"
+                        >
+                          Detail
+                        </button>
+                      </td>
+                    </tr>
+
+                    <tr class="collapse-row">
+                      <td colspan="9" class="p-0 border-top-0">
+                        <div class="collapse" id="detail-{{ row.diagnosa_id }}">
+                          <div class="p-3">
+                            <div class="detail-box">
+                              <div class="row g-3">
+                                <div class="col-md-6">
+                                  <div class="section-title">Keluhan Utama</div>
+                                  <div class="text-preline">{{ row.keluhan_utama or '-' }}</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                  <div class="section-title">Assessment</div>
+                                  <div class="text-preline">{{ row.assessment or '-' }}</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                  <div class="section-title">Anamnesis Dokter</div>
+                                  <div class="text-preline">{{ row.anamnesis_dokter or '-' }}</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                  <div class="section-title">Pemeriksaan Fisik</div>
+                                  <div class="text-preline">{{ row.pemeriksaan_fisik or '-' }}</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                  <div class="section-title">Lokasi Keluhan</div>
+                                  <div class="text-preline">{{ row.lokasi_keluhan or '-' }}</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                  <div class="section-title">Durasi Keluhan</div>
+                                  <div class="text-preline">{{ row.durasi_keluhan or '-' }}</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                  <div class="section-title">Riwayat Alergi</div>
+                                  <div class="text-preline">{{ row.riwayat_alergi or '-' }}</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                  <div class="section-title">Riwayat Perawatan</div>
+                                  <div class="text-preline">{{ row.riwayat_perawatan or '-' }}</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                  <div class="section-title">Rencana Tindakan</div>
+                                  <div class="text-preline">{{ row.rencana_tindakan or '-' }}</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                  <div class="section-title">Edukasi Pasien</div>
+                                  <div class="text-preline">{{ row.edukasi_pasien or '-' }}</div>
+                                </div>
+
+                                <div class="col-md-12">
+                                  <div class="section-title">Saran Kontrol</div>
+                                  <div class="text-preline">{{ row.saran_kontrol or '-' }}</div>
+                                </div>
+
+                                {% if row.foto_other %}
+                                  <div class="col-md-12">
+                                    <div class="section-title">Foto Lainnya</div>
+                                    <div class="thumb-wrap">
+                                      {% for f in row.foto_other %}
+                                        <div
+                                          class="thumb-item"
+                                          data-bs-toggle="modal"
+                                          data-bs-target="#photoPreviewModal"
+                                          data-img="{{ f.file_path or '' }}"
+                                          data-title="{{ f.jenis_foto or 'Foto' }} - Diagnosa #{{ row.diagnosa_id }}"
+                                          data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
+                                        >
+                                          <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'foto' }}">
+                                        </div>
+                                      {% endfor %}
+                                    </div>
+                                  </div>
+                                {% endif %}
+                              </div>
                             </div>
-                          {% endfor %}
-                          {% if row.foto_before_count > 3 %}
-                            <div class="thumb-empty">+{{ row.foto_before_count - 3 }}</div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- MOBILE -->
+          <div class="mobile-riwayat">
+            <div class="riwayat-card-list">
+              {% for row in riwayat %}
+                <div class="riwayat-item">
+                  <div class="riwayat-item-head">
+                    <div class="riwayat-item-title">Diagnosa #{{ row.diagnosa_id }}</div>
+                    <div class="riwayat-item-subtitle">
+                      {{ row.tgl_diagnosa or '-' }} • Pendaftaran #{{ row.pendaftaran_id }}
+                    </div>
+                  </div>
+
+                  <div class="riwayat-item-body">
+                    <div class="riwayat-grid">
+                      <div class="ri-field">
+                        <div class="ri-label">Dokter</div>
+                        <div class="ri-value">{{ row.dokter_nama or '-' }}</div>
+                      </div>
+
+                      <div class="ri-field">
+                        <div class="ri-label">Jenis Kulit</div>
+                        <div class="ri-value">{{ row.jenis_kulit or '-' }}</div>
+                      </div>
+
+                      <div class="ri-field full">
+                        <div class="ri-label">Diagnosa</div>
+                        <div class="ri-value">
+                          {% if row.diagnosa_detail %}
+                            {% for d in row.diagnosa_detail %}
+                              <div class="mb-1">
+                                <span class="chip {% if d.is_primary %}chip-primary{% endif %}">
+                                  {{ d.diagnosa_name or '-' }}
+                                  {% if d.is_primary %} - Utama{% endif %}
+                                </span>
+                              </div>
+                              {% if d.note %}
+                                <div class="small text-muted mb-2">{{ d.note }}</div>
+                              {% endif %}
+                            {% endfor %}
+                          {% else %}
+                            -
                           {% endif %}
                         </div>
-                      {% else %}
-                        <div class="thumb-empty">Kosong</div>
-                      {% endif %}
-                    </td>
+                      </div>
 
-                    <td>
-                      {% if row.foto_after %}
-                        <div class="thumb-wrap">
-                          {% for f in row.foto_after[:3] %}
-                            <div
-                              class="thumb-item"
-                              data-bs-toggle="modal"
-                              data-bs-target="#photoPreviewModal"
-                              data-img="{{ f.file_path or '' }}"
-                              data-title="After - {{ row.patient_code or '' }} - Diagnosa #{{ row.diagnosa_id }}"
-                              data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
-                            >
-                              <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'after' }}">
-                            </div>
-                          {% endfor %}
-                          {% if row.foto_after_count > 3 %}
-                            <div class="thumb-empty">+{{ row.foto_after_count - 3 }}</div>
+                      <div class="ri-field full">
+                        <div class="ri-label">Treatment</div>
+                        <div class="ri-value">
+                          {% if row.treatments %}
+                            {% for t in row.treatments %}
+                              <div class="mb-2">
+                                <div class="fw-semibold">
+                                  {{ t.treatment_name or t.treatment_name_snapshot or '-' }}
+                                </div>
+                                <div class="small text-muted">
+                                  Qty: {{ t.qty or 0 }} |
+                                  Harga: <span class="money">{{ "{:,.0f}".format((t.unit_price or 0)|float).replace(",", ".") }}</span> |
+                                  Subtotal: <span class="money">{{ "{:,.0f}".format((t.subtotal or 0)|float).replace(",", ".") }}</span>
+                                </div>
+                                {% if t.notes %}
+                                  <div class="small text-muted">{{ t.notes }}</div>
+                                {% endif %}
+                              </div>
+                            {% endfor %}
+                          {% else %}
+                            -
                           {% endif %}
                         </div>
-                      {% else %}
-                        <div class="thumb-empty">Kosong</div>
-                      {% endif %}
-                    </td>
+                      </div>
 
-                    <td class="text-center">
+                      <div class="ri-field">
+                        <div class="ri-label">Foto Before</div>
+                        <div class="ri-value">
+                          {% if row.foto_before %}
+                            <div class="thumb-wrap">
+                              {% for f in row.foto_before[:3] %}
+                                <div
+                                  class="thumb-item"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#photoPreviewModal"
+                                  data-img="{{ f.file_path or '' }}"
+                                  data-title="Before - {{ row.patient_code or '' }} - Diagnosa #{{ row.diagnosa_id }}"
+                                  data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
+                                >
+                                  <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'before' }}">
+                                </div>
+                              {% endfor %}
+                              {% if row.foto_before_count > 3 %}
+                                <div class="thumb-empty">+{{ row.foto_before_count - 3 }}</div>
+                              {% endif %}
+                            </div>
+                          {% else %}
+                            <div class="thumb-empty">Kosong</div>
+                          {% endif %}
+                        </div>
+                      </div>
+
+                      <div class="ri-field">
+                        <div class="ri-label">Foto After</div>
+                        <div class="ri-value">
+                          {% if row.foto_after %}
+                            <div class="thumb-wrap">
+                              {% for f in row.foto_after[:3] %}
+                                <div
+                                  class="thumb-item"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#photoPreviewModal"
+                                  data-img="{{ f.file_path or '' }}"
+                                  data-title="After - {{ row.patient_code or '' }} - Diagnosa #{{ row.diagnosa_id }}"
+                                  data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
+                                >
+                                  <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'after' }}">
+                                </div>
+                              {% endfor %}
+                              {% if row.foto_after_count > 3 %}
+                                <div class="thumb-empty">+{{ row.foto_after_count - 3 }}</div>
+                              {% endif %}
+                            </div>
+                          {% else %}
+                            <div class="thumb-empty">Kosong</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="ri-actions">
                       <button
-                        class="btn btn-sm btn-outline-primary"
+                        class="btn btn-outline-primary w-100"
                         type="button"
                         data-bs-toggle="collapse"
-                        data-bs-target="#detail-{{ row.diagnosa_id }}"
+                        data-bs-target="#detail-mobile-{{ row.diagnosa_id }}"
                         aria-expanded="false"
                       >
                         Detail
                       </button>
-                    </td>
-                  </tr>
 
-                  <tr class="collapse-row">
-                    <td colspan="9" class="p-0 border-top-0">
-                      <div class="collapse" id="detail-{{ row.diagnosa_id }}">
-                        <div class="p-3">
-                          <div class="detail-box">
-                            <div class="row g-3">
-                              <div class="col-md-6">
-                                <div class="section-title">Keluhan Utama</div>
-                                <div class="text-preline">{{ row.keluhan_utama or '-' }}</div>
-                              </div>
-
-                              <div class="col-md-6">
-                                <div class="section-title">Assessment</div>
-                                <div class="text-preline">{{ row.assessment or '-' }}</div>
-                              </div>
-
-                              <div class="col-md-6">
-                                <div class="section-title">Anamnesis Dokter</div>
-                                <div class="text-preline">{{ row.anamnesis_dokter or '-' }}</div>
-                              </div>
-
-                              <div class="col-md-6">
-                                <div class="section-title">Pemeriksaan Fisik</div>
-                                <div class="text-preline">{{ row.pemeriksaan_fisik or '-' }}</div>
-                              </div>
-
-                              <div class="col-md-6">
-                                <div class="section-title">Lokasi Keluhan</div>
-                                <div class="text-preline">{{ row.lokasi_keluhan or '-' }}</div>
-                              </div>
-
-                              <div class="col-md-6">
-                                <div class="section-title">Durasi Keluhan</div>
-                                <div class="text-preline">{{ row.durasi_keluhan or '-' }}</div>
-                              </div>
-
-                              <div class="col-md-6">
-                                <div class="section-title">Riwayat Alergi</div>
-                                <div class="text-preline">{{ row.riwayat_alergi or '-' }}</div>
-                              </div>
-
-                              <div class="col-md-6">
-                                <div class="section-title">Riwayat Perawatan</div>
-                                <div class="text-preline">{{ row.riwayat_perawatan or '-' }}</div>
-                              </div>
-
-                              <div class="col-md-6">
-                                <div class="section-title">Rencana Tindakan</div>
-                                <div class="text-preline">{{ row.rencana_tindakan or '-' }}</div>
-                              </div>
-
-                              <div class="col-md-6">
-                                <div class="section-title">Edukasi Pasien</div>
-                                <div class="text-preline">{{ row.edukasi_pasien or '-' }}</div>
-                              </div>
-
-                              <div class="col-md-12">
-                                <div class="section-title">Saran Kontrol</div>
-                                <div class="text-preline">{{ row.saran_kontrol or '-' }}</div>
-                              </div>
-
-                              {% if row.foto_other %}
-                                <div class="col-md-12">
-                                  <div class="section-title">Foto Lainnya</div>
-                                  <div class="thumb-wrap">
-                                    {% for f in row.foto_other %}
-                                      <div
-                                        class="thumb-item"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#photoPreviewModal"
-                                        data-img="{{ f.file_path or '' }}"
-                                        data-title="{{ f.jenis_foto or 'Foto' }} - Diagnosa #{{ row.diagnosa_id }}"
-                                        data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
-                                      >
-                                        <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'foto' }}">
-                                      </div>
-                                    {% endfor %}
-                                  </div>
-                                </div>
-                              {% endif %}
+                      <div class="collapse ri-collapse-card" id="detail-mobile-{{ row.diagnosa_id }}">
+                        <div class="detail-box">
+                          <div class="row g-3">
+                            <div class="col-12">
+                              <div class="section-title">Keluhan Utama</div>
+                              <div class="text-preline">{{ row.keluhan_utama or '-' }}</div>
                             </div>
+
+                            <div class="col-12">
+                              <div class="section-title">Assessment</div>
+                              <div class="text-preline">{{ row.assessment or '-' }}</div>
+                            </div>
+
+                            <div class="col-12">
+                              <div class="section-title">Anamnesis Dokter</div>
+                              <div class="text-preline">{{ row.anamnesis_dokter or '-' }}</div>
+                            </div>
+
+                            <div class="col-12">
+                              <div class="section-title">Pemeriksaan Fisik</div>
+                              <div class="text-preline">{{ row.pemeriksaan_fisik or '-' }}</div>
+                            </div>
+
+                            <div class="col-12">
+                              <div class="section-title">Lokasi Keluhan</div>
+                              <div class="text-preline">{{ row.lokasi_keluhan or '-' }}</div>
+                            </div>
+
+                            <div class="col-12">
+                              <div class="section-title">Durasi Keluhan</div>
+                              <div class="text-preline">{{ row.durasi_keluhan or '-' }}</div>
+                            </div>
+
+                            <div class="col-12">
+                              <div class="section-title">Riwayat Alergi</div>
+                              <div class="text-preline">{{ row.riwayat_alergi or '-' }}</div>
+                            </div>
+
+                            <div class="col-12">
+                              <div class="section-title">Riwayat Perawatan</div>
+                              <div class="text-preline">{{ row.riwayat_perawatan or '-' }}</div>
+                            </div>
+
+                            <div class="col-12">
+                              <div class="section-title">Rencana Tindakan</div>
+                              <div class="text-preline">{{ row.rencana_tindakan or '-' }}</div>
+                            </div>
+
+                            <div class="col-12">
+                              <div class="section-title">Edukasi Pasien</div>
+                              <div class="text-preline">{{ row.edukasi_pasien or '-' }}</div>
+                            </div>
+
+                            <div class="col-12">
+                              <div class="section-title">Saran Kontrol</div>
+                              <div class="text-preline">{{ row.saran_kontrol or '-' }}</div>
+                            </div>
+
+                            {% if row.foto_other %}
+                              <div class="col-12">
+                                <div class="section-title">Foto Lainnya</div>
+                                <div class="thumb-wrap">
+                                  {% for f in row.foto_other %}
+                                    <div
+                                      class="thumb-item"
+                                      data-bs-toggle="modal"
+                                      data-bs-target="#photoPreviewModal"
+                                      data-img="{{ f.file_path or '' }}"
+                                      data-title="{{ f.jenis_foto or 'Foto' }} - Diagnosa #{{ row.diagnosa_id }}"
+                                      data-caption="{{ f.area_foto or '' }}{% if f.note %} | {{ f.note }}{% endif %}"
+                                    >
+                                      <img src="/static/uploads/{{ f.file_path }}" alt="{{ f.file_name or 'foto' }}">
+                                    </div>
+                                  {% endfor %}
+                                </div>
+                              </div>
+                            {% endif %}
                           </div>
                         </div>
                       </div>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+                    </div>
+
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
           </div>
+
         {% elif patient %}
           <div class="empty-state">
             <div class="fw-semibold mb-1">Belum ada riwayat diagnosa</div>
@@ -502,7 +867,7 @@
 
 <!-- MODAL CARI PASIEN -->
 <div class="modal fade" id="modalPatient" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+  <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-scrollable">
     <div class="modal-content">
 
       <div class="modal-header">
@@ -544,7 +909,7 @@
 
 <!-- MODAL PREVIEW FOTO -->
 <div class="modal fade" id="photoPreviewModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
+  <div class="modal-dialog modal-xl modal-fullscreen-sm-down modal-dialog-centered">
     <div class="modal-content border-0 shadow">
       <div class="modal-header">
         <h5 class="modal-title" id="photoPreviewTitle">Preview Foto</h5>
@@ -627,11 +992,6 @@
     try { return await res.json(); } catch(e) { return null; }
   }
 
-  // =========================
-  // FETCH PASIEN BY CODE
-  // Endpoint yang dipakai:
-  // GET /api/riwayat-pasien/patient?patient_code=...
-  // =========================
   async function fetchPatientByCode(code){
     code = (code || "").trim();
 
@@ -669,14 +1029,6 @@
     fetchPatientByCode($patientCode.value);
   });
 
-  // =========================
-  // MODAL LIVE SEARCH
-  // CATATAN:
-  // Bagian ini mengasumsikan Anda punya endpoint:
-  // GET /api/patients?q=...&limit=20
-  // dengan output:
-  // { ok: true, data: [...] }
-  // =========================
   const $q = document.getElementById("patientSearch");
   const $tbody = document.getElementById("patientResult");
   const modalEl = document.getElementById("modalPatient");
@@ -747,9 +1099,6 @@
     $tbody.innerHTML = "";
   });
 
-  // =========================
-  // SUBMIT FORM
-  // =========================
   $form.addEventListener("submit", function(e){
     const code = ($patientCode.value || "").trim();
     if(!code){
@@ -759,18 +1108,12 @@
     }
   });
 
-  // =========================
-  // INIT
-  // =========================
   if (($patientCode.value || "").trim()){
     fetchPatientByCode($patientCode.value);
   } else {
     clearPatientView("Belum dipilih");
   }
 
-  // =========================
-  // MODAL PREVIEW FOTO
-  // =========================
   const photoModal = document.getElementById('photoPreviewModal');
   if (photoModal) {
     photoModal.addEventListener('show.bs.modal', function (event) {
@@ -782,7 +1125,7 @@
       const caption = trigger.getAttribute('data-caption') || '';
 
       document.getElementById('photoPreviewTitle').textContent = title;
-      document.getElementById('photoPreviewImg').src = '/static/uploads/'+img;
+      document.getElementById('photoPreviewImg').src = '/static/uploads/' + img;
       document.getElementById('photoPreviewCaption').textContent = caption;
     });
 
