@@ -7,210 +7,234 @@
 
 <style>
 @page{
-    size:A5 landscape;
-    margin:0;
+    size: A5 landscape;
+    margin: 4mm;
 }
 
 *{
-    box-sizing:border-box;
+    box-sizing: border-box;
+}
+
+html, body{
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #000;
+    background: #e9ecef;
 }
 
 body{
-    margin:0;
-    background:#e9ecef;
-    font-family:Arial, Helvetica, sans-serif;
-    color:#000;
+    font-size: 12px;
 }
 
 .page-wrap{
-    display:flex;
-    justify-content:center;
-    padding:30px;
+    display: flex;
+    justify-content: center;
+    padding: 12px;
 }
 
 .paper{
-    width:210mm;
-    height:148mm;
-    background:white;
-    box-shadow:0 10px 25px rgba(0,0,0,.15);
-    padding:8mm;
+    width: 202mm;
+    min-height: 140mm;
+    background: #fff;
+    box-shadow: 0 10px 25px rgba(0,0,0,.15);
+    padding: 3mm;
 }
 
 .paper-frame{
-    border:2px solid black;
-    height:100%;
-    padding:8mm;
-    position:relative;
+    border: 1.5px solid #000;
+    min-height: 134mm;
+    padding: 5mm 6mm;
+    display: flex;
+    flex-direction: column;
+    gap: 4mm;
 }
 
 /* HEADER */
 .header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
 }
 
 .header-left{
-    display:flex;
-    align-items:center;
-    gap:10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
 }
 
 .logo-img{
-    height:42px;
-    width:auto;
-    display:block;
+    height: 34px;
+    width: auto;
+    display: block;
 }
 
 .clinic-name-wrap{
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    line-height:1.15;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.1;
 }
 
 .clinic-name{
-    font-size:20px;
-    font-weight:bold;
+    font-size: 18px;
+    font-weight: 700;
 }
 
 .clinic-subname{
-    font-size:11px;
-    color:#444;
+    font-size: 10px;
+    color: #444;
 }
 
 .doc-info{
-    font-size:11px;
-    text-align:right;
-    line-height:1.45;
+    font-size: 10px;
+    text-align: right;
+    line-height: 1.4;
+    white-space: nowrap;
 }
 
+/* TITLE */
 .title{
-    text-align:center;
-    margin-top:4mm;
-    margin-bottom:6mm;
+    text-align: center;
+    margin-top: 1mm;
+    margin-bottom: 1mm;
 }
 
 .title-main{
-    font-size:18px;
-    font-weight:bold;
-    letter-spacing:.5px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: .4px;
 }
 
 .title-sub{
-    font-size:12px;
+    font-size: 11px;
+    margin-top: 1px;
+}
+
+/* CONTENT AREA */
+.content-body{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: space-between;
+    gap: 6mm;
 }
 
 /* INFO */
 .info-box{
-    border:1px solid black;
-    padding:6mm;
-    margin-bottom:6mm;
+    border: 1px solid #000;
+    padding: 5mm;
 }
 
 .info-grid{
-    display:grid;
-    grid-template-columns:140px 10px 1fr;
-    row-gap:8px;
-    font-size:13px;
+    display: grid;
+    grid-template-columns: 48mm 5mm 1fr;
+    row-gap: 6px;
+    font-size: 12px;
 }
 
 .value{
-    font-weight:bold;
+    font-weight: 700;
 }
 
 .money{
-    font-variant-numeric:tabular-nums;
-    white-space:nowrap;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 /* SETORAN */
 .setoran-line{
-    display:inline-block;
-    width:220px;
-    border-bottom:1px solid black;
-    height:16px;
+    display: inline-block;
+    width: 60mm;
+    border-bottom: 1px solid #000;
+    height: 14px;
+    vertical-align: middle;
 }
 
 /* NOTE */
 .note{
-    font-size:11px;
-    margin-top:5mm;
-    border-top:1px dashed #888;
-    padding-top:4mm;
-    line-height:1.45;
+    font-size: 10px;
+    margin-top: 4mm;
+    border-top: 1px dashed #888;
+    padding-top: 3mm;
+    line-height: 1.45;
 }
 
 /* SIGNATURE */
 .signature{
-    position:absolute;
-    bottom:10mm;
-    right:10mm;
-    display:flex;
-    gap:55mm;
+    display: flex;
+    justify-content: flex-end;
+    gap: 26mm;
+    margin-top: 2mm;
 }
 
 .sign-box{
-    text-align:center;
-    font-size:12px;
+    text-align: center;
+    font-size: 11px;
 }
 
 .sign-title{
-    margin-bottom:28mm;
+    margin-bottom: 18mm;
 }
 
 .sign-line{
-    border-top:1px solid black;
-    width:55mm;
-    margin:auto;
-    padding-top:3px;
+    border-top: 1px solid #000;
+    width: 48mm;
+    margin: auto;
+    padding-top: 3px;
 }
 
 /* FOOTER */
 .footer{
-    position:absolute;
-    bottom:4mm;
-    left:8mm;
-    font-size:10px;
-    color:#555;
+    font-size: 9px;
+    color: #555;
+    margin-top: 2mm;
 }
 
 /* ACTION BUTTON */
 .actions{
-    text-align:center;
-    margin-top:15px;
+    text-align: center;
+    margin-top: 10px;
 }
 
 .btn{
-    border:1px solid black;
-    background:white;
-    padding:6px 14px;
-    border-radius:4px;
-    cursor:pointer;
-    font-size:12px;
+    border: 1px solid #000;
+    background: #fff;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
 }
 
 .btn:hover{
-    background:#f5f5f5;
+    background: #f5f5f5;
 }
 
 /* PRINT */
 @media print{
-    body{
-        background:white;
+    html, body{
+        background: #fff;
     }
 
     .page-wrap{
-        padding:0;
+        padding: 0;
     }
 
     .paper{
-        box-shadow:none;
-        margin:0;
+        width: 100%;
+        min-height: auto;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .paper-frame{
+        min-height: calc(148mm - 8mm);
     }
 
     .actions{
-        display:none;
+        display: none;
     }
 }
 </style>
@@ -249,62 +273,65 @@ body{
                 <div class="title-sub">Laporan Kasir</div>
             </div>
 
-            <!-- INFO BOX -->
-            <div class="info-box">
-                <div class="info-grid">
-                    <div>Tanggal</div>
-                    <div>:</div>
-                    <div class="value">
-                        {% if data.tanggal %}
-                            {{ data.tanggal[8:10] }}/{{ data.tanggal[5:7] }}/{{ data.tanggal[0:4] }}
-                        {% else %}
-                            -
-                        {% endif %}
+            <div class="content-body">
+
+                <!-- INFO BOX -->
+                <div class="info-box">
+                    <div class="info-grid">
+                        <div>Tanggal</div>
+                        <div>:</div>
+                        <div class="value">
+                            {% if data.tanggal %}
+                                {{ data.tanggal[8:10] }}/{{ data.tanggal[5:7] }}/{{ data.tanggal[0:4] }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </div>
+
+                        <div>Total transaksi</div>
+                        <div>:</div>
+                        <div class="value">
+                            {{ "{:,.0f}".format(data.total_transaksi or 0) }}
+                        </div>
+
+                        <div>Total penerimaan uang</div>
+                        <div>:</div>
+                        <div class="value money">
+                            Rp {{ "{:,.0f}".format(data.total_penerimaan_uang or 0) }}
+                        </div>
+
+                        <div>Total setoran kas</div>
+                        <div>:</div>
+                        <div>
+                            <span class="setoran-line"></span>
+                        </div>
                     </div>
 
-                    <div>Total transaksi</div>
-                    <div>:</div>
-                    <div class="value">
-                        {{ "{:,.0f}".format(data.total_transaksi or 0) }}
-                    </div>
-
-                    <div>Total penerimaan uang</div>
-                    <div>:</div>
-                    <div class="value money">
-                        Rp {{ "{:,.0f}".format(data.total_penerimaan_uang or 0) }}
-                    </div>
-
-                    <div>Total setoran kas</div>
-                    <div>:</div>
-                    <div>
-                        <span class="setoran-line"></span>
+                    <div class="note">
+                        Kolom <b>Total setoran kas</b> diisi manual oleh kasir setelah dilakukan
+                        pengecekan fisik uang atau setoran harian.
                     </div>
                 </div>
 
-                <div class="note">
-                    Kolom <b>Total setoran kas</b> diisi manual oleh kasir setelah dilakukan
-                    pengecekan fisik uang atau setoran harian.
+                <!-- SIGNATURE -->
+                <div class="signature">
+                    <div class="sign-box">
+                        <div class="sign-title">Mengetahui,</div>
+                        <div class="sign-line">(.................................)</div>
+                    </div>
+
+                    <div class="sign-box">
+                        <div class="sign-title">Kasir,</div>
+                        <div class="sign-line">(.................................)</div>
+                    </div>
                 </div>
+
+                <!-- FOOTER -->
+                <div class="footer">
+                    Dicetak dari Sistem Dermalux
+                </div>
+
             </div>
-
-            <!-- SIGNATURE -->
-            <div class="signature">
-                <div class="sign-box">
-                    <div class="sign-title">Mengetahui,</div>
-                    <div class="sign-line">(.................................)</div>
-                </div>
-
-                <div class="sign-box">
-                    <div class="sign-title">Kasir,</div>
-                    <div class="sign-line">(.................................)</div>
-                </div>
-            </div>
-
-            <!-- FOOTER -->
-            <div class="footer">
-                Dicetak dari Sistem Dermalux
-            </div>
-
         </div>
     </div>
 </div>
