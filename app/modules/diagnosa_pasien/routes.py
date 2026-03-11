@@ -310,7 +310,17 @@ def delete_photo_submit(foto_id: int):
 
     return redirect(url_for("main.index"))
 
+@bp.get("/print-daily")
+@require_permission("diagnosa_pasien.view")
+def pendaftaran_print_daily_page():
+    tanggal = (request.args.get("tanggal") or "").strip()
 
+    data = DiagnosaService.get_daily_sales_summary_service(tanggal)
+
+    return render_template(
+        "diagnosa_pasien/print_daily.html",
+        data=data
+    )
 # =========================================================
 # API
 # =========================================================

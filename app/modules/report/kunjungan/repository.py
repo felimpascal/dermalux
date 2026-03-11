@@ -35,7 +35,7 @@ class KunjunganReportRepository:
             INNER JOIN patient pt
                 ON pt.patient_code = p.patient_code
             WHERE
-                p.status = 'paid'
+                LOWER(p.status) = 'paid'
                 AND DATE(p.tgl_pendaftaran) BETWEEN %s AND %s
         ) x
         GROUP BY x.kategori_usia
@@ -88,9 +88,11 @@ class KunjunganReportRepository:
         INNER JOIN patient pt
             ON pt.patient_code = p.patient_code
         WHERE
-            p.status = 'paid'
+            LOWER(p.status) = 'paid'
             AND DATE(p.tgl_pendaftaran) BETWEEN %s AND %s
-        ORDER BY p.tgl_pendaftaran ASC, pt.full_name ASC
+        ORDER BY
+            p.tgl_pendaftaran ASC,
+            pt.full_name ASC
         """
 
         cur.execute(sql, (start_date, end_date))

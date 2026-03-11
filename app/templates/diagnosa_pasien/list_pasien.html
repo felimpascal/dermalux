@@ -36,6 +36,10 @@
     gap: .75rem;
   }
 
+  .page-actions {
+    gap: .5rem;
+  }
+
   .filter-box,
   .table-box {
     border: 1px solid rgba(0,0,0,.08);
@@ -151,6 +155,12 @@
       align-items: stretch !important;
     }
 
+    .page-actions {
+      display: grid !important;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+
     .filter-box {
       padding: .95rem !important;
     }
@@ -190,6 +200,12 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3 page-head">
   <h4 class="mb-0">Daftar Pasien</h4>
+
+  <div class="d-flex page-actions">
+    <button type="button" class="btn btn-outline-dark" id="btnPrintDaily">
+      Cetak Harian
+    </button>
+  </div>
 </div>
 
 <form class="row g-2 mb-3 filter-box p-3" method="GET" action="{{ url_for('diagnosa_pasien.list_pasien') }}">
@@ -309,7 +325,7 @@
 
                         <li>
                           <a class="dropdown-item"
-                            href="{{ url_for('diagnosa_pasien.list_page', pendaftaran_id=r.pendaftaran_id) }}">
+                             href="{{ url_for('diagnosa_pasien.list_page', pendaftaran_id=r.pendaftaran_id) }}">
                             Diagnosa Pasien
                           </a>
                         </li>
@@ -700,6 +716,45 @@
 
         swalLoading('Merevoke pembayaran...');
         this.submit();
+      });
+
+      $('#btnPrintDaily').on('click', async function(e){
+        e.preventDefault();
+
+        const dateInput = document.querySelector('input[name="date"]');
+        let defaultDate = dateInput?.value || '';
+
+        if(!defaultDate){
+          const today = new Date();
+          const yyyy = today.getFullYear();
+          const mm = String(today.getMonth() + 1).padStart(2, '0');
+          const dd = String(today.getDate()).padStart(2, '0');
+          defaultDate = `${yyyy}-${mm}-${dd}`;
+        }
+
+        const res = await Swal.fire({
+          title: 'Pilih tanggal cetak',
+          input: 'date',
+          inputValue: defaultDate,
+          showCancelButton: true,
+          confirmButtonText: 'Buka',
+          cancelButtonText: 'Batal',
+          reverseButtons: true,
+          preConfirm: (value) => {
+            if(!value){
+              Swal.showValidationMessage('Tanggal wajib dipilih.');
+              return false;
+            }
+            return value;
+          }
+        });
+
+        if(!res.isConfirmed) return;
+
+        const tgl = res.value;
+        const baseUrl = "{{ url_for('diagnosa_pasien.pendaftaran_print_daily_page') }}";
+        const url = `${baseUrl}?tanggal=${encodeURIComponent(tgl)}`;
+        window.open(url, '_blank');
       });
     });
   </script>

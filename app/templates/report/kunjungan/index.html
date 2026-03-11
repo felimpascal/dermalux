@@ -1,17 +1,17 @@
 {% extends "base/base.html" %}
+
 {% block content %}
 
 <div class="container-fluid">
 
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">Report Kunjungan Pasien</h4>
+    <h4 class="mb-0">Dashboard Kunjungan Pasien</h4>
   </div>
 
   <!-- FILTER -->
   <div class="card mb-3">
     <div class="card-body">
-
-      <div class="row g-2">
+      <div class="row g-2 align-items-end">
 
         <div class="col-md-3">
           <label class="form-label">Start Date</label>
@@ -23,86 +23,289 @@
           <input type="date" id="end_date" class="form-control">
         </div>
 
-        <div class="col-md-3 d-grid">
-          <label class="form-label">&nbsp;</label>
-          <button id="btnLoad" class="btn btn-primary">
-            Load Report
+        <div class="col-md-2 d-grid">
+          <button id="btnLoad" class="btn btn-primary" type="button">
+            Load Dashboard
           </button>
         </div>
 
       </div>
-
     </div>
   </div>
 
-
-  <!-- SUMMARY -->
-  <div class="card mb-4">
-    <div class="card-header">
-      Summary Kunjungan
+  <!-- KPI -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Total Kunjungan</div>
+          <div class="fs-3 fw-bold" id="kpi_total_kunjungan">0</div>
+        </div>
+      </div>
     </div>
 
-    <div class="card-body table-responsive">
+    <div class="col-md-3">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Laki-laki</div>
+          <div class="fs-3 fw-bold" id="kpi_laki_laki">0</div>
+        </div>
+      </div>
+    </div>
 
-      <table class="table table-sm table-bordered" id="tblSummary">
+    <div class="col-md-3">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Perempuan</div>
+          <div class="fs-3 fw-bold" id="kpi_perempuan">0</div>
+        </div>
+      </div>
+    </div>
 
-        <thead class="table-light">
-          <tr>
-            <th>Kategori Usia</th>
-            <th>Laki-laki</th>
-            <th>Perempuan</th>
-            <th>Tidak diketahui</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-
-        <tbody></tbody>
-
-      </table>
-
+    <div class="col-md-3">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Tidak Diketahui</div>
+          <div class="fs-3 fw-bold" id="kpi_tidak_diketahui">0</div>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- DASHBOARD -->
+  <div class="row g-3">
 
-  <!-- DETAIL -->
-  <div class="card">
+    <!-- PANEL KIRI -->
+    <div class="col-lg-5">
+      <div class="card mb-3">
+        <div class="card-header">
+          Kunjungan per Kelompok Usia
+        </div>
+        <div class="card-body">
+          <div style="height: 340px;">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+      </div>
 
-    <div class="card-header">
-      Detail Kunjungan
+      <div class="card">
+        <div class="card-header">
+          Komposisi Gender
+        </div>
+        <div class="card-body">
+          <div style="height: 300px;">
+            <canvas id="donutChart"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="card-body table-responsive">
+    <!-- PANEL KANAN -->
+    <div class="col-lg-7">
+      <div class="card h-100">
+        <div class="card-header">
+          Detail Data Grafik
+        </div>
 
-      <table class="table table-sm table-striped table-hover" id="tblDetail">
-
-        <thead class="table-light">
-          <tr>
-            <th>Tanggal</th>
-            <th>Patient Code</th>
-            <th>Nama</th>
-            <th>Gender</th>
-            <th>Usia</th>
-            <th>Kategori Usia</th>
-          </tr>
-        </thead>
-
-        <tbody></tbody>
-
-      </table>
-
+        <div class="card-body table-responsive">
+          <table class="table table-sm table-bordered table-hover align-middle mb-0" id="tblSummary">
+            <thead class="table-light">
+              <tr>
+                <th style="width:60px;">No</th>
+                <th>Kategori Usia</th>
+                <th class="text-end">Laki-laki</th>
+                <th class="text-end">Perempuan</th>
+                <th class="text-end">Tidak diketahui</th>
+                <th class="text-end">Total</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot class="table-light">
+              <tr>
+                <th colspan="2" class="text-end">TOTAL</th>
+                <th class="text-end" id="ft_laki_laki">0</th>
+                <th class="text-end" id="ft_perempuan">0</th>
+                <th class="text-end" id="ft_tidak_diketahui">0</th>
+                <th class="text-end" id="ft_total">0</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
     </div>
 
   </div>
 
 </div>
 
+{% endblock %}
 
+{% block scripts %}
 <script>
+let barChart = null
+let donutChart = null
 
-let tblDetail = null
+function formatNumber(val){
+    return Number(val || 0).toLocaleString("id-ID")
+}
 
-function loadSummary(){
+function destroyChart(chartObj){
+    if(chartObj){
+        chartObj.destroy()
+    }
+}
 
+function setKpi(totals){
+    $("#kpi_total_kunjungan").text(formatNumber(totals.total_kunjungan || 0))
+    $("#kpi_laki_laki").text(formatNumber(totals.total_laki_laki || 0))
+    $("#kpi_perempuan").text(formatNumber(totals.total_perempuan || 0))
+    $("#kpi_tidak_diketahui").text(formatNumber(totals.total_tidak_diketahui || 0))
+}
+
+function renderTable(rows, totals){
+    let html = ""
+
+    if(!rows || rows.length === 0){
+        html = `
+        <tr>
+            <td colspan="6" class="text-center text-muted">Tidak ada data</td>
+        </tr>
+        `
+    } else {
+        rows.forEach((r, i) => {
+            html += `
+            <tr>
+                <td>${i + 1}</td>
+                <td>${r.kategori_usia || ""}</td>
+                <td class="text-end">${formatNumber(r.laki_laki)}</td>
+                <td class="text-end">${formatNumber(r.perempuan)}</td>
+                <td class="text-end">${formatNumber(r.tidak_diketahui)}</td>
+                <td class="text-end fw-bold">${formatNumber(r.total)}</td>
+            </tr>
+            `
+        })
+    }
+
+    $("#tblSummary tbody").html(html)
+    $("#ft_laki_laki").text(formatNumber(totals.total_laki_laki || 0))
+    $("#ft_perempuan").text(formatNumber(totals.total_perempuan || 0))
+    $("#ft_tidak_diketahui").text(formatNumber(totals.total_tidak_diketahui || 0))
+    $("#ft_total").text(formatNumber(totals.total_kunjungan || 0))
+}
+
+function renderBarChart(rows){
+    const labels = rows.map(r => r.kategori_usia || "-")
+    const dataLaki = rows.map(r => Number(r.laki_laki || 0))
+    const dataPerempuan = rows.map(r => Number(r.perempuan || 0))
+    const dataTidakDiketahui = rows.map(r => Number(r.tidak_diketahui || 0))
+
+    destroyChart(barChart)
+
+    const ctx = document.getElementById("barChart").getContext("2d")
+    barChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Laki-laki",
+                    data: dataLaki,
+                    borderWidth: 1
+                },
+                {
+                    label: "Perempuan",
+                    data: dataPerempuan,
+                    borderWidth: 1
+                },
+                {
+                    label: "Tidak diketahui",
+                    data: dataTidakDiketahui,
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: "index",
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: "bottom"
+                },
+                tooltip: {
+                    callbacks: {
+                        footer: function(items){
+                            let total = items.reduce((sum, item) => sum + Number(item.raw || 0), 0)
+                            return "Total: " + formatNumber(total)
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    })
+}
+
+function renderDonutChart(totals){
+    destroyChart(donutChart)
+
+    const ctx = document.getElementById("donutChart").getContext("2d")
+    donutChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Laki-laki", "Perempuan", "Tidak diketahui"],
+            datasets: [{
+                data: [
+                    Number(totals.total_laki_laki || 0),
+                    Number(totals.total_perempuan || 0),
+                    Number(totals.total_tidak_diketahui || 0)
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context){
+                            let label = context.label || ""
+                            let value = Number(context.raw || 0)
+                            let total = [
+                                Number(totals.total_laki_laki || 0),
+                                Number(totals.total_perempuan || 0),
+                                Number(totals.total_tidak_diketahui || 0)
+                            ].reduce((a, b) => a + b, 0)
+
+                            let pct = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0"
+                            return `${label}: ${formatNumber(value)} (${pct}%)`
+                        }
+                    }
+                }
+            }
+        }
+    })
+}
+
+function loadDashboard(){
     let start = $("#start_date").val()
     let end = $("#end_date").val()
 
@@ -111,93 +314,49 @@ function loadSummary(){
         return
     }
 
-    $.get("/api/reports/kunjungan",{
-        start_date:start,
-        end_date:end
-    },function(res){
+    $.get("/api/reports/kunjungan", {
+        start_date: start,
+        end_date: end
+    }, function(res){
 
         if(!res.ok){
-            alert(res.error)
+            alert(res.error || "Gagal load dashboard")
             return
         }
 
-        let rows = res.data.rows
+        const rows = res.data.rows || []
+        const totals = res.data.totals || {}
 
-        let html = ""
+        setKpi(totals)
+        renderTable(rows, totals)
+        renderBarChart(rows)
+        renderDonutChart(totals)
 
-        rows.forEach(r=>{
-
-            html += `
-            <tr>
-                <td>${r.kategori_usia}</td>
-                <td>${r.laki_laki}</td>
-                <td>${r.perempuan}</td>
-                <td>${r.tidak_diketahui}</td>
-                <td><b>${r.total}</b></td>
-            </tr>
-            `
-
-        })
-
-        $("#tblSummary tbody").html(html)
-
+    }).fail(function(xhr){
+        let msg = xhr.responseJSON?.error || xhr.responseJSON?.message || "Terjadi kesalahan saat mengambil data dashboard"
+        alert(msg)
     })
-
 }
 
+$(function(){
+    let today = new Date()
+    let firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
 
-function loadDetail(){
-
-    let start = $("#start_date").val()
-    let end = $("#end_date").val()
-
-    if(tblDetail){
-        tblDetail.destroy()
+    let fmt = (d) => {
+        let y = d.getFullYear()
+        let m = String(d.getMonth() + 1).padStart(2, "0")
+        let day = String(d.getDate()).padStart(2, "0")
+        return `${y}-${m}-${day}`
     }
 
-    tblDetail = $("#tblDetail").DataTable({
+    $("#start_date").val(fmt(firstDay))
+    $("#end_date").val(fmt(today))
 
-        ajax:{
-            url:"/api/reports/kunjungan/detail",
-            data:{
-                start_date:start,
-                end_date:end
-            },
-            dataSrc:function(res){
-                if(!res.ok){
-                    alert(res.error)
-                    return []
-                }
-                return res.data.rows
-            }
-        },
-
-        columns:[
-
-            {data:"tanggal_kunjungan"},
-            {data:"patient_code"},
-            {data:"full_name"},
-            {data:"gender"},
-            {data:"usia"},
-            {data:"kategori_usia"}
-
-        ],
-
-        pageLength:25,
-        responsive:true
-
+    $("#btnLoad").on("click", function(){
+        loadDashboard()
     })
 
-}
-
-
-$("#btnLoad").click(function(){
-
-    loadSummary()
-    loadDetail()
-
+    loadDashboard()
 })
-
 </script>
-
 {% endblock %}

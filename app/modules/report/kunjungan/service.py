@@ -12,6 +12,7 @@ class KunjunganReportService:
     @staticmethod
     def _validate_date(date_str: str, field_name: str) -> str:
         value = KunjunganReportService._norm_str(date_str)
+
         if not value:
             raise AppError(f"{field_name} wajib diisi.", 400)
 
@@ -41,9 +42,23 @@ class KunjunganReportService:
             end_date=e
         )
 
+        totals = {
+            "total_kunjungan": 0,
+            "total_laki_laki": 0,
+            "total_perempuan": 0,
+            "total_tidak_diketahui": 0
+        }
+
+        for row in rows:
+            totals["total_kunjungan"] += int(row.get("total") or 0)
+            totals["total_laki_laki"] += int(row.get("laki_laki") or 0)
+            totals["total_perempuan"] += int(row.get("perempuan") or 0)
+            totals["total_tidak_diketahui"] += int(row.get("tidak_diketahui") or 0)
+
         return {
             "start_date": s,
             "end_date": e,
+            "totals": totals,
             "rows": rows
         }
 

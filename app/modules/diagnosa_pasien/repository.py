@@ -838,3 +838,22 @@ class DiagnosaRepository:
         except Exception:
             db.rollback()
             raise
+    
+    @staticmethod
+    def get_daily_sales_summary_repo(tanggal: str):
+        db = get_db()
+        cur = db.cursor(dictionary=True)
+
+        sql = """
+        SELECT
+            COUNT(*) AS total_transaksi,
+            COALESCE(SUM(paidAmount), 0) AS total_penerimaan_uang
+        FROM pendaftaran
+        WHERE LOWER(status) = 'paid'
+        AND DATE(tgl_pendaftaran) = %s
+        """
+        cur.execute(sql, (tanggal,))
+        row = cur.fetchone() or {}
+
+        cur.close()
+        return row

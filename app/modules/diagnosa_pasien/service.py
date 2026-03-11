@@ -783,3 +783,24 @@ class DiagnosaService:
                 pass
 
         raise AppError("Format tanggal/waktu tidak valid.", 400)
+
+
+
+    def get_daily_sales_summary_service(tanggal: str):
+        tanggal = (tanggal or "").strip()
+
+        if not tanggal:
+            raise AppError("Tanggal wajib diisi.", 400)
+
+        try:
+            datetime.strptime(tanggal, "%Y-%m-%d")
+        except ValueError:
+            raise AppError("Tanggal harus berformat YYYY-MM-DD.", 400)
+
+        row = DiagnosaRepository.get_daily_sales_summary_repo(tanggal)
+
+        return {
+            "tanggal": tanggal,
+            "total_transaksi": row.get("total_transaksi", 0),
+            "total_penerimaan_uang": row.get("total_penerimaan_uang", 0)
+        }

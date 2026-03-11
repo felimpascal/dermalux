@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Penerimaan Penjualan Harian</title>
+<link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+<style>
+
+@page{
+    size: A5 landscape;
+    margin:0;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+html,body{
+    margin:0;
+    padding:0;
+    background:#e9ecef;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+/* container tengah */
+.page-wrap{
+    display:flex;
+    justify-content:center;
+    padding:30px;
+}
+
+/* kertas */
+.paper{
+    width:210mm;
+    height:148mm;
+    background:white;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+    padding:8mm;
+}
+
+/* frame */
+.paper-frame{
+    border:2px solid black;
+    height:100%;
+    padding:8mm;
+    position:relative;
+}
+
+/* header */
+
+.header{
+    text-align:center;
+    margin-bottom:8mm;
+}
+
+.title{
+    font-size:18px;
+    font-weight:bold;
+    letter-spacing:.5px;
+}
+
+.subtitle{
+    font-size:12px;
+    margin-top:2px;
+}
+
+/* info */
+
+.info-grid{
+    display:grid;
+    grid-template-columns:150px 10px 1fr;
+    row-gap:10px;
+    font-size:13px;
+}
+
+.value{
+    font-weight:bold;
+}
+
+.money{
+    font-variant-numeric:tabular-nums;
+}
+
+/* garis setoran */
+
+.setoran-line{
+    display:inline-block;
+    width:220px;
+    border-bottom:1px solid black;
+    height:16px;
+}
+
+/* garis pemisah */
+
+.hr{
+    border-top:1px dashed #777;
+    margin:14px 0;
+}
+
+/* note */
+
+.note{
+    font-size:11px;
+    color:#444;
+}
+
+/* tanda tangan */
+
+.signature{
+    position:absolute;
+    bottom:12mm;
+    right:10mm;
+    display:flex;
+    gap:60mm;
+}
+
+.sign-box{
+    text-align:center;
+    font-size:12px;
+}
+
+.sign-title{
+    margin-bottom:28mm;
+}
+
+.sign-line{
+    border-top:1px solid black;
+    width:55mm;
+    margin:auto;
+    padding-top:4px;
+}
+
+/* tombol */
+
+.actions{
+    text-align:center;
+    margin-top:15px;
+}
+
+.btn{
+    border:1px solid black;
+    background:white;
+    padding:6px 14px;
+    border-radius:4px;
+    cursor:pointer;
+}
+
+/* PRINT MODE */
+
+@media print{
+
+    body{
+        background:white;
+    }
+
+    .page-wrap{
+        padding:0;
+    }
+
+    .paper{
+        box-shadow:none;
+        margin:0;
+    }
+
+    .actions{
+        display:none;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="page-wrap">
+
+<div class="paper">
+
+<div class="paper-frame">
+
+<div class="header">
+<div class="title">PENERIMAAN PENJUALAN HARIAN</div>
+<div class="subtitle">Dermalux</div>
+</div>
+
+<div class="info-grid">
+
+<div>Tanggal</div>
+<div>:</div>
+<div class="value">
+{% if data.tanggal %}
+{{ data.tanggal[8:10] }}/{{ data.tanggal[5:7] }}/{{ data.tanggal[0:4] }}
+{% else %}
+-
+{% endif %}
+</div>
+
+<div>Total transaksi</div>
+<div>:</div>
+<div class="value">{{ "{:,.0f}".format(data.total_transaksi or 0) }}</div>
+
+<div>Total penerimaan uang</div>
+<div>:</div>
+<div class="value money">Rp {{ "{:,.0f}".format(data.total_penerimaan_uang or 0) }}</div>
+
+<div>Total setoran</div>
+<div>:</div>
+<div><span class="setoran-line"></span></div>
+
+</div>
+
+<div class="hr"></div>
+
+<div class="note">
+Kolom <b>Total setoran</b> diisi manual oleh kasir setelah dilakukan pengecekan fisik uang/setoran harian.
+</div>
+
+
+<div class="signature">
+
+<div class="sign-box">
+<div class="sign-title">Mengetahui,</div>
+<div class="sign-line">(.................................)</div>
+</div>
+
+<div class="sign-box">
+<div class="sign-title">Kasir,</div>
+<div class="sign-line">(.................................)</div>
+</div>
+
+</div>
+
+</div>
+</div>
+</div>
+
+<div class="actions">
+<button class="btn" onclick="window.print()">Print</button>
+</div>
+
+</body>
+</html>

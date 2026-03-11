@@ -15,9 +15,7 @@ def kunjungan_page():
 
 # =========================
 # API (JSON)
-# prefix blueprint Anda misalnya: /api/reports/kunjungan
 # =========================
-
 @bp.get("")
 @require_permission("REPORT.VIEW")
 def get_kunjungan_summary():
@@ -28,7 +26,11 @@ def get_kunjungan_summary():
         start_date=start_date,
         end_date=end_date
     )
-    return jsonify({"ok": True, "data": data})
+
+    return jsonify({
+        "ok": True,
+        "data": data
+    })
 
 
 @bp.get("/detail")
@@ -41,4 +43,8 @@ def get_kunjungan_detail():
         start_date=start_date,
         end_date=end_date
     )
-    return jsonify({"ok": True, "data": data})
+
+    return jsonify({
+        "ok": True,
+        "data": data
+    })
