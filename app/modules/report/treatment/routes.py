@@ -1,44 +1,47 @@
 from flask import request, jsonify, render_template
 from . import bp
-from .service import KunjunganReportService
+from .service import TreatmentReportService
 from app.common.permission import require_permission
 
 
 # =========================
-# PAGE (HTML)
+# PAGE
 # =========================
-@bp.get("/reports/kunjungan")
+@bp.get("/reports/treatment")
 @require_permission("REPORT.VIEW")
-def kunjungan_page():
-    return render_template("report/kunjungan/index.html")
+def treatment_page():
+    return render_template("report/treatment/index.html")
 
 
 # =========================
-# API (JSON)
-# prefix blueprint Anda misalnya: /api/reports/kunjungan
+# API
 # =========================
 
 @bp.get("")
 @require_permission("REPORT.VIEW")
-def get_kunjungan_summary():
+def get_treatment_summary():
+
     start_date = (request.args.get("start_date") or "").strip()
     end_date = (request.args.get("end_date") or "").strip()
 
-    data = KunjunganReportService.get_summary(
+    data = TreatmentReportService.get_summary(
         start_date=start_date,
         end_date=end_date
     )
+
     return jsonify({"ok": True, "data": data})
 
 
 @bp.get("/detail")
 @require_permission("REPORT.VIEW")
-def get_kunjungan_detail():
+def get_treatment_detail():
+
     start_date = (request.args.get("start_date") or "").strip()
     end_date = (request.args.get("end_date") or "").strip()
 
-    data = KunjunganReportService.get_detail(
+    data = TreatmentReportService.get_detail(
         start_date=start_date,
         end_date=end_date
     )
+
     return jsonify({"ok": True, "data": data})
