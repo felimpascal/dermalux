@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <title>Penerimaan Penjualan Harian</title>
 <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
-<style>
 
+<style>
 @page{
-    size: A5 landscape;
+    size:A5 landscape;
     margin:0;
 }
 
@@ -15,30 +15,27 @@
     box-sizing:border-box;
 }
 
-html,body{
+body{
     margin:0;
-    padding:0;
     background:#e9ecef;
     font-family:Arial, Helvetica, sans-serif;
+    color:#000;
 }
 
-/* container tengah */
 .page-wrap{
     display:flex;
     justify-content:center;
     padding:30px;
 }
 
-/* kertas */
 .paper{
     width:210mm;
     height:148mm;
     background:white;
-    box-shadow:0 10px 30px rgba(0,0,0,.2);
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
     padding:8mm;
 }
 
-/* frame */
 .paper-frame{
     border:2px solid black;
     height:100%;
@@ -46,30 +43,75 @@ html,body{
     position:relative;
 }
 
-/* header */
-
+/* HEADER */
 .header{
-    text-align:center;
-    margin-bottom:8mm;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+}
+
+.header-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.logo-img{
+    height:42px;
+    width:auto;
+    display:block;
+}
+
+.clinic-name-wrap{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    line-height:1.15;
+}
+
+.clinic-name{
+    font-size:20px;
+    font-weight:bold;
+}
+
+.clinic-subname{
+    font-size:11px;
+    color:#444;
+}
+
+.doc-info{
+    font-size:11px;
+    text-align:right;
+    line-height:1.45;
 }
 
 .title{
+    text-align:center;
+    margin-top:4mm;
+    margin-bottom:6mm;
+}
+
+.title-main{
     font-size:18px;
     font-weight:bold;
     letter-spacing:.5px;
 }
 
-.subtitle{
+.title-sub{
     font-size:12px;
-    margin-top:2px;
 }
 
-/* info */
+/* INFO */
+.info-box{
+    border:1px solid black;
+    padding:6mm;
+    margin-bottom:6mm;
+}
 
 .info-grid{
     display:grid;
-    grid-template-columns:150px 10px 1fr;
-    row-gap:10px;
+    grid-template-columns:140px 10px 1fr;
+    row-gap:8px;
     font-size:13px;
 }
 
@@ -79,10 +121,10 @@ html,body{
 
 .money{
     font-variant-numeric:tabular-nums;
+    white-space:nowrap;
 }
 
-/* garis setoran */
-
+/* SETORAN */
 .setoran-line{
     display:inline-block;
     width:220px;
@@ -90,28 +132,22 @@ html,body{
     height:16px;
 }
 
-/* garis pemisah */
-
-.hr{
-    border-top:1px dashed #777;
-    margin:14px 0;
-}
-
-/* note */
-
+/* NOTE */
 .note{
     font-size:11px;
-    color:#444;
+    margin-top:5mm;
+    border-top:1px dashed #888;
+    padding-top:4mm;
+    line-height:1.45;
 }
 
-/* tanda tangan */
-
+/* SIGNATURE */
 .signature{
     position:absolute;
-    bottom:12mm;
+    bottom:10mm;
     right:10mm;
     display:flex;
-    gap:60mm;
+    gap:55mm;
 }
 
 .sign-box{
@@ -127,11 +163,19 @@ html,body{
     border-top:1px solid black;
     width:55mm;
     margin:auto;
-    padding-top:4px;
+    padding-top:3px;
 }
 
-/* tombol */
+/* FOOTER */
+.footer{
+    position:absolute;
+    bottom:4mm;
+    left:8mm;
+    font-size:10px;
+    color:#555;
+}
 
+/* ACTION BUTTON */
 .actions{
     text-align:center;
     margin-top:15px;
@@ -143,12 +187,15 @@ html,body{
     padding:6px 14px;
     border-radius:4px;
     cursor:pointer;
+    font-size:12px;
 }
 
-/* PRINT MODE */
+.btn:hover{
+    background:#f5f5f5;
+}
 
+/* PRINT */
 @media print{
-
     body{
         background:white;
     }
@@ -165,78 +212,105 @@ html,body{
     .actions{
         display:none;
     }
-
 }
-
 </style>
 </head>
 
 <body>
 
 <div class="page-wrap">
+    <div class="paper">
+        <div class="paper-frame">
 
-<div class="paper">
+            <!-- HEADER -->
+            <div class="header">
+                <div class="header-left">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo Dermalux" class="logo-img">
+                    <div class="clinic-name-wrap">
+                        <div class="clinic-name">Dermalux</div>
+                        <div class="clinic-subname">Skin &amp; Aesthetic Center</div>
+                    </div>
+                </div>
 
-<div class="paper-frame">
+                <div class="doc-info">
+                    Doc : DLX-KAS-HARIAN<br>
+                    Tanggal cetak :
+                    {% if data.tanggal %}
+                        {{ data.tanggal[8:10] }}/{{ data.tanggal[5:7] }}/{{ data.tanggal[0:4] }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
 
-<div class="header">
-<div class="title">PENERIMAAN PENJUALAN HARIAN</div>
-<div class="subtitle">Dermalux</div>
-</div>
+            <!-- TITLE -->
+            <div class="title">
+                <div class="title-main">PENERIMAAN PENJUALAN HARIAN</div>
+                <div class="title-sub">Laporan Kasir</div>
+            </div>
 
-<div class="info-grid">
+            <!-- INFO BOX -->
+            <div class="info-box">
+                <div class="info-grid">
+                    <div>Tanggal</div>
+                    <div>:</div>
+                    <div class="value">
+                        {% if data.tanggal %}
+                            {{ data.tanggal[8:10] }}/{{ data.tanggal[5:7] }}/{{ data.tanggal[0:4] }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
 
-<div>Tanggal</div>
-<div>:</div>
-<div class="value">
-{% if data.tanggal %}
-{{ data.tanggal[8:10] }}/{{ data.tanggal[5:7] }}/{{ data.tanggal[0:4] }}
-{% else %}
--
-{% endif %}
-</div>
+                    <div>Total transaksi</div>
+                    <div>:</div>
+                    <div class="value">
+                        {{ "{:,.0f}".format(data.total_transaksi or 0) }}
+                    </div>
 
-<div>Total transaksi</div>
-<div>:</div>
-<div class="value">{{ "{:,.0f}".format(data.total_transaksi or 0) }}</div>
+                    <div>Total penerimaan uang</div>
+                    <div>:</div>
+                    <div class="value money">
+                        Rp {{ "{:,.0f}".format(data.total_penerimaan_uang or 0) }}
+                    </div>
 
-<div>Total penerimaan uang</div>
-<div>:</div>
-<div class="value money">Rp {{ "{:,.0f}".format(data.total_penerimaan_uang or 0) }}</div>
+                    <div>Total setoran kas</div>
+                    <div>:</div>
+                    <div>
+                        <span class="setoran-line"></span>
+                    </div>
+                </div>
 
-<div>Total setoran</div>
-<div>:</div>
-<div><span class="setoran-line"></span></div>
+                <div class="note">
+                    Kolom <b>Total setoran kas</b> diisi manual oleh kasir setelah dilakukan
+                    pengecekan fisik uang atau setoran harian.
+                </div>
+            </div>
 
-</div>
+            <!-- SIGNATURE -->
+            <div class="signature">
+                <div class="sign-box">
+                    <div class="sign-title">Mengetahui,</div>
+                    <div class="sign-line">(.................................)</div>
+                </div>
 
-<div class="hr"></div>
+                <div class="sign-box">
+                    <div class="sign-title">Kasir,</div>
+                    <div class="sign-line">(.................................)</div>
+                </div>
+            </div>
 
-<div class="note">
-Kolom <b>Total setoran</b> diisi manual oleh kasir setelah dilakukan pengecekan fisik uang/setoran harian.
-</div>
+            <!-- FOOTER -->
+            <div class="footer">
+                Dicetak dari Sistem Dermalux
+            </div>
 
-
-<div class="signature">
-
-<div class="sign-box">
-<div class="sign-title">Mengetahui,</div>
-<div class="sign-line">(.................................)</div>
-</div>
-
-<div class="sign-box">
-<div class="sign-title">Kasir,</div>
-<div class="sign-line">(.................................)</div>
-</div>
-
-</div>
-
-</div>
-</div>
+        </div>
+    </div>
 </div>
 
 <div class="actions">
-<button class="btn" onclick="window.print()">Print</button>
+    <button class="btn" onclick="window.print()">Print</button>
 </div>
 
 </body>
