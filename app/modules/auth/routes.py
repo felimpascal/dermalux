@@ -23,6 +23,7 @@ def login():
         session.clear()
         session["user_id"] = "superadmin"
         session["userCode"] = "superadmin"
+        session["nama"] = "superadmin"
         session["role"] = "superadmin"
         return redirect(url_for("main.index"))
 

@@ -430,7 +430,7 @@ class PendaftaranService:
                 400
             )
 
-        if status not in {"draft", "confirmed", "canceled"}:
+        if status not in {"draft", "canceled"}:
             raise AppError("Status pendaftaran tidak valid untuk dihapus.", 400)
 
         PendaftaranRepository.delete_header(pendaftaran_id)
