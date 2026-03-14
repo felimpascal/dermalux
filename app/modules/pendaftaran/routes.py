@@ -146,6 +146,29 @@ def pendaftaran_treatment_page(pendaftaran_id: int):
 # API
 # =========================
 
+@pendaftaran_bp.route("/pendaftaran/<int:pendaftaran_id>/delete", methods=["POST"])
+@require_permission("Pendaftaran.Upsert")
+def pendaftaran_delete_post(pendaftaran_id: int):
+    try:
+        PendaftaranService.delete_header(pendaftaran_id)
+        flash("Pendaftaran berhasil dihapus.", "success")
+    except AppError as e:
+        flash(e.message, "danger")
+
+    q = (request.args.get("q") or "").strip()
+    status = (request.args.get("status") or "").strip()
+    date_str = (request.args.get("date") or "").strip()
+
+    if q or status or date_str:
+        return redirect(url_for(
+            "pendaftaran.pendaftaran_list_page",
+            q=q,
+            status=status,
+            date=date_str
+        ))
+
+    return redirect(url_for("pendaftaran.pendaftaran_list_page"))
+
 @pendaftaran_bp.route("/api/pendaftaran", methods=["GET"])
 @require_permission("Pendaftaran.View")
 def api_pendaftaran_list():

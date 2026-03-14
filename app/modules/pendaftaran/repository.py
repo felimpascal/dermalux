@@ -593,3 +593,45 @@ class PendaftaranRepository:
         details = cur.fetchall() or []
 
         return {"header": header, "details": details}
+    
+    @staticmethod
+    def delete_header(pendaftaran_id: int):
+        db = get_db()
+        cur = db.cursor()
+
+        try:
+            # 1) hapus receipt link jika ada
+            cur.execute(
+                """
+                DELETE FROM pendaftaran_receipt_link
+                WHERE pendaftaran_id = %s
+                """,
+                (pendaftaran_id,)
+            )
+
+            # 2) hapus detail treatment
+            cur.execute(
+                """
+                DELETE FROM pendaftaran_treatment
+                WHERE pendaftaran_id = %s
+                """,
+                (pendaftaran_id,)
+            )
+
+            # 3) hapus header
+            cur.execute(
+                """
+                DELETE FROM pendaftaran
+                WHERE pendaftaran_id = %s
+                """,
+                (pendaftaran_id,)
+            )
+
+            if cur.rowcount == 0:
+                raise ValueError("Pendaftaran tidak ditemukan.")
+
+            db.commit()
+
+        except Exception:
+            db.rollback()
+            raise
