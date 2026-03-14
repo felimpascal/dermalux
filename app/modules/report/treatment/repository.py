@@ -28,8 +28,8 @@ class TreatmentReportRepository:
             pt.tariff_code,
             pt.treatment_name_snapshot
         ORDER BY
-            total_qty DESC,
-            total_revenue DESC
+            total_revenue DESC ,
+            total_qty DESC
         """
 
         cur.execute(sql, (start_date, end_date))
