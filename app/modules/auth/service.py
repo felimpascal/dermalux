@@ -24,7 +24,8 @@ class AuthService:
 
         return {
             "id": int(user["id"]),
-            "username": user["nama"],
+            "username": user["username"],
+            "nama": user["nama"],
             "role": user.get("role") or "user",
         }
 
@@ -34,6 +35,7 @@ class AuthService:
         pass_lama = (pass_lama or "").strip()
         pass_baru = (pass_baru or "").strip()
         pass_konfirmasi = (pass_konfirmasi or "").strip()
+        print (user_id)
 
         if not username:
             raise AppError("Session user tidak valid. Silakan login ulang.", 401)

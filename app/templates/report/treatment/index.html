@@ -383,7 +383,7 @@ function renderBarChart(rows){
     let top10 = [...rows].slice(0, 10)
 
     let labels = top10.map(r => r.treatment_name_snapshot || r.tariff_code || "-")
-    let values = top10.map(r => Number(r.total_qty || 0))
+    let values = top10.map(r => Number(r.total_revenue || 0))
 
     destroyChart(barChart)
 

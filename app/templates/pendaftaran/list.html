@@ -432,6 +432,20 @@
                             </a>
                           </li>
                         {% endif %}
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                          <form method="POST"
+                                class="form-delete"
+                                data-title="Hapus pendaftaran?"
+                                data-text="Data pendaftaran beserta treatment terkait akan dihapus permanen."
+                                action="{{ url_for('pendaftaran.pendaftaran_delete_post', pendaftaran_id=r.pendaftaran_id) }}">
+                            <button type="submit" class="dropdown-item text-danger">
+                              Hapus
+                            </button>
+                          </form>
+                        </li>
                       </ul>
                     </div>
                   </td>
@@ -582,6 +596,20 @@
                       </a>
                     </li>
                   {% endif %}
+
+                  <li><hr class="dropdown-divider"></li>
+
+                  <li>
+                    <form method="POST"
+                          class="form-delete"
+                          data-title="Hapus pendaftaran?"
+                          data-text="Data pendaftaran beserta treatment terkait akan dihapus permanen."
+                          action="{{ url_for('pendaftaran.pendaftaran_delete_post', pendaftaran_id=r.pendaftaran_id) }}">
+                      <button type="submit" class="dropdown-item text-danger">
+                        Hapus
+                      </button>
+                    </form>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -895,6 +923,27 @@
 
         $form.find('input[name="paid_amount"]').val(res.value);
         swalLoading('Menyimpan pembayaran...');
+        this.submit();
+      });
+
+      $(document).on('submit', 'form.form-delete', async function(e){
+        e.preventDefault();
+
+        const $form = $(this);
+        const title = $form.data('title') || 'Hapus pendaftaran?';
+        const text  = $form.data('text')  || 'Data akan dihapus permanen.';
+
+        const ok = await swalConfirm({
+          title,
+          text,
+          icon: 'warning',
+          confirmText: 'Ya, Hapus',
+          cancelText: 'Batal'
+        });
+
+        if(!ok) return;
+
+        swalLoading('Menghapus data...');
         this.submit();
       });
 

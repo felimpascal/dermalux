@@ -23,6 +23,7 @@ def login():
         session.clear()
         session["user_id"] = "superadmin"
         session["userCode"] = "superadmin"
+        session["nama"] = "superadmin"
         session["role"] = "superadmin"
         return redirect(url_for("main.index"))
 
@@ -32,6 +33,7 @@ def login():
         session.clear()
         session["user_id"] = user["id"]
         session["userCode"] = user["username"]
+        session["nama"] = user["nama"]
         session["role"] = user["role"]
 
         return redirect(url_for("main.index"))
@@ -59,7 +61,7 @@ def ganti_password_submit():
     pass_lama = request.form.get("txtPasswordLama", "") or ""
     pass_baru = request.form.get("txtPasswordBaru", "") or ""
     pass_konfirmasi = request.form.get("txtPasswordKonfirmasi", "") or ""
-
+    print(session)
     try:
         AuthService.change_password(
             user_id=int(session["user_id"]),

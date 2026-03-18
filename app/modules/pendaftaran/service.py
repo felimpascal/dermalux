@@ -417,3 +417,20 @@ class PendaftaranService:
 
         token = PendaftaranRepository.get_or_create_receipt_token(pendaftaran_id)
         return token
+    
+    @staticmethod
+    def delete_header(pendaftaran_id: int):
+        header = PendaftaranService._ensure_header_exists(pendaftaran_id)
+
+        status = (header.get("status") or "").strip().lower()
+
+        if status == "paid":
+            raise AppError(
+                "Pendaftaran berstatus paid tidak boleh dihapus. Lakukan unset paid terlebih dahulu.",
+                400
+            )
+
+        if status not in {"draft", "canceled"}:
+            raise AppError("Status pendaftaran tidak valid untuk dihapus.", 400)
+
+        PendaftaranRepository.delete_header(pendaftaran_id)

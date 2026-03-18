@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
-
+from app.common.errors import AppError
 import secrets
 from app.db import get_db
 
@@ -593,3 +593,82 @@ class PendaftaranRepository:
         details = cur.fetchall() or []
 
         return {"header": header, "details": details}
+
+    @staticmethod
+    def delete_header(pendaftaran_id: int):
+        db = get_db()
+        cur = db.cursor(dictionary=True)
+
+        try:
+            # ambil semua diagnosa yang terkait
+            cur.execute(
+                """
+                SELECT diagnosa_id
+                FROM diagnosa_pasien
+                WHERE pendaftaran_id = %s
+                """,
+                (pendaftaran_id,)
+            )
+            diagnosa_rows = cur.fetchall()
+            diagnosa_ids = [row["diagnosa_id"] for row in diagnosa_rows]
+
+            # hapus detail diagnosa jika ada
+            if diagnosa_ids:
+                placeholders = ",".join(["%s"] * len(diagnosa_ids))
+                cur.execute(
+                    f"""
+                    DELETE FROM diagnosa_pasien_detail
+                    WHERE diagnosa_id IN ({placeholders})
+                    """,
+                    tuple(diagnosa_ids)
+                )
+
+            # hapus header diagnosa
+            cur.execute(
+                """
+                DELETE FROM diagnosa_pasien
+                WHERE pendaftaran_id = %s
+                """,
+                (pendaftaran_id,)
+            )
+
+            # hapus receipt link
+            cur.execute(
+                """
+                DELETE FROM pendaftaran_receipt_link
+                WHERE pendaftaran_id = %s
+                """,
+                (pendaftaran_id,)
+            )
+
+            # hapus treatment
+            cur.execute(
+                """
+                DELETE FROM pendaftaran_treatment
+                WHERE pendaftaran_id = %s
+                """,
+                (pendaftaran_id,)
+            )
+
+            # hapus header pendaftaran
+            cur.execute(
+                """
+                DELETE FROM pendaftaran
+                WHERE pendaftaran_id = %s
+                """,
+                (pendaftaran_id,)
+            )
+
+            if cur.rowcount <= 0:
+                raise AppError("Pendaftaran tidak ditemukan.", 404)
+
+            db.commit()
+
+        except AppError:
+            db.rollback()
+            raise
+        except Exception as e:
+            db.rollback()
+            raise AppError(f"Gagal menghapus pendaftaran: {str(e)}", 500)
+        finally:
+            cur.close()    
