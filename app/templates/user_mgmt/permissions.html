@@ -104,16 +104,6 @@
       display: block;
     }
 
-    .toolbar-stack {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: .6rem;
-    }
-
-    .toolbar-stack .btn {
-      width: 100%;
-    }
-
     .form-control,
     .btn {
       min-height: 44px;
@@ -179,27 +169,11 @@
 
       <!-- SEARCH -->
       <div class="row g-2 align-items-center mb-3">
-        <div class="col-12 col-md-6">
+        <div class="col-12">
           <input id="permSearch"
                  type="text"
                  class="form-control"
                  placeholder="Cari permission code atau name...">
-        </div>
-
-        <div class="col-12 col-md-6">
-          <div class="d-flex gap-2 justify-content-md-end toolbar-stack">
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm"
-                    id="btnSelectAll">
-              Select All
-            </button>
-
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm"
-                    id="btnClearAll">
-              Clear All
-            </button>
-          </div>
         </div>
       </div>
 
@@ -321,8 +295,6 @@
 
   const searchEl = document.getElementById("permSearch");
   const table = document.getElementById("permTable");
-  const btnSelectAll = document.getElementById("btnSelectAll");
-  const btnClearAll = document.getElementById("btnClearAll");
   const mobileCards = document.querySelectorAll(".perm-row-mobile");
 
   function filterDesktopRows(q) {
@@ -362,12 +334,20 @@
     filterMobileCards(q);
   }
 
-  function setVisibleChecks(checked) {
-    document.querySelectorAll(".perm-check").forEach(cb => {
-      const row = cb.closest("tr, .perm-row-mobile");
-      if (!row) return;
-      if (row.style.display === "none") return;
-      cb.checked = checked;
+  function syncActiveLayout() {
+    const desktopWrap = document.querySelector(".desktop-list");
+    const mobileWrap = document.querySelector(".mobile-list");
+
+    if (!desktopWrap || !mobileWrap) return;
+
+    const isMobile = window.innerWidth <= 767.98;
+
+    desktopWrap.querySelectorAll('input[name="perm_ids"]').forEach(cb => {
+      cb.disabled = isMobile;
+    });
+
+    mobileWrap.querySelectorAll('input[name="perm_ids"]').forEach(cb => {
+      cb.disabled = !isMobile;
     });
   }
 
@@ -375,17 +355,9 @@
     searchEl.addEventListener("input", filterRows);
   }
 
-  if (btnSelectAll) {
-    btnSelectAll.addEventListener("click", function () {
-      setVisibleChecks(true);
-    });
-  }
-
-  if (btnClearAll) {
-    btnClearAll.addEventListener("click", function () {
-      setVisibleChecks(false);
-    });
-  }
+  window.addEventListener("resize", syncActiveLayout);
+  document.addEventListener("DOMContentLoaded", syncActiveLayout);
+  syncActiveLayout();
 
 })();
 </script>

@@ -191,10 +191,7 @@ class UserMgmtRepository:
                 "DELETE FROM web_user_api_permission WHERE user_id = %s",
                 (user_id,)
             )
-
-            if not perm_ids:
-                db.commit()
-                return
+            db.commit()
 
             unique_perm_ids = list(dict.fromkeys(perm_ids))
 

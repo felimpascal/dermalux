@@ -86,11 +86,16 @@ class UserMgmtService:
 
     @staticmethod
     def replace_permissions(user_id: int, perm_ids: list[str]):
+        seen = set()
         clean_ids: list[int] = []
+
         for x in perm_ids:
             x = (x or "").strip()
             if x.isdigit():
-                clean_ids.append(int(x))
+                val = int(x)
+                if val not in seen:
+                    seen.add(val)
+                    clean_ids.append(val)
         UserMgmtRepository.replace_permissions(user_id, clean_ids)
 
     @staticmethod
