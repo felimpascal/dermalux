@@ -10,7 +10,6 @@ from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.utils import secure_filename
 
 from app.common.errors import AppError
-from app.modules.authz.repository import PermissionRepository
 from app.modules.diagnosa_pasien.repository import DiagnosaRepository
 from app.modules.pendaftaran.repository import PendaftaranRepository
 
@@ -19,33 +18,16 @@ class DiagnosaService:
     """
     Service layer untuk modul diagnosa_pasien.
 
-    Tugas utama:
+    Fokus service:
     - validasi input
-    - validasi permission
-    - validasi ownership
+    - validasi login minimum
     - orkestrasi repository
     - business rules:
         * 1 pendaftaran bisa banyak diagnosa
         * minimal 1 detail diagnosa
         * tepat 1 diagnosa utama
         * foto opsional
-        * edit hanya oleh user berizin
-        * delete oleh dokter sendiri / pembuat sendiri atau user berizin
     """
-
-    # =========================
-    # Permission Codes
-    # =========================
-    PERM_VIEW = "diagnosa_pasien.view"
-    PERM_CREATE = "diagnosa_pasien.create"
-    PERM_EDIT = "diagnosa_pasien.edit"
-    PERM_EDIT_ALL = "diagnosa_pasien.edit_all"
-    PERM_EDIT_OWN = "diagnosa_pasien.edit_own"
-    PERM_DELETE = "diagnosa_pasien.delete"
-    PERM_DELETE_ALL = "diagnosa_pasien.delete_all"
-    PERM_DELETE_OWN = "diagnosa_pasien.delete_own"
-    PERM_UPLOAD_FOTO = "diagnosa_pasien.foto_upload"
-    PERM_DELETE_FOTO = "diagnosa_pasien.foto_delete"
 
     ALLOWED_JENIS_FOTO = {"before", "after", "progress", "other"}
     ALLOWED_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
@@ -66,7 +48,9 @@ class DiagnosaService:
     def get_master_diagnosa(master_diagnosa_id: int) -> Dict:
         DiagnosaService._ensure_logged_in()
 
-        row = DiagnosaRepository.get_master_diagnosa(DiagnosaService._to_int(master_diagnosa_id))
+        row = DiagnosaRepository.get_master_diagnosa(
+            DiagnosaService._to_int(master_diagnosa_id)
+        )
         if not row:
             raise AppError("Master diagnosa tidak ditemukan.", 404)
 
@@ -78,9 +62,6 @@ class DiagnosaService:
     @staticmethod
     def list_by_pendaftaran(pendaftaran_id: int) -> List[Dict]:
         DiagnosaService._ensure_logged_in()
-        DiagnosaService._assert_has_any_permission(
-            [DiagnosaService.PERM_VIEW, DiagnosaService.PERM_CREATE, DiagnosaService.PERM_EDIT]
-        )
 
         pendaftaran_id = DiagnosaService._to_int(pendaftaran_id)
         if pendaftaran_id <= 0:
@@ -95,9 +76,6 @@ class DiagnosaService:
     @staticmethod
     def get_full(diagnosa_id: int) -> Dict:
         DiagnosaService._ensure_logged_in()
-        DiagnosaService._assert_has_any_permission(
-            [DiagnosaService.PERM_VIEW, DiagnosaService.PERM_EDIT, DiagnosaService.PERM_DELETE]
-        )
 
         diagnosa_id = DiagnosaService._to_int(diagnosa_id)
         if diagnosa_id <= 0:
@@ -115,12 +93,13 @@ class DiagnosaService:
     @staticmethod
     def create(payload: Dict) -> Dict:
         DiagnosaService._ensure_logged_in()
-        DiagnosaService._assert_has_permission(DiagnosaService.PERM_CREATE)
 
         user_id = DiagnosaService._get_current_user_id()
 
         data = DiagnosaService._normalize_header_payload(payload, for_update=False)
-        details = DiagnosaService._normalize_details_payload(payload.get("diagnosa_details"))
+        details = DiagnosaService._normalize_details_payload(
+            payload.get("diagnosa_details")
+        )
         photos = DiagnosaService._normalize_uploaded_photos_payload(
             payload.get("photos"),
             payload.get("uploaded_files"),
@@ -133,8 +112,11 @@ class DiagnosaService:
         data["created_by"] = user_id
         data["updated_by"] = user_id
 
-        # create header + detail dulu, foto menyusul
-        diagnosa_id = DiagnosaRepository.create_full(data=data, details=details, photos=None)
+        diagnosa_id = DiagnosaRepository.create_full(
+            data=data,
+            details=details,
+            photos=None,
+        )
 
         for photo in photos:
             saved = DiagnosaService._save_uploaded_photo(photo["file_storage"])
@@ -166,10 +148,10 @@ class DiagnosaService:
         if not owner or int(owner.get("is_deleted") or 0) == 1:
             raise AppError("Data diagnosa tidak ditemukan.", 404)
 
-        DiagnosaService._assert_can_edit(owner)
-
         data = DiagnosaService._normalize_header_payload(payload, for_update=True)
-        details = DiagnosaService._normalize_details_payload(payload.get("diagnosa_details"))
+        details = DiagnosaService._normalize_details_payload(
+            payload.get("diagnosa_details")
+        )
         photos = DiagnosaService._normalize_uploaded_photos_payload(
             payload.get("photos"),
             payload.get("uploaded_files"),
@@ -219,8 +201,6 @@ class DiagnosaService:
         if int(owner.get("is_deleted") or 0) == 1:
             raise AppError("Data diagnosa sudah dihapus.", 400)
 
-        DiagnosaService._assert_can_delete(owner)
-
         user_id = DiagnosaService._get_current_user_id()
         DiagnosaRepository.soft_delete(diagnosa_id, deleted_by=user_id)
 
@@ -245,15 +225,11 @@ class DiagnosaService:
         if not owner or int(owner.get("is_deleted") or 0) == 1:
             raise AppError("Data diagnosa tidak ditemukan.", 404)
 
-        if not DiagnosaService._has_any_permission(
-            [DiagnosaService.PERM_UPLOAD_FOTO, DiagnosaService.PERM_EDIT, DiagnosaService.PERM_EDIT_ALL]
-        ):
-            DiagnosaService._assert_can_edit(owner)
-
-        # Endpoint ini tetap mendukung mode lama:
-        # payload berisi file_name/file_path, bukan request.files
         rows = DiagnosaService._normalize_photos_payload([payload])
         DiagnosaService._validate_photos(rows)
+
+        if not rows:
+            raise AppError("Data foto tidak valid.", 400)
 
         row = rows[0]
         row["uploaded_by"] = DiagnosaService._get_current_user_id()
@@ -279,14 +255,11 @@ class DiagnosaService:
         if not photo:
             raise AppError("Foto tidak ditemukan.", 404)
 
-        owner = DiagnosaRepository.get_owner_info(DiagnosaService._to_int(photo.get("diagnosa_id")))
+        owner = DiagnosaRepository.get_owner_info(
+            DiagnosaService._to_int(photo.get("diagnosa_id"))
+        )
         if not owner or int(owner.get("is_deleted") or 0) == 1:
             raise AppError("Diagnosa induk tidak ditemukan.", 404)
-
-        if not DiagnosaService._has_any_permission(
-            [DiagnosaService.PERM_DELETE_FOTO, DiagnosaService.PERM_EDIT, DiagnosaService.PERM_EDIT_ALL]
-        ):
-            DiagnosaService._assert_can_edit(owner)
 
         DiagnosaRepository.delete_photo(foto_id)
 
@@ -302,7 +275,6 @@ class DiagnosaService:
     @staticmethod
     def get_form_context_create(pendaftaran_id: int) -> Dict:
         DiagnosaService._ensure_logged_in()
-        DiagnosaService._assert_has_permission(DiagnosaService.PERM_CREATE)
 
         pendaftaran_id = DiagnosaService._to_int(pendaftaran_id)
         if pendaftaran_id <= 0:
@@ -312,7 +284,10 @@ class DiagnosaService:
         if not pendaftaran:
             raise AppError("Data pendaftaran tidak ditemukan.", 404)
 
-        master_diagnosa = DiagnosaRepository.list_master_diagnosa(is_active=1, limit=5000)
+        master_diagnosa = DiagnosaRepository.list_master_diagnosa(
+            is_active=1,
+            limit=5000,
+        )
 
         return {
             "pendaftaran": pendaftaran,
@@ -331,13 +306,14 @@ class DiagnosaService:
         if not owner or int(owner.get("is_deleted") or 0) == 1:
             raise AppError("Data diagnosa tidak ditemukan.", 404)
 
-        DiagnosaService._assert_can_edit(owner)
-
         full = DiagnosaRepository.get_full(diagnosa_id)
         if not full:
             raise AppError("Data diagnosa tidak ditemukan.", 404)
 
-        master_diagnosa = DiagnosaRepository.list_master_diagnosa(is_active=1, limit=5000)
+        master_diagnosa = DiagnosaRepository.list_master_diagnosa(
+            is_active=1,
+            limit=5000,
+        )
 
         return {
             "data": full,
@@ -367,7 +343,10 @@ class DiagnosaService:
                 raise AppError(f"Diagnosa ke-{i} tidak valid.", 400)
 
             if master_diagnosa_id in seen_ids:
-                raise AppError("Diagnosa yang sama tidak boleh dipilih lebih dari satu kali.", 400)
+                raise AppError(
+                    "Diagnosa yang sama tidak boleh dipilih lebih dari satu kali.",
+                    400,
+                )
             seen_ids.add(master_diagnosa_id)
 
             master = DiagnosaRepository.get_master_diagnosa(master_diagnosa_id)
@@ -375,7 +354,10 @@ class DiagnosaService:
                 raise AppError(f"Master diagnosa ke-{i} tidak ditemukan.", 400)
 
             if int(master.get("is_active") or 0) != 1:
-                raise AppError(f"Master diagnosa '{master.get('diagnosa_name')}' tidak aktif.", 400)
+                raise AppError(
+                    f"Master diagnosa '{master.get('diagnosa_name')}' tidak aktif.",
+                    400,
+                )
 
             if int(row.get("is_primary") or 0) == 1:
                 primary_count += 1
@@ -422,7 +404,9 @@ class DiagnosaService:
             if not file_storage or not getattr(file_storage, "filename", ""):
                 raise AppError(f"Foto ke-{i}: file wajib dipilih.", 400)
 
-            ext = os.path.splitext(secure_filename(file_storage.filename or ""))[1].lower()
+            ext = os.path.splitext(
+                secure_filename(file_storage.filename or "")
+            )[1].lower()
             if ext not in DiagnosaService.ALLOWED_PHOTO_EXTENSIONS:
                 raise AppError(
                     f"Foto ke-{i}: format file tidak didukung. "
@@ -441,7 +425,9 @@ class DiagnosaService:
         data: Dict[str, Any] = {}
 
         if not for_update:
-            data["pendaftaran_id"] = DiagnosaService._to_int(payload.get("pendaftaran_id"))
+            data["pendaftaran_id"] = DiagnosaService._to_int(
+                payload.get("pendaftaran_id")
+            )
             if data["pendaftaran_id"] <= 0:
                 raise AppError("pendaftaran_id wajib diisi.", 400)
 
@@ -459,18 +445,40 @@ class DiagnosaService:
             else datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
 
-        data["keluhan_utama"] = DiagnosaService._nullable_str(payload.get("keluhan_utama"))
-        data["anamnesis_dokter"] = DiagnosaService._nullable_str(payload.get("anamnesis_dokter"))
-        data["pemeriksaan_fisik"] = DiagnosaService._nullable_str(payload.get("pemeriksaan_fisik"))
-        data["jenis_kulit"] = DiagnosaService._nullable_str(payload.get("jenis_kulit"))
-        data["lokasi_keluhan"] = DiagnosaService._nullable_str(payload.get("lokasi_keluhan"))
-        data["durasi_keluhan"] = DiagnosaService._nullable_str(payload.get("durasi_keluhan"))
-        data["riwayat_alergi"] = DiagnosaService._nullable_str(payload.get("riwayat_alergi"))
-        data["riwayat_perawatan"] = DiagnosaService._nullable_str(payload.get("riwayat_perawatan"))
+        data["keluhan_utama"] = DiagnosaService._nullable_str(
+            payload.get("keluhan_utama")
+        )
+        data["anamnesis_dokter"] = DiagnosaService._nullable_str(
+            payload.get("anamnesis_dokter")
+        )
+        data["pemeriksaan_fisik"] = DiagnosaService._nullable_str(
+            payload.get("pemeriksaan_fisik")
+        )
+        data["jenis_kulit"] = DiagnosaService._nullable_str(
+            payload.get("jenis_kulit")
+        )
+        data["lokasi_keluhan"] = DiagnosaService._nullable_str(
+            payload.get("lokasi_keluhan")
+        )
+        data["durasi_keluhan"] = DiagnosaService._nullable_str(
+            payload.get("durasi_keluhan")
+        )
+        data["riwayat_alergi"] = DiagnosaService._nullable_str(
+            payload.get("riwayat_alergi")
+        )
+        data["riwayat_perawatan"] = DiagnosaService._nullable_str(
+            payload.get("riwayat_perawatan")
+        )
         data["assessment"] = DiagnosaService._nullable_str(payload.get("assessment"))
-        data["rencana_tindakan"] = DiagnosaService._nullable_str(payload.get("rencana_tindakan"))
-        data["edukasi_pasien"] = DiagnosaService._nullable_str(payload.get("edukasi_pasien"))
-        data["saran_kontrol"] = DiagnosaService._nullable_str(payload.get("saran_kontrol"))
+        data["rencana_tindakan"] = DiagnosaService._nullable_str(
+            payload.get("rencana_tindakan")
+        )
+        data["edukasi_pasien"] = DiagnosaService._nullable_str(
+            payload.get("edukasi_pasien")
+        )
+        data["saran_kontrol"] = DiagnosaService._nullable_str(
+            payload.get("saran_kontrol")
+        )
 
         return data
 
@@ -506,11 +514,6 @@ class DiagnosaService:
 
     @staticmethod
     def _normalize_photos_payload(rows: Any) -> List[Dict]:
-        """
-        Mode lama / manual:
-        photos berisi file_name dan file_path langsung.
-        Dipakai oleh add_photo() lama.
-        """
         if rows is None:
             rows = []
 
@@ -529,8 +532,16 @@ class DiagnosaService:
             note = DiagnosaService._nullable_str(row.get("note"))
             uploaded_by = DiagnosaService._to_int(row.get("uploaded_by")) or None
 
-            raw_taken_at = (row.get("taken_at") or "").strip() if row.get("taken_at") is not None else ""
-            taken_at = DiagnosaService._normalize_datetime(raw_taken_at) if raw_taken_at else None
+            raw_taken_at = (
+                (row.get("taken_at") or "").strip()
+                if row.get("taken_at") is not None
+                else ""
+            )
+            taken_at = (
+                DiagnosaService._normalize_datetime(raw_taken_at)
+                if raw_taken_at
+                else None
+            )
 
             if not file_name and not file_path and not jenis_foto:
                 continue
@@ -554,11 +565,6 @@ class DiagnosaService:
         rows: Any,
         uploaded_files: Optional[ImmutableMultiDict] = None,
     ) -> List[Dict]:
-        """
-        Mode upload form:
-        - rows berasal dari photos_meta
-        - file asli berasal dari request.files
-        """
         if rows is None:
             rows = []
 
@@ -577,9 +583,17 @@ class DiagnosaService:
             note = DiagnosaService._nullable_str(row.get("note"))
 
             raw_taken_at = DiagnosaService._safe_form_str(row.get("taken_at"))
-            taken_at = DiagnosaService._normalize_datetime(raw_taken_at) if raw_taken_at else None
+            taken_at = (
+                DiagnosaService._normalize_datetime(raw_taken_at)
+                if raw_taken_at
+                else None
+            )
 
-            file_storage = uploaded_files.get(input_name) if uploaded_files and input_name else None
+            file_storage = (
+                uploaded_files.get(input_name)
+                if uploaded_files and input_name
+                else None
+            )
             has_file = bool(file_storage and getattr(file_storage, "filename", ""))
 
             if not jenis_foto and not area_foto and not raw_taken_at and not note and not has_file:
@@ -615,7 +629,11 @@ class DiagnosaService:
 
         new_name = f"{uuid.uuid4().hex}{ext}"
 
-        upload_dir = os.path.join(current_app.static_folder, "uploads", "diagnosa_pasien")
+        upload_dir = os.path.join(
+            current_app.static_folder,
+            "uploads",
+            "diagnosa_pasien",
+        )
         os.makedirs(upload_dir, exist_ok=True)
 
         abs_path = os.path.join(upload_dir, new_name)
@@ -625,82 +643,6 @@ class DiagnosaService:
             "file_name": original_name,
             "file_path": f"diagnosa_pasien/{new_name}",
         }
-
-    # =========================
-    # Internal - Permission / Ownership
-    # =========================
-    @staticmethod
-    def _assert_can_edit(owner: Dict):
-        if DiagnosaService._is_admin():
-            return
-
-        if DiagnosaService._has_any_permission(
-            [DiagnosaService.PERM_EDIT_ALL, DiagnosaService.PERM_EDIT]
-        ):
-            return
-
-        current_user_id = DiagnosaService._get_current_user_id()
-        created_by = DiagnosaService._to_int(owner.get("created_by"))
-
-        if created_by > 0 and current_user_id == created_by:
-            if DiagnosaService._has_permission(DiagnosaService.PERM_EDIT_OWN):
-                return
-
-        raise AppError("Anda tidak memiliki hak akses untuk mengubah diagnosa ini.", 403)
-
-    @staticmethod
-    def _assert_can_delete(owner: Dict):
-        if DiagnosaService._is_admin():
-            return
-
-        if DiagnosaService._has_any_permission(
-            [DiagnosaService.PERM_DELETE_ALL, DiagnosaService.PERM_DELETE]
-        ):
-            return
-
-        current_user_id = DiagnosaService._get_current_user_id()
-        created_by = DiagnosaService._to_int(owner.get("created_by"))
-        dokter_id = DiagnosaService._to_int(owner.get("dokter_id"))
-
-        if current_user_id in {created_by, dokter_id}:
-            if DiagnosaService._has_permission(DiagnosaService.PERM_DELETE_OWN):
-                return
-
-        raise AppError("Anda tidak memiliki hak akses untuk menghapus diagnosa ini.", 403)
-
-    @staticmethod
-    def _assert_has_permission(permission_code: str):
-        if DiagnosaService._is_admin():
-            return
-
-        if not DiagnosaService._has_permission(permission_code):
-            raise AppError("FORBIDDEN", 403)
-
-    @staticmethod
-    def _assert_has_any_permission(permission_codes: List[str]):
-        if DiagnosaService._is_admin():
-            return
-
-        if not DiagnosaService._has_any_permission(permission_codes):
-            raise AppError("FORBIDDEN", 403)
-
-    @staticmethod
-    def _has_any_permission(permission_codes: List[str]) -> bool:
-        for code in permission_codes or []:
-            if DiagnosaService._has_permission(code):
-                return True
-        return False
-
-    @staticmethod
-    def _has_permission(permission_code: str) -> bool:
-        user_id = DiagnosaService._get_current_user_id(raise_if_missing=False)
-        if not user_id:
-            return False
-
-        try:
-            return PermissionRepository.has_permission_user_id(int(user_id), permission_code)
-        except Exception:
-            return False
 
     # =========================
     # Internal - Session / User
@@ -725,13 +667,6 @@ class DiagnosaService:
             raise AppError("Unauthorized", 401)
 
         return user_id if user_id > 0 else None
-
-    @staticmethod
-    def _is_admin() -> bool:
-        try:
-            return session.get("role") == "admin"
-        except Exception:
-            return False
 
     # =========================
     # Internal - Generic Utils
@@ -758,10 +693,6 @@ class DiagnosaService:
 
     @staticmethod
     def _normalize_datetime(value: str) -> str:
-        """
-        Terima beberapa format umum, kembalikan string 'YYYY-mm-dd HH:MM:SS'
-        yang aman untuk MySQL connector.
-        """
         if not value:
             raise AppError("Tanggal/waktu tidak valid.", 400)
 
@@ -784,8 +715,7 @@ class DiagnosaService:
 
         raise AppError("Format tanggal/waktu tidak valid.", 400)
 
-
-
+    @staticmethod
     def get_daily_sales_summary_service(tanggal: str):
         tanggal = (tanggal or "").strip()
 
@@ -802,5 +732,5 @@ class DiagnosaService:
         return {
             "tanggal": tanggal,
             "total_transaksi": row.get("total_transaksi", 0),
-            "total_penerimaan_uang": row.get("total_penerimaan_uang", 0)
+            "total_penerimaan_uang": row.get("total_penerimaan_uang", 0),
         }

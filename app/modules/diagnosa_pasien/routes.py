@@ -11,11 +11,14 @@ from flask import (
     redirect,
     render_template,
     request,
+    session,
+    g,
     url_for,
 )
 
 from app.common.errors import AppError
 from app.common.permission import require_permission
+from app.modules.authz.repository import PermissionRepository
 from app.modules.diagnosa_pasien.service import DiagnosaService
 from ..pendaftaran.repository import PendaftaranRepository
 
@@ -137,6 +140,37 @@ def _json_ok(data: Any = None, message: str = "OK", status: int = 200):
     return jsonify(payload), status
 
 
+def _get_current_user_id() -> int | None:
+    user_id = None
+
+    if hasattr(g, "user") and isinstance(g.user, dict):
+        user_id = g.user.get("id")
+
+    if not user_id:
+        user_id = session.get("user_id")
+
+    try:
+        user_id = int(user_id)
+    except Exception:
+        user_id = None
+
+    return user_id if user_id and user_id > 0 else None
+
+
+def _has_permission(permission_code: str) -> bool:
+    if session.get("role") == "admin":
+        return True
+
+    user_id = _get_current_user_id()
+    if not user_id:
+        return False
+
+    try:
+        return PermissionRepository.has_permission_user_id(int(user_id), permission_code)
+    except Exception:
+        return False
+
+
 # =========================================================
 # WEB PAGES
 # =========================================================
@@ -144,13 +178,23 @@ def _json_ok(data: Any = None, message: str = "OK", status: int = 200):
 @require_permission("diagnosa_pasien.view", redirect_on_fail="main.index")
 def list_page(pendaftaran_id: int):
     rows = DiagnosaService.list_by_pendaftaran(pendaftaran_id)
-    ctx = DiagnosaService.get_form_context_create(pendaftaran_id)
+
+    pendaftaran = PendaftaranRepository.get_header(pendaftaran_id)
+    if not pendaftaran:
+        raise AppError("Data pendaftaran tidak ditemukan.", 404)
+
+    can_create = _has_permission("diagnosa_pasien.create")
+    master_diagnosa = []
+
+    if can_create:
+        master_diagnosa = DiagnosaService.list_master_diagnosa()
 
     return render_template(
         "diagnosa_pasien/list.html",
-        pendaftaran=ctx["pendaftaran"],
+        pendaftaran=pendaftaran,
         rows=rows,
-        master_diagnosa=ctx["master_diagnosa"],
+        master_diagnosa=master_diagnosa,
+        can_create=can_create,
     )
 
 
@@ -310,6 +354,7 @@ def delete_photo_submit(foto_id: int):
 
     return redirect(url_for("main.index"))
 
+
 @bp.get("/print-daily")
 @require_permission("diagnosa_pasien.view")
 def pendaftaran_print_daily_page():
@@ -321,6 +366,8 @@ def pendaftaran_print_daily_page():
         "diagnosa_pasien/print_daily.html",
         data=data
     )
+
+
 # =========================================================
 # API
 # =========================================================
