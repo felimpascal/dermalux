@@ -183,22 +183,35 @@ class UserMgmtRepository:
     # =========================
     @staticmethod
     def insert_user_permissions(user_id, perm_ids):
-        if not perm_ids:
-            return
-
         db = get_db()
         cursor = db.cursor()
 
-        sql = """
-        INSERT INTO web_user_api_permission
-        (user_id, permission_id)
-        VALUES (%s, %s)
-        """
+        try:
+            cursor.execute(
+                "DELETE FROM web_user_api_permission WHERE user_id = %s",
+                (user_id,)
+            )
+            db.commit()
 
-        for pid in perm_ids:
-            cursor.execute(sql, (user_id, pid))
+            unique_perm_ids = list(dict.fromkeys(perm_ids))
 
-        db.commit()
+            sql = """
+            INSERT INTO web_user_api_permission
+            (user_id, permission_id)
+            VALUES (%s, %s)
+            """
+
+            for pid in unique_perm_ids:
+                cursor.execute(sql, (user_id, pid))
+
+            db.commit()
+
+        except Exception:
+            db.rollback()
+            raise
+
+        finally:
+            cursor.close()
 
     # =========================
     # REPLACE PERMISSIONS
