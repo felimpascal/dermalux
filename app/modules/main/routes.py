@@ -23,7 +23,7 @@ def index():
 def patient_page():
     return render_template("patient/patient.html")
 
-@bp.get("/webProfile")
+@bp.get("/profile")
 def landing_page():
     promo_rows = TariffRepository.list_today_active_promos()
 

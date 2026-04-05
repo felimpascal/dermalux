@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title or "Dermalux" }}</title>
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+
     <!-- ================= GLOBAL CSS ================= -->
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-5.3.8-dist/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css">
@@ -13,7 +14,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css">
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
-    
 
     <!-- ================= GLOBAL STYLE ================= -->
     <style>
@@ -22,42 +22,108 @@
             --content-padding-x: 16px;
             --content-padding-y: 16px;
             --card-radius: 16px;
+
+            /* ===== Palette disamakan dengan base_public ===== */
+            --dl-bg: #f7f1eb;
+            --dl-bg-soft: #f3ebe3;
+            --dl-surface: rgba(255,255,255,0.70);
+            --dl-surface-strong: rgba(255,255,255,0.96);
+            --dl-text: #5f4335;
+            --dl-text-soft: #7b6657;
+            --dl-line: #e6d8cb;
+            --dl-gold: #c7aa87;
+            --dl-green: #7d8b67;
+            --dl-shadow: 0 12px 35px rgba(120, 92, 70, 0.08);
         }
 
         html, body {
             min-height: 100%;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             margin: 0;
-            color: #484848;
-            background: url("{{ url_for('static', filename='images/background.jpg') }}") repeat fixed;
+            color: var(--dl-text);
+            background:
+                url("{{ url_for('static', filename='images/background.png') }}") repeat fixed,
+                var(--dl-bg);
+            background-blend-mode: normal, normal, soft-light, normal;
             padding-top: var(--topbar-height);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
         }
 
         thead {
-            background: #ddd;
+            background: rgba(199, 170, 135, 0.16);
+            color: var(--dl-text);
+        }
+
+        .table {
+            color: var(--dl-text);
+            --bs-table-bg: transparent;
+            --bs-table-color: var(--dl-text);
         }
 
         .table-hover > tbody > tr:hover {
-            background-color: #ccffff;
+            background-color: rgba(199, 170, 135, 0.10);
         }
 
         .app-navbar {
             min-height: var(--topbar-height);
-            box-shadow: 0 2px 10px rgba(0,0,0,.12);
+            background: rgba(255,255,255,0.92) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--dl-line);
+            box-shadow: 0 4px 20px rgba(120, 92, 70, 0.08);
             z-index: 1030;
         }
 
         .app-navbar .navbar-brand,
         .app-navbar .nav-link {
             font-size: .95rem;
+            color: var(--dl-text) !important;
+        }
+
+        .app-navbar .navbar-brand:hover,
+        .app-navbar .nav-link:hover,
+        .app-navbar .nav-link:focus {
+            color: var(--dl-green) !important;
+        }
+
+        .app-navbar .nav-link.active {
+            color: var(--dl-green) !important;
         }
 
         .app-navbar .dropdown-menu {
+            background: var(--dl-surface-strong);
             border-radius: 12px;
-            border: 1px solid rgba(255,255,255,.08);
-            box-shadow: 0 10px 30px rgba(0,0,0,.18);
+            border: 1px solid var(--dl-line);
+            box-shadow: var(--dl-shadow);
+            backdrop-filter: blur(8px);
+        }
+
+        .app-navbar .dropdown-item {
+            color: var(--dl-text);
+        }
+
+        .app-navbar .dropdown-item:hover,
+        .app-navbar .dropdown-item:focus {
+            background: rgba(125,139,103,0.10);
+            color: var(--dl-green);
+        }
+
+        .app-navbar .dropdown-divider {
+            border-top-color: var(--dl-line);
         }
 
         .app-shell {
@@ -65,13 +131,21 @@
         }
 
         .app-content-card {
-            background-color: rgba(255,255,255,0.92);
+            background-color: var(--dl-surface);
             min-height: calc(100vh - var(--topbar-height) - (var(--content-padding-y) * 2));
             padding: 16px;
-            border: 0;
+            border: 1px solid var(--dl-line);
             border-radius: var(--card-radius);
-            box-shadow: 0 6px 18px rgba(0,0,0,.08);
+            box-shadow: var(--dl-shadow);
+            backdrop-filter: blur(6px);
             overflow: visible;
+        }
+
+        .card {
+            background: var(--dl-surface);
+            border: 1px solid var(--dl-line);
+            box-shadow: var(--dl-shadow);
+            color: var(--dl-text);
         }
 
         .dropdown-menu {
@@ -84,6 +158,107 @@
 
         .navbar-nav .dropdown-menu {
             position: absolute;
+        }
+
+        .navbar-toggler {
+            border-color: rgba(125, 139, 103, 0.35);
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.2rem rgba(199,170,135,0.22);
+        }
+
+        .navbar-toggler-icon {
+            filter: invert(33%) sepia(12%) saturate(918%) hue-rotate(339deg) brightness(92%) contrast(87%);
+        }
+
+        .form-control,
+        .form-select,
+        textarea {
+            background: rgba(255,255,255,0.96);
+            border: 1px solid var(--dl-line);
+            color: var(--dl-text);
+        }
+
+        .form-control::placeholder,
+        textarea::placeholder {
+            color: var(--dl-text-soft);
+        }
+
+        .form-control:focus,
+        .form-select:focus,
+        textarea:focus {
+            border-color: var(--dl-gold);
+            box-shadow: 0 0 0 0.2rem rgba(199,170,135,0.18);
+        }
+
+        .btn-primary {
+            background-color: var(--dl-green);
+            border-color: var(--dl-green);
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-primary:active {
+            background-color: #6f7d5d !important;
+            border-color: #6f7d5d !important;
+        }
+
+        .btn-outline-primary {
+            color: var(--dl-green);
+            border-color: var(--dl-green);
+        }
+
+        .btn-outline-primary:hover,
+        .btn-outline-primary:focus,
+        .btn-outline-primary:active {
+            background-color: var(--dl-green) !important;
+            border-color: var(--dl-green) !important;
+            color: #fff !important;
+        }
+
+        .btn-success {
+            background-color: var(--dl-green);
+            border-color: var(--dl-green);
+        }
+
+        .btn-warning {
+            background-color: var(--dl-gold);
+            border-color: var(--dl-gold);
+            color: #fff;
+        }
+
+        .btn-light {
+            background-color: rgba(255,255,255,0.96);
+            border-color: var(--dl-line);
+            color: var(--dl-text);
+        }
+
+        .text-muted {
+            color: var(--dl-text-soft) !important;
+        }
+
+        .badge.bg-primary {
+            background-color: var(--dl-gold) !important;
+        }
+
+        .badge.bg-success {
+            background-color: var(--dl-green) !important;
+        }
+
+        .alert {
+            border-radius: 14px;
+            border: 1px solid var(--dl-line);
+            background: rgba(255,255,255,0.95);
+            color: var(--dl-text);
+        }
+
+        .swal2-popup {
+            border-radius: 20px !important;
+        }
+
+        .swal2-confirm {
+            background-color: var(--dl-green) !important;
         }
 
         .hideOnPhone {
@@ -135,14 +310,20 @@
 
             .app-navbar .navbar-collapse {
                 margin-top: .6rem;
-                background: rgba(33, 37, 41, 0.98);
+                background: rgba(255,255,255,0.98);
+                border: 1px solid var(--dl-line);
                 border-radius: 14px;
                 padding: .5rem;
+                box-shadow: var(--dl-shadow);
             }
 
             .app-navbar .navbar-nav .nav-link {
                 padding: .75rem .85rem;
                 border-radius: 10px;
+            }
+
+            .app-navbar .navbar-nav .nav-link:hover {
+                background: rgba(125,139,103,0.10);
             }
 
             .app-navbar .dropdown-menu {
@@ -152,6 +333,7 @@
                 margin-top: .35rem;
                 border-radius: 10px;
                 box-shadow: none;
+                background: rgba(255,255,255,0.96);
             }
 
             .app-navbar .dropdown-item {
@@ -211,7 +393,7 @@
 <body>
 
 <!-- ================= NAVBAR ================= -->
-<nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top app-navbar">
+<nav class="navbar navbar-expand-lg navbar-light fixed-top app-navbar">
     <div class="container-fluid">
         <a class="navbar-brand fw-semibold" href="{{ url_for('main.index') }}">Dermalux</a>
 
@@ -322,6 +504,7 @@
 <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <!-- ================= GLOBAL UTIL ================= -->
 <script>
 function safeSwal(title, icon='info') {
@@ -331,8 +514,15 @@ function safeSwal(title, icon='info') {
 
 window.myAlert = function (msg, type) {
     if (!msg) return;
-    if (window.Swal) Swal.fire({ icon: type || 'info', title: msg });
-    else alert(msg);
+    if (window.Swal) {
+        Swal.fire({
+            icon: type || 'info',
+            title: msg,
+            confirmButtonColor: '#7d8b67'
+        });
+    } else {
+        alert(msg);
+    }
 };
 </script>
 

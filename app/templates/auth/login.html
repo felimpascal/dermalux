@@ -12,6 +12,18 @@
     <style>
         :root{
             --login-card-max: 420px;
+
+            /* ===== Palette sama dengan base.html ===== */
+            --dl-bg: #f7f1eb;
+            --dl-bg-soft: #f3ebe3;
+            --dl-surface: rgba(255,255,255,0.78);
+            --dl-surface-strong: rgba(255,255,255,0.92);
+            --dl-text: #5f4335;
+            --dl-text-soft: #7b6657;
+            --dl-line: #e6d8cb;
+            --dl-gold: #c7aa87;
+            --dl-green: #7d8b67;
+            --dl-shadow: 0 12px 35px rgba(120, 92, 70, 0.08);
         }
 
         html, body {
@@ -20,8 +32,14 @@
 
         body {
             margin: 0;
-            color: #484848;
-            background: url("{{ url_for('static', filename='images/background.jpg') }}") repeat fixed;
+            color: var(--dl-text);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+            background-image: url("{{ url_for('static', filename='images/background.png') }}");
+            background-color: var(--dl-bg);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center top;
         }
 
         .login-wrapper {
@@ -35,10 +53,12 @@
         .login-card {
             width: 100%;
             max-width: var(--login-card-max);
-            border: 0;
+            border: 1px solid var(--dl-line);
             border-radius: 18px;
-            background: rgba(255,255,255,0.95);
-            box-shadow: 0 10px 30px rgba(0,0,0,.12);
+            background: var(--dl-surface);
+            box-shadow: var(--dl-shadow);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             overflow: hidden;
         }
 
@@ -57,10 +77,11 @@
             font-weight: 700;
             font-size: 1.25rem;
             margin-bottom: .2rem;
+            color: var(--dl-text);
         }
 
         .login-subtitle {
-            color: #6c757d;
+            color: var(--dl-text-soft);
             font-size: .92rem;
             margin-bottom: 1rem;
         }
@@ -68,17 +89,47 @@
         .form-label {
             font-weight: 500;
             margin-bottom: .4rem;
+            color: var(--dl-text);
         }
 
         .form-control {
             min-height: 44px;
             border-radius: 12px;
+            border: 1px solid var(--dl-line);
+            background: rgba(255,255,255,0.96);
+            color: var(--dl-text);
+        }
+
+        .form-control::placeholder {
+            color: var(--dl-text-soft);
+        }
+
+        .form-control:focus {
+            border-color: var(--dl-gold);
+            box-shadow: 0 0 0 0.2rem rgba(199,170,135,0.18);
         }
 
         .btn-login {
             min-height: 46px;
             border-radius: 12px;
             font-weight: 600;
+            background-color: var(--dl-green);
+            border-color: var(--dl-green);
+        }
+
+        .btn-login:hover,
+        .btn-login:focus,
+        .btn-login:active {
+            background-color: #6f7d5d !important;
+            border-color: #6f7d5d !important;
+        }
+
+        .swal2-popup {
+            border-radius: 20px !important;
+        }
+
+        .swal2-confirm {
+            background-color: var(--dl-green) !important;
         }
 
         @media (max-width: 767.98px) {
@@ -177,7 +228,8 @@
 Swal.fire({
     icon: 'info',
     title: 'Informasi',
-    text: {{ messages[0] | tojson }}
+    text: {{ messages[0] | tojson }},
+    confirmButtonColor: '#7d8b67'
 });
 {% endif %}
 {% endwith %}
