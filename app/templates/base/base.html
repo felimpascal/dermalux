@@ -137,7 +137,6 @@
             border: 1px solid var(--dl-line);
             border-radius: var(--card-radius);
             box-shadow: var(--dl-shadow);
-            backdrop-filter: blur(6px);
             overflow: visible;
         }
 
@@ -397,7 +396,7 @@
     <div class="container-fluid">
         <a class="navbar-brand fw-semibold" href="{{ url_for('main.index') }}">Dermalux</a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -491,6 +490,9 @@
         {% block content %}{% endblock %}
     </div>
 </div>
+
+<!-- ================= PAGE MODALS ================= -->
+{% block page_modals %}{% endblock %}
 
 <!-- ================= DYNAMIC MODAL PLACEHOLDER ================= -->
 <div id="dynamic-modal-container"></div>
