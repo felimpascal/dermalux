@@ -11,22 +11,190 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='sweetalert/sweetalert2.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
 
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
 
     <!-- ================= GLOBAL STYLE ================= -->
     <style>
+        :root{
+            --dl-bg: #f7f1eb;
+            --dl-bg-soft: #f3ebe3;
+            --dl-surface: rgba(255,255,255,0.88);
+            --dl-surface-strong: rgba(255,255,255,0.96);
+            --dl-text: #5f4335;
+            --dl-text-soft: #7b6657;
+            --dl-line: #e6d8cb;
+            --dl-gold: #c7aa87;
+            --dl-green: #7d8b67;
+            --dl-shadow: 0 12px 35px rgba(120, 92, 70, 0.08);
+            --dl-radius: 24px;
+            --public-top-gap: 16px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             margin: 0;
-            color: #484848;
-            background: url("{{ url_for('static', filename='images/background.jpg') }}") repeat fixed;
+            color: var(--dl-text);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(219,196,173,0.22), transparent 24%),
+                radial-gradient(circle at bottom left, rgba(125,139,103,0.08), transparent 20%),
+                url("{{ url_for('static', filename='images/background.jpg') }}") repeat fixed,
+                var(--dl-bg);
+            background-blend-mode: normal, normal, soft-light, normal;
         }
-        thead { background: #ddd; }
-        .table-hover > tbody > tr:hover { background-color: #ccffff; }
 
-        @media only screen and (max-width: 767px) { .hideOnPhone { display:none; } }
-        @media only screen and (min-width: 768px) { .hideOnWeb { display:none; } }
+        thead {
+            background: #ddd;
+        }
+
+        .table-hover > tbody > tr:hover {
+            background-color: #ccffff;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .public-shell {
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /*
+          Untuk landing page / web profile:
+          - jangan pakai card tebal full seperti page internal
+          - beri wrapper yang lebih clean
+        */
+        .public-content-wrap {
+            width: 100%;
+            min-height: 100vh;
+            padding-top: var(--public-top-gap);
+            padding-bottom: 0;
+        }
+
+        .public-content-card {
+            background: transparent;
+            min-height: 100vh;
+            padding: 0;
+            border: 0;
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        /*
+          Utility container khusus public page
+        */
+        .public-container {
+            width: 100%;
+            max-width: 1320px;
+            margin: 0 auto;
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
+        /*
+          Section helper
+        */
+        .public-section {
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+        }
+
+        .public-panel {
+            background: var(--dl-surface);
+            border: 1px solid var(--dl-line);
+            box-shadow: var(--dl-shadow);
+            border-radius: var(--dl-radius);
+            backdrop-filter: blur(6px);
+        }
+
+        .public-panel-strong {
+            background: var(--dl-surface-strong);
+            border: 1px solid var(--dl-line);
+            box-shadow: var(--dl-shadow);
+            border-radius: var(--dl-radius);
+            backdrop-filter: blur(8px);
+        }
+
+        .public-title {
+            color: var(--dl-text);
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .public-subtitle {
+            color: var(--dl-text-soft);
+        }
+
+        /*
+          Flash / alert styling fallback
+        */
+        .swal2-popup {
+            border-radius: 20px !important;
+        }
+
+        /*
+          Hide helpers
+        */
+        @media only screen and (max-width: 767px) {
+            .hideOnPhone { display:none !important; }
+        }
+
+        @media only screen and (min-width: 768px) {
+            .hideOnWeb { display:none !important; }
+        }
+
+        /*
+          Tablet
+        */
+        @media (min-width: 768px) {
+            :root{
+                --public-top-gap: 18px;
+            }
+
+            .public-content-wrap {
+                padding-top: var(--public-top-gap);
+            }
+
+            .public-container {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .public-section {
+                padding-top: 3.5rem;
+                padding-bottom: 3.5rem;
+            }
+        }
+
+        /*
+          Desktop
+        */
+        @media (min-width: 992px) {
+            :root{
+                --public-top-gap: 20px;
+            }
+
+            .public-container {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .public-section {
+                padding-top: 4rem;
+                padding-bottom: 4rem;
+            }
+        }
     </style>
 
     {% block head %}{% endblock %}
@@ -34,59 +202,67 @@
 
 <body>
 
-<!-- ================= CONTENT ================= -->
- 
-<div class="container-fluid" style="margin-top:60px;">
-    <div class="card shadow-sm" style="background-color: rgba(255,255,255,0.9); min-height:90vh; padding: 1%;">
-    {% block content %}{% endblock %}
+    <!-- ================= CONTENT ================= -->
+    <div class="public-shell">
+        <div class="public-content-wrap">
+            <div class="public-content-card">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
     </div>
-</div>
 
-<!-- ================= DYNAMIC MODAL PLACEHOLDER ================= -->
-<div id="dynamic-modal-container"></div>
+    <!-- ================= DYNAMIC MODAL PLACEHOLDER ================= -->
+    <div id="dynamic-modal-container"></div>
 
-<!-- ================= GLOBAL JS ================= -->
-<script src="{{ url_for('static', filename='javascript/jquery.min.js') }}"></script>
-<script src="{{ url_for('static', filename='bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ url_for('static', filename='sweetalert/sweetalert2.min.js') }}"></script>
+    <!-- ================= GLOBAL JS ================= -->
+    <script src="{{ url_for('static', filename='javascript/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='sweetalert/sweetalert2.min.js') }}"></script>
 
-<!-- DataTables LIBRARY ONLY -->
-<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+    <!-- DataTables LIBRARY ONLY -->
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
 
-<!-- ================= GLOBAL UTIL ================= -->
-<script>
-function safeSwal(title, icon='info') {
-    if (window.Swal) Swal.fire(title, '', icon);
-    else alert(title);
-}
+    <!-- ================= GLOBAL UTIL ================= -->
+    <script>
+        function safeSwal(title, icon='info') {
+            if (window.Swal) Swal.fire(title, '', icon);
+            else alert(title);
+        }
 
-window.myAlert = function (msg, type) {
-    if (!msg) return;
-    if (window.Swal) Swal.fire({ icon: type || 'info', title: msg });
-    else alert(msg);
-};
-</script>
+        window.myAlert = function (msg, type) {
+            if (!msg) return;
+            if (window.Swal) {
+                Swal.fire({
+                    icon: type || 'info',
+                    title: msg,
+                    confirmButtonColor: '#7d8b67'
+                });
+            } else {
+                alert(msg);
+            }
+        };
+    </script>
 
-<!-- ================= FLASH MESSAGE ================= -->
-{% with _messages = get_flashed_messages() %}
-{% if _messages %}
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const msgs = {{ _messages | tojson | safe }};
-    msgs.forEach(m => window.myAlert(m, 'info'));
-});
-</script>
-{% endif %}
-{% endwith %}
+    <!-- ================= FLASH MESSAGE ================= -->
+    {% with _messages = get_flashed_messages() %}
+    {% if _messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const msgs = {{ _messages | tojson | safe }};
+            msgs.forEach(m => window.myAlert(m, 'info'));
+        });
+    </script>
+    {% endif %}
+    {% endwith %}
 
-<!-- ================= GLOBAL UI HOOK (MODAL LOAD SAMPLE) ================= -->
-<script>
-$(function () {
-    // pattern modal dynamic: aktifkan kalau endpoint/modal sudah ada
-});
-</script>
+    <!-- ================= GLOBAL UI HOOK ================= -->
+    <script>
+        $(function () {
+            // pattern modal dynamic: aktifkan kalau endpoint/modal sudah ada
+        });
+    </script>
 
-{% block scripts %}{% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>

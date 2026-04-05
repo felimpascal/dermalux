@@ -1,0 +1,965 @@
+{% extends "base/base_public.html" %}
+{% block content %}
+
+<style>
+  :root{
+    --dl-bg:#f7f1eb;
+    --dl-bg-soft:#f3ebe3;
+    --dl-white:#ffffff;
+    --dl-text:#5f4335;
+    --dl-text-soft:#7b6657;
+    --dl-line:#e8dcd1;
+    --dl-gold:#c7aa87;
+    --dl-gold-dark:#b79369;
+    --dl-green:#7d8b67;
+    --dl-green-dark:#6d7a59;
+    --dl-chip:#efe5da;
+    --dl-shadow:0 12px 30px rgba(127, 98, 75, 0.08);
+    --dl-radius-xl:24px;
+    --dl-radius-2xl:32px;
+  }
+
+  body{
+    background:var(--dl-bg);
+    color:var(--dl-text);
+  }
+
+  .dermalux-page{
+    background:
+      radial-gradient(circle at top right, rgba(219,196,173,.38), transparent 24%),
+      radial-gradient(circle at bottom left, rgba(125,139,103,.10), transparent 20%),
+      var(--dl-bg);
+  }
+
+  .dl-navbar{
+    position:sticky;
+    top:0;
+    z-index:1030;
+    background:rgba(251,247,242,.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid #eadfd4;
+  }
+
+  .dl-brand-wrap{
+    display:flex;
+    align-items:center;
+    gap:.85rem;
+  }
+
+  .dl-brand-logo{
+    width:50px;
+    height:50px;
+    border-radius:18px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:var(--dl-shadow);
+    overflow:hidden;
+  }
+
+  .dl-logo-img{
+    width:80%;
+    height:80%;
+    object-fit:contain;
+  }
+
+  .dl-brand-title{
+    font-size:1.35rem;
+    font-weight:700;
+    letter-spacing:.04em;
+    color:#7a5b46;
+    line-height:1;
+    margin-bottom:.15rem;
+  }
+
+  .dl-brand-sub{
+    font-size:.78rem;
+    color:#9c816d;
+    line-height:1.1;
+  }
+
+  .dl-nav-link{
+    color:#7a5b46 !important;
+    font-weight:500;
+    padding:.7rem .9rem !important;
+    border-radius:12px;
+  }
+
+  .dl-nav-link:hover,
+  .dl-nav-link:focus{
+    background:#f4ebe2;
+    color:var(--dl-green) !important;
+  }
+
+  .dl-wa-pill{
+    background:var(--dl-chip);
+    color:#7a5b46;
+    border-radius:14px;
+    padding:.65rem .9rem;
+    font-size:.82rem;
+    white-space:nowrap;
+  }
+
+  .dl-btn{
+    border:none;
+    border-radius:16px;
+    padding:.85rem 1.4rem;
+    font-weight:600;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.5rem;
+    transition:.2s ease;
+  }
+
+  .dl-btn:hover{
+    transform:translateY(-1px);
+    text-decoration:none;
+  }
+
+  .dl-btn-gold{
+    background:var(--dl-gold);
+    color:#fff;
+    box-shadow:var(--dl-shadow);
+  }
+
+  .dl-btn-gold:hover{
+    background:var(--dl-gold-dark);
+    color:#fff;
+  }
+
+  .dl-btn-white{
+    background:#fff;
+    color:#7a5b46;
+    border:1px solid #dccab9;
+  }
+
+  .dl-btn-white:hover{
+    background:#faf4ef;
+    color:#7a5b46;
+  }
+
+  .dl-btn-green{
+    background:var(--dl-green);
+    color:#fff;
+    box-shadow:var(--dl-shadow);
+  }
+
+  .dl-btn-green:hover{
+    background:var(--dl-green-dark);
+    color:#fff;
+  }
+
+  .dl-hero{
+    position:relative;
+    overflow:hidden;
+    padding:2rem 0 4.5rem;
+  }
+
+  .dl-hero-card{
+    background:linear-gradient(135deg,#e9ddd2,#f5eee7 55%,#ddd1c5);
+    border:1px solid rgba(255,255,255,.65);
+    border-radius:var(--dl-radius-2xl);
+    padding:1rem;
+    box-shadow:var(--dl-shadow);
+  }
+
+  .dl-hero-visual{
+    min-height:340px;
+    border-radius:28px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,.72), rgba(231,220,210,.94)),
+      radial-gradient(circle at 30% 30%, #fff, #e6d9cd 58%, #cfbfaf);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .dl-hero-circle{
+    width:260px;
+    height:260px;
+    border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, #fff, #e6d9cd 58%, #cfbfaf);
+    box-shadow:0 20px 45px rgba(90,70,55,.12);
+  }
+
+  .dl-hero-floating{
+    position:absolute;
+    left:50%;
+    bottom:22px;
+    transform:translateX(-50%);
+    width:min(88%, 340px);
+    background:rgba(255,255,255,.74);
+    border-radius:24px;
+    padding:1rem 1.1rem;
+    text-align:center;
+    box-shadow:var(--dl-shadow);
+  }
+
+  .dl-chip{
+    display:inline-flex;
+    align-items:center;
+    border:1px solid #e5d6c9;
+    background:rgba(255,255,255,.72);
+    color:#9c816d;
+    border-radius:999px;
+    padding:.55rem .95rem;
+    font-size:.76rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+
+  .dl-section{
+    padding:4rem 0;
+  }
+
+  .dl-section-soft{
+    background:var(--dl-bg-soft);
+  }
+
+  .dl-eyebrow{
+    font-size:.8rem;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:#b0917b;
+    font-weight:600;
+    margin-bottom:.7rem;
+  }
+
+  .dl-section-title{
+    font-size:2.1rem;
+    font-weight:700;
+    color:var(--dl-text);
+    margin-bottom:0;
+  }
+
+  .dl-section-desc{
+    color:var(--dl-text-soft);
+    line-height:1.85;
+    font-size:.98rem;
+  }
+
+  .dl-card{
+    background:var(--dl-white);
+    border:1px solid var(--dl-line);
+    border-radius:var(--dl-radius-xl);
+    box-shadow:var(--dl-shadow);
+  }
+
+  .dl-treatment-thumb,
+  .dl-doctor-thumb,
+  .dl-testi-thumb,
+  .dl-promo-thumb{
+    background:linear-gradient(135deg,#efe4da,#d9c7b5);
+  }
+
+  .dl-treatment-thumb{
+    height:160px;
+    border-radius:20px;
+  }
+
+  .dl-testi-compare{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:.9rem;
+  }
+
+  .dl-testi-thumb{
+    height:145px;
+    border-radius:18px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .dl-testi-label{
+    position:absolute;
+    top:10px;
+    left:10px;
+    right:10px;
+    display:flex;
+    justify-content:center;
+    font-size:.86rem;
+    font-weight:600;
+    color:#7b6657;
+  }
+
+  .dl-stars{
+    color:#c3a36a;
+    letter-spacing:.08em;
+  }
+
+  .dl-promo-thumb{
+    height:230px;
+    position:relative;
+  }
+
+  .dl-badge{
+    position:absolute;
+    top:16px;
+    left:16px;
+    background:var(--dl-gold);
+    color:#fff;
+    border-radius:999px;
+    font-size:.74rem;
+    font-weight:700;
+    padding:.42rem .8rem;
+    box-shadow:var(--dl-shadow);
+  }
+
+  .dl-price{
+    font-size:2rem;
+    font-weight:700;
+    line-height:1;
+  }
+
+  .dl-old-price{
+    color:#a28d7f;
+    text-decoration:line-through;
+    font-size:.92rem;
+  }
+
+  .dl-checklist{
+    padding-left:0;
+    list-style:none;
+    margin-bottom:0;
+  }
+
+  .dl-checklist li{
+    position:relative;
+    padding-left:1.65rem;
+    margin-bottom:.9rem;
+    color:var(--dl-text-soft);
+  }
+
+  .dl-checklist li:before{
+    content:"✓";
+    position:absolute;
+    left:0;
+    top:0;
+    color:var(--dl-green);
+    font-weight:700;
+  }
+
+  .dl-doctor-thumb{
+    height:280px;
+    border-radius:24px;
+  }
+
+  .dl-contact-box{
+    padding:2rem;
+  }
+
+  .dl-contact-meta .label{
+    font-weight:700;
+    color:var(--dl-text);
+    margin-bottom:.15rem;
+  }
+
+  .dl-map-wrap{
+    overflow:hidden;
+    border-radius:26px;
+  }
+
+  .dl-map-wrap iframe{
+    width:100%;
+    height:440px;
+    border:0;
+    display:block;
+  }
+
+  .dl-floating-wa{
+    position:fixed;
+    left:16px;
+    right:16px;
+    bottom:16px;
+    z-index:1040;
+    background:var(--dl-green);
+    color:#fff;
+    text-decoration:none;
+    border-radius:18px;
+    padding:1rem 1.1rem;
+    font-weight:700;
+    text-align:center;
+    box-shadow:0 20px 45px rgba(90,70,55,.22);
+  }
+
+  .dl-floating-wa:hover{
+    color:#fff;
+    text-decoration:none;
+    background:var(--dl-green-dark);
+  }
+
+  .dl-footer-space{
+    height:82px;
+  }
+
+  .dl-meta-label{
+    font-size:.8rem;
+    color:#9c816d;
+    font-weight:600;
+    margin-bottom:.35rem;
+  }
+
+  .dl-price-sm{
+    font-size:1.45rem;
+    font-weight:700;
+    line-height:1.1;
+    color:var(--dl-text);
+  }
+
+  .dl-empty-box{
+    text-align:center;
+    padding:2rem;
+  }
+
+  .dl-carousel-wrap{
+    position:relative;
+  }
+
+  .dl-carousel-scroll{
+    display:flex;
+    gap:1rem;
+    overflow-x:auto;
+    scroll-behavior:smooth;
+    padding-bottom:.5rem;
+    scrollbar-width:none;
+  }
+
+  .dl-carousel-scroll::-webkit-scrollbar{
+    display:none;
+  }
+
+  .dl-carousel-card{
+    min-width:280px;
+    max-width:280px;
+    flex:0 0 auto;
+  }
+
+  .dl-carousel-nav{
+    display:flex;
+    gap:.75rem;
+    justify-content:flex-end;
+    margin-bottom:1rem;
+  }
+
+  .dl-carousel-btn{
+    width:42px;
+    height:42px;
+    border:none;
+    border-radius:999px;
+    background:#fff;
+    color:var(--dl-text);
+    box-shadow:var(--dl-shadow);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:.2s ease;
+  }
+
+  .dl-carousel-btn:hover{
+    background:var(--dl-green);
+    color:#fff;
+  }
+
+  @media (min-width: 768px){
+    .dl-hero{
+      padding:3rem 0 5.5rem;
+    }
+
+    .dl-hero-visual{
+      min-height:430px;
+    }
+
+    .dl-hero-circle{
+      width:310px;
+      height:310px;
+    }
+
+    .dl-section-title{
+      font-size:2.35rem;
+    }
+  }
+
+  @media (min-width: 992px){
+    .dl-floating-wa{
+      left:24px;
+      right:auto;
+      bottom:24px;
+      padding:1rem 1.35rem;
+    }
+
+    .dl-footer-space{
+      height:0;
+    }
+  }
+
+  @media (max-width: 991.98px){
+    .dl-nav-link{
+      padding:.7rem 0 !important;
+    }
+  }
+
+  @media (max-width: 575.98px){
+    .dl-brand-title{
+      font-size:1.15rem;
+    }
+
+    .dl-brand-sub{
+      font-size:.72rem;
+    }
+
+    .dl-section{
+      padding:3rem 0;
+    }
+
+    .dl-section-title{
+      font-size:1.7rem;
+    }
+
+    .dl-hero h1{
+      font-size:2.25rem !important;
+    }
+
+    .dl-price{
+      font-size:1.6rem;
+    }
+
+    .dl-map-wrap iframe{
+      height:320px;
+    }
+
+    .dl-price-sm{
+      font-size:1.2rem;
+    }
+
+    .dl-carousel-card{
+      min-width:240px;
+      max-width:240px;
+    }
+  }
+</style>
+
+{% set wa_number = "6287885153080" %}
+{% set wa_nav = "Halo Admin Dermalux,\nSaya ingin konsultasi terkait treatment.\nTerima kasih."|urlencode %}
+{% set wa_book = "Halo Admin Dermalux,\nSaya ingin booking konsultasi.\n\n- Nama:\n- Keluhan:\n- Tanggal yang diinginkan:\n\nTerima kasih."|urlencode %}
+{% set wa_consult = "Halo Admin Dermalux,\nSaya ingin konsultasi.\n\n- Nama:\n- Keluhan:\n- Tujuan treatment:\n\nTerima kasih."|urlencode %}
+{% set wa_chat = "Halo Admin Dermalux,\nSaya ingin bertanya terkait treatment."|urlencode %}
+{% set wa_booking_general = "Halo Admin Dermalux,\nSaya ingin konsultasi dan booking treatment."|urlencode %}
+{% set wa_contact = "Halo Admin Dermalux,\nSaya ingin bertanya terkait jadwal dan treatment."|urlencode %}
+{% set wa_floating = "Halo Admin Dermalux,\nSaya ingin konsultasi.\n\n- Nama:\n- Keluhan:\n\nTerima kasih."|urlencode %}
+
+<div class="dermalux-page">
+
+  <nav class="navbar navbar-expand-lg dl-navbar">
+    <div class="container py-2">
+      <a class="navbar-brand me-3" href="#home" style="text-decoration:none;">
+        <div class="dl-brand-wrap">
+          <div class="dl-brand-logo">
+            <img src="{{ url_for('static', filename='images/logoWebProfle.png') }}"
+                 alt="Dermalux Clinic"
+                 class="dl-logo-img">
+          </div>
+          <div>
+            <div class="dl-brand-title">DERMALUX</div>
+            <div class="dl-brand-sub">Aesthetic &amp; Antiaging Clinic</div>
+          </div>
+        </div>
+      </a>
+
+      <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarDermalux" aria-controls="navbarDermalux" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarDermalux">
+        <ul class="navbar-nav mx-auto mb-3 mb-lg-0 align-items-lg-center">
+          <li class="nav-item"><a class="nav-link dl-nav-link" href="#home">Home</a></li>
+          <li class="nav-item"><a class="nav-link dl-nav-link" href="#treatments">Treatments</a></li>
+          {% if promo_rows %}
+          <li class="nav-item"><a class="nav-link dl-nav-link" href="#promo">Promo</a></li>
+          {% endif %}
+          <li class="nav-item"><a class="nav-link dl-nav-link" href="#testimoni">Testimoni</a></li>
+          <li class="nav-item"><a class="nav-link dl-nav-link" href="#dokter">Dokter</a></li>
+          <li class="nav-item"><a class="nav-link dl-nav-link" href="#contact">Contact</a></li>
+        </ul>
+
+        <div class="d-flex flex-column flex-lg-row gap-2 align-items-lg-center">
+          <div class="dl-wa-pill d-none d-md-inline-flex">+62 878-8515-3080</div>
+          <a href="https://wa.me/{{ wa_number }}?text={{ wa_nav }}" target="_blank" rel="noopener" class="dl-btn dl-btn-green px-3 py-2">
+            Konsultasi
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="dl-hero" id="home">
+    <div class="container">
+      <div class="row align-items-center g-4 g-lg-5">
+        <div class="col-lg-6">
+          <span class="dl-chip mb-3">Healthy Skin. Luxury Care.</span>
+          <h1 style="font-size:3.5rem; font-weight:700; line-height:1.1; color:var(--dl-text); margin-bottom:1rem;">
+            Welcome to Dermalux
+          </h1>
+          <p class="dl-section-desc mb-4" style="max-width:620px;">
+            Klinik estetika dan anti-aging dengan pendekatan modern, nyaman, dan profesional.
+            Fokus kami adalah hasil perawatan yang elegan, aman, dan terukur untuk setiap pasien.
+          </p>
+
+          <div class="d-flex flex-column flex-sm-row gap-3">
+            <a href="https://wa.me/{{ wa_number }}?text={{ wa_book }}" target="_blank" rel="noopener" class="dl-btn dl-btn-gold">
+              Book Now
+            </a>
+            <a href="https://wa.me/{{ wa_number }}?text={{ wa_consult }}" target="_blank" rel="noopener" class="dl-btn dl-btn-white">
+              Konsultasi Gratis
+            </a>
+            <a href="https://wa.me/{{ wa_number }}?text={{ wa_chat }}" target="_blank" rel="noopener" class="dl-btn dl-btn-green">
+              Chat WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="dl-hero-card">
+            <div class="dl-hero-visual">
+              <div class="dl-hero-circle"></div>
+              <div class="dl-hero-floating">
+                <div style="font-size:.95rem; font-weight:700; color:#9c816d;">Premium Aesthetic Experience</div>
+                <div style="font-size:.82rem; color:#7c6a5d; margin-top:.25rem;">
+                  Tampilan responsive untuk phone, tablet, dan desktop.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dl-section" id="treatments">
+    <div class="container">
+      <div class="row align-items-end g-3 mb-4 mb-lg-4">
+        <div class="col-lg-7">
+          <div class="dl-eyebrow">Treatments</div>
+          <h2 class="dl-section-title">Layanan Unggulan Dermalux</h2>
+        </div>
+        <div class="col-lg-5">
+          <p class="dl-section-desc mb-0">
+            Pilihan treatment aktif Dermalux ditampilkan dalam format carousel agar lebih nyaman dilihat tanpa memakan terlalu banyak ruang.
+          </p>
+        </div>
+      </div>
+
+      {% if tariff_rows %}
+      <div class="dl-carousel-wrap">
+        <div class="dl-carousel-nav">
+          <button type="button" class="dl-carousel-btn" onclick="scrollTariffCarousel(-320)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button type="button" class="dl-carousel-btn" onclick="scrollTariffCarousel(320)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="dl-carousel-scroll" id="tariffCarousel">
+          {% for item in tariff_rows %}
+          {% set wa_tariff = ("Halo Admin Dermalux,\nSaya ingin bertanya tentang treatment " ~ (item.treatment_name or '') ~ ".\nBoleh minta info detailnya?")|urlencode %}
+          <div class="dl-carousel-card">
+            <div class="dl-card p-3 p-md-4 h-100">
+              <div class="dl-treatment-thumb mb-3"></div>
+
+              <div class="dl-meta-label">
+                {{ item.category_name or 'Treatment' }}
+              </div>
+
+              <h5 style="font-weight:700; color:var(--dl-text); min-height:48px;">
+                {{ item.treatment_name }}
+              </h5>
+
+              <div class="mt-2 mb-3">
+                {% if item.promo_is_active and item.promo_price %}
+                  <div class="d-flex align-items-end gap-2 flex-wrap">
+                    <div class="dl-price-sm">
+                      IDR {{ "{:,.0f}".format((item.promo_price or 0)|float).replace(",", ".") }}
+                    </div>
+                    <div class="dl-old-price">
+                      IDR {{ "{:,.0f}".format((item.price or 0)|float).replace(",", ".") }}
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="dl-price-sm">
+                    IDR {{ "{:,.0f}".format((item.price or 0)|float).replace(",", ".") }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <p class="dl-section-desc mb-3">
+                {{ item.category_name or 'Treatment profesional untuk kebutuhan kulit Anda.' }}
+              </p>
+
+              <a href="https://wa.me/{{ wa_number }}?text={{ wa_tariff }}"
+                 target="_blank"
+                 rel="noopener"
+                 class="dl-btn dl-btn-green w-100">
+                Tanya Treatment
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="dl-card dl-empty-box">
+        <p class="dl-section-desc mb-0">
+          Data treatment belum tersedia.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="dl-section dl-section-soft" id="testimoni">
+    <div class="container">
+      <div class="text-center mb-4 mb-lg-5">
+        <div class="dl-eyebrow">Testimoni</div>
+        <h2 class="dl-section-title">Testimoni Klien</h2>
+        <p class="dl-section-desc mx-auto mt-3" style="max-width:760px;">
+          Data review nanti bisa Anda ambil dari tabel review yang diinput admin setelah login.
+          Untuk sekarang saya isi contoh dummy agar layout-nya langsung terlihat.
+        </p>
+      </div>
+
+      {% set testimonials = [
+        {
+          'name':'Clara A.',
+          'quote':'Setelah perawatan di Dermalux, kulit saya terasa lebih kencang dan glowing.'
+        },
+        {
+          'name':'Melinda K.',
+          'quote':'Treatment di Dermalux membuat wajah saya terlihat lebih fresh dan proporsional.'
+        },
+        {
+          'name':'Jessica L.',
+          'quote':'Pengalaman facial terbaik. Kulit terasa bersih, halus, dan bercahaya setelah treatment.'
+        }
+      ] %}
+
+      <div class="row g-4">
+        {% for item in testimonials %}
+        <div class="col-md-6 col-xl-4">
+          <div class="dl-card p-3 p-md-4 h-100">
+            <div class="dl-testi-compare mb-3">
+              <div class="dl-testi-thumb">
+                <div class="dl-testi-label">Sebelum</div>
+              </div>
+              <div class="dl-testi-thumb">
+                <div class="dl-testi-label">Sesudah</div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-start gap-3">
+              <div>
+                <h5 class="mb-1" style="font-weight:700; color:var(--dl-text);">{{ item.name }}</h5>
+                <div class="dl-stars">★★★★★</div>
+              </div>
+            </div>
+            <p class="dl-section-desc mt-3 mb-0">
+              “{{ item.quote }}”
+            </p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {% if promo_rows %}
+  <section class="dl-section" id="promo">
+    <div class="container">
+      <div class="row align-items-end g-3 mb-4 mb-lg-5">
+        <div class="col-lg-8">
+          <div class="dl-eyebrow">Promo</div>
+          <h2 class="dl-section-title">Paket Promo &amp; Favorit</h2>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+          <a href="https://wa.me/{{ wa_number }}?text={{ wa_consult }}" target="_blank" rel="noopener" style="font-weight:600; color:var(--dl-green); text-decoration:none;">
+            Konsultasi Sekarang
+          </a>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-xl-8">
+          <div class="row g-4">
+            {% for item in promo_rows %}
+            {% set wa_promo = ("Halo Admin Dermalux,\nSaya tertarik dengan promo " ~ (item.treatment_name or 'treatment') ~ ".\nBoleh minta detailnya?")|urlencode %}
+            <div class="col-md-6">
+              <div class="dl-card overflow-hidden h-100">
+                <div class="dl-promo-thumb">
+                  <div class="dl-badge">Promo Aktif</div>
+                </div>
+                <div class="p-4">
+                  <div class="dl-meta-label">
+                    {{ item.category_name or 'Promo Treatment' }}
+                  </div>
+
+                  <h4 style="font-weight:700; color:var(--dl-text); margin-bottom:.35rem;">
+                    {{ item.treatment_name }}
+                  </h4>
+
+                  <div class="dl-section-desc mb-3">
+                    {% if item.promo_type and item.promo_value %}
+                      Promo {{ item.promo_type }} {{ item.promo_value }}
+                    {% else %}
+                      Special treatment promo
+                    {% endif %}
+                  </div>
+
+                  <div class="d-flex align-items-end gap-3 mb-4 flex-wrap">
+                    <div class="dl-price">
+                      IDR {{ "{:,.0f}".format((item.promo_price or 0)|float).replace(",", ".") }}
+                    </div>
+                    <div class="dl-old-price">
+                      IDR {{ "{:,.0f}".format((item.price or 0)|float).replace(",", ".") }}
+                    </div>
+                  </div>
+
+                  <a href="https://wa.me/{{ wa_number }}?text={{ wa_promo }}" target="_blank" rel="noopener" class="dl-btn dl-btn-green">
+                    Booking
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="col-xl-4">
+          <div class="dl-card p-4 p-lg-5 h-100">
+            <h3 style="font-weight:700; color:var(--dl-text);">Kenapa Memilih Dermalux</h3>
+            <p class="dl-section-desc mt-3">
+              Kami didukung oleh tim dokter dan terapis yang profesional, berpengalaman, dan berorientasi pada kenyamanan pasien.
+            </p>
+
+            <ul class="dl-checklist mt-4">
+              <li>Dokter &amp; terapis berpengalaman</li>
+              <li>Perawatan aman &amp; terpercaya</li>
+              <li>Suasana klinik nyaman dan premium</li>
+              <li>Promo tampil otomatis sesuai data aktif hari ini</li>
+            </ul>
+
+            <div class="mt-4 p-4" style="border-radius:24px; background:linear-gradient(135deg,#f0e5dc,#d9c8b8);">
+              <div style="font-size:.88rem; color:#7b6657;">WhatsApp Booking</div>
+              <div style="font-size:1.35rem; font-weight:700; color:var(--dl-text); margin-top:.3rem;">+62 878-8515-3080</div>
+              <a href="https://wa.me/{{ wa_number }}?text={{ wa_booking_general }}" target="_blank" rel="noopener" class="dl-btn dl-btn-green mt-3">
+                Chat Sekarang
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="dl-section dl-section-soft" id="dokter">
+    <div class="container">
+      <div class="mb-4 mb-lg-5">
+        <div class="dl-eyebrow">Our Team</div>
+        <h2 class="dl-section-title">Dokter &amp; Tenaga Ahli Kami</h2>
+      </div>
+
+      {% set doctors = [
+        {'name':'Dr. Sarah Mulyani','role':'Dokter Estetika'},
+        {'name':'Dr. Lita Dewi','role':'Dokter Anti Aging'},
+        {'name':'Terapis Clara','role':'Beauty Therapist'}
+      ] %}
+
+      <div class="row g-4">
+        {% for item in doctors %}
+        <div class="col-sm-6 col-xl-4">
+          <div class="dl-card p-3 p-md-4 h-100">
+            <div class="dl-doctor-thumb mb-3"></div>
+            <h4 style="font-weight:700; color:var(--dl-text); margin-bottom:.3rem;">{{ item.name }}</h4>
+            <div class="dl-section-desc">{{ item.role }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="dl-section" id="contact">
+    <div class="container">
+      <div class="row g-4 g-xl-5">
+        <div class="col-xl-5">
+          <div class="dl-card dl-contact-box h-100">
+            <div class="dl-eyebrow">Contact</div>
+            <h2 class="dl-section-title">Kunjungi Dermalux</h2>
+
+            <div class="dl-contact-meta mt-4">
+              <div class="mb-4">
+                <div class="label">WhatsApp</div>
+                <div class="dl-section-desc mb-0">+62 878-8515-3080</div>
+              </div>
+
+              <div class="mb-4">
+                <div class="label">Alamat</div>
+                <div class="dl-section-desc mb-0">Jl. Merci Raya Ruko NO : 89, Suka Makmur, Kec. Deli Tua, Kabupaten Deli Serdang, Sumatera Utara 20356</div>
+              </div>
+
+              <div class="mb-4">
+                <div class="label">Jam Operasional</div>
+                <div class="dl-section-desc mb-0">Senin - Sabtu, 09.00 - 20.00</div>
+              </div>
+            </div>
+
+            <div class="d-flex flex-column gap-3 mt-4">
+              <a href="https://wa.me/{{ wa_number }}?text={{ wa_contact }}" target="_blank" rel="noopener" class="dl-btn dl-btn-green">
+                Chat WhatsApp
+              </a>
+              <a href="https://www.google.com/maps?q=DERMALUX" target="_blank" rel="noopener" class="dl-btn dl-btn-white">
+                Lihat di Google Maps
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-7">
+          <div class="dl-card p-3 p-md-4 h-100">
+            <div class="dl-map-wrap">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3982.326579431519!2d98.67657229999999!3d3.5117244000000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30313ba6e66f2ecb%3A0xc8aaa7fdb332fc5!2sDERMALUX!5e0!3m2!1sen!2sid!4v1775362210861!5m2!1sen!2sid"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title="Dermalux Map">
+              </iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <a href="https://wa.me/{{ wa_number }}?text={{ wa_floating }}" target="_blank" rel="noopener" class="dl-floating-wa">
+    Chat WhatsApp · +62 878-8515-3080
+  </a>
+  <div class="dl-footer-space"></div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function scrollTariffCarousel(amount) {
+    const el = document.getElementById('tariffCarousel');
+    if (!el) return;
+    el.scrollBy({ left: amount, behavior: 'smooth' });
+  }
+</script>
+{% endblock %}

@@ -17,7 +17,24 @@ def index():
         title="Dashboard",
         promo_rows=promo_rows
     )
+
 @bp.get("/patients")
 @require_permission("PATIENT.VIEW")
 def patient_page():
     return render_template("patient/patient.html")
+
+@bp.get("/webProfile")
+def landing_page():
+    promo_rows = TariffRepository.list_today_active_promos()
+
+    tariff_rows = TariffRepository.list_tariffs(
+        active_only=True,
+        limit=100
+    )
+
+    return render_template(
+        "webprofile/dermalux.html",
+        title="Dermalux",
+        promo_rows=promo_rows or [],
+        tariff_rows=tariff_rows or []
+    )
