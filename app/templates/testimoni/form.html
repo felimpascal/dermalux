@@ -1,0 +1,256 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<style>
+  .page-head{
+    gap:.75rem;
+  }
+
+  .form-box{
+    border:1px solid rgba(0,0,0,.08);
+    border-radius:1rem;
+    overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,0,0,.04);
+  }
+
+  .action-bar{
+    display:flex;
+    gap:.75rem;
+    flex-wrap:wrap;
+  }
+
+  .rating-note{
+    font-size:.85rem;
+    color:#6c757d;
+  }
+
+  .rating-preview{
+    font-size:1.15rem;
+    color:#f0ad4e;
+    letter-spacing:.04em;
+    min-height:1.5rem;
+  }
+
+  .review-hint{
+    font-size:.85rem;
+    color:#6c757d;
+  }
+
+  @media (max-width: 767.98px){
+    .page-head{
+      flex-direction:column;
+      align-items:stretch !important;
+    }
+
+    .page-head .btn{
+      width:100%;
+    }
+
+    .form-box .form-control,
+    .form-box .form-select,
+    .form-box .btn{
+      min-height:44px;
+      font-size:.95rem;
+    }
+
+    .action-bar .btn{
+      width:100%;
+    }
+  }
+</style>
+
+<div class="container-fluid">
+
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-3 page-head">
+    <div>
+      <h4 class="mb-1">
+        {% if mode == 'edit' %}Edit Testimoni{% else %}Tambah Testimoni{% endif %}
+      </h4>
+      <div class="text-muted small">
+        {% if mode == 'edit' %}
+          Ubah data testimoni manual dari Google Review
+        {% else %}
+          Tambahkan testimoni manual dari Google Review
+        {% endif %}
+      </div>
+    </div>
+
+    <a href="{{ url_for('testimoni.testimoni_list_page') }}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Kembali
+    </a>
+  </div>
+
+  <form method="post" action="{{ url_for('testimoni.testimoni_save_post') }}">
+
+    {% if mode == 'edit' %}
+      <input type="hidden" name="id" value="{{ row.id }}">
+    {% endif %}
+
+    <div class="row g-3">
+      <div class="col-12 col-xl-8">
+        <div class="card form-box">
+          <div class="card-body p-3 p-md-4">
+
+            <div class="row g-3">
+
+              <!-- NAMA -->
+              <div class="col-12 col-md-6">
+                <label class="form-label">Nama</label>
+                <input type="text"
+                       name="name_text"
+                       class="form-control"
+                       value="{{ row.name_text if row else '' }}"
+                       required>
+              </div>
+
+              <!-- TANGGAL -->
+              <div class="col-12 col-md-6">
+                <label class="form-label">Tanggal Review</label>
+                <input type="date"
+                       name="review_date"
+                       class="form-control"
+                       value="{% if row and row.review_date and row.review_date.strftime is defined %}{{ row.review_date.strftime('%Y-%m-%d') }}{% elif row and row.review_date %}{{ row.review_date }}{% endif %}"
+                       required>
+              </div>
+
+              <!-- RATING -->
+              <div class="col-12 col-md-6">
+                <label class="form-label">Rating</label>
+                <select name="rating" id="ratingSelect" class="form-select" required>
+                  <option value="">-- Pilih Rating --</option>
+                  {% for r in range(1, 6) %}
+                    <option value="{{ r }}"
+                      {% if row and row.rating == r %}selected{% endif %}>
+                      {{ r }} Bintang
+                    </option>
+                  {% endfor %}
+                </select>
+                <div class="rating-note mt-1">Pilih rating dari 1 sampai 5.</div>
+              </div>
+
+              <!-- RATING PREVIEW -->
+              <div class="col-12 col-md-6">
+                <label class="form-label">Preview Bintang</label>
+                <div id="ratingPreview" class="rating-preview"></div>
+              </div>
+
+              <!-- SORT ORDER -->
+              <div class="col-12 col-md-6">
+                <label class="form-label">Nomor Urut</label>
+                <input type="number"
+                       name="sort_order"
+                       class="form-control"
+                       value="{{ row.sort_order if row else 0 }}"
+                       min="0">
+                <div class="form-text">
+                  Semakin kecil angka, semakin atas tampil di web profile.
+                </div>
+              </div>
+
+              <!-- STATUS -->
+              <div class="col-12 col-md-6 d-flex align-items-end">
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input"
+                         type="checkbox"
+                         name="is_active"
+                         value="1"
+                         {% if not row or row.is_active %}checked{% endif %}>
+                  <label class="form-check-label">Aktif</label>
+                </div>
+              </div>
+
+              <!-- REVIEW -->
+              <div class="col-12">
+                <label class="form-label">Review</label>
+                <textarea name="review_text"
+                          class="form-control"
+                          rows="8"
+                          required>{{ row.review_text if row else '' }}</textarea>
+                <div class="review-hint mt-1">
+                  Tempel isi review manual dari Google Review di sini.
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT INFO BOX -->
+      <div class="col-12 col-xl-4">
+        <div class="card form-box">
+          <div class="card-body p-3 p-md-4">
+            <h6 class="mb-3">Panduan Input</h6>
+
+            <div class="small text-muted">
+              <div class="mb-2">
+                <strong>Nama</strong><br>
+                Isi sesuai nama reviewer.
+              </div>
+
+              <div class="mb-2">
+                <strong>Tanggal Review</strong><br>
+                Isi tanggal review yang terlihat di Google Review.
+              </div>
+
+              <div class="mb-2">
+                <strong>Rating</strong><br>
+                Gunakan angka 1 sampai 5.
+              </div>
+
+              <div class="mb-2">
+                <strong>Review</strong><br>
+                Copy paste isi review secara manual.
+              </div>
+
+              <div class="mb-0">
+                <strong>Nomor Urut</strong><br>
+                Gunakan untuk mengatur prioritas tampil di web profile.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTION -->
+    <div class="mt-3 action-bar">
+      <button class="btn btn-primary">
+        <i class="bi bi-save me-1"></i> Simpan
+      </button>
+
+      <a href="{{ url_for('testimoni.testimoni_list_page') }}" class="btn btn-outline-secondary">
+        Batal
+      </a>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const ratingSelect = document.getElementById("ratingSelect");
+  const ratingPreview = document.getElementById("ratingPreview");
+
+  function renderStars(val) {
+    const rating = parseInt(val || 0, 10);
+    let stars = "";
+    for (let i = 1; i <= 5; i++) {
+      stars += i <= rating ? "★" : "☆";
+    }
+    ratingPreview.textContent = stars;
+  }
+
+  if (ratingSelect) {
+    renderStars(ratingSelect.value);
+    ratingSelect.addEventListener("change", function () {
+      renderStars(this.value);
+    });
+  }
+});
+</script>
+
+{% endblock %}

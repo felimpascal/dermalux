@@ -21,12 +21,12 @@
     display:none;
   }
 
-  .team-card-list{
+  .testimoni-card-list{
     display:grid;
     gap:.85rem;
   }
 
-  .team-card{
+  .testimoni-card{
     border:1px solid rgba(0,0,0,.08);
     border-radius:1rem;
     background:#fff;
@@ -34,74 +34,67 @@
     overflow:hidden;
   }
 
-  .team-card-body{
+  .testimoni-card-body{
     padding:1rem;
   }
 
-  .team-top{
+  .testimoni-top{
     display:flex;
-    gap:.9rem;
+    justify-content:space-between;
     align-items:flex-start;
+    gap:.85rem;
   }
 
-  .team-thumb{
-    width:74px;
-    height:74px;
-    border-radius:.95rem;
-    object-fit:cover;
-    border:1px solid rgba(0,0,0,.08);
-    background:#f8f9fa;
-    flex:0 0 74px;
-  }
-
-  .team-thumb-placeholder{
-    width:74px;
-    height:74px;
-    border-radius:.95rem;
-    background:#f1f1f1;
-    border:1px dashed rgba(0,0,0,.12);
-    color:#999;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:.78rem;
-    flex:0 0 74px;
-  }
-
-  .team-name{
+  .testimoni-name{
     font-weight:700;
     line-height:1.35;
     margin-bottom:.18rem;
   }
 
-  .team-position{
+  .testimoni-date{
+    font-size:.84rem;
     color:#6c757d;
-    margin-bottom:.45rem;
   }
 
-  .team-grid{
+  .testimoni-rating{
+    white-space:nowrap;
+    font-size:.95rem;
+    font-weight:600;
+    color:#f0ad4e;
+  }
+
+  .testimoni-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:.85rem .9rem;
     margin-top:.95rem;
   }
 
-  .team-field.full{
+  .testimoni-field.full{
     grid-column:1 / -1;
   }
 
-  .team-label{
+  .testimoni-label{
     font-size:.76rem;
     color:#6c757d;
     margin-bottom:.12rem;
   }
 
-  .team-value{
+  .testimoni-value{
     font-weight:500;
     word-break:break-word;
   }
 
-  .team-actions{
+  .review-box{
+    background:#f8f9fa;
+    border:1px solid rgba(0,0,0,.06);
+    border-radius:.85rem;
+    padding:.8rem .9rem;
+    line-height:1.6;
+    color:#495057;
+  }
+
+  .testimoni-actions{
     margin-top:1rem;
   }
 
@@ -113,6 +106,19 @@
     min-width:82px;
     display:inline-block;
     text-align:center;
+  }
+
+  .review-cell{
+    max-width:420px;
+  }
+
+  .review-clamp{
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    line-height:1.55;
+    color:#495057;
   }
 
   @media (max-width: 991.98px){
@@ -154,24 +160,35 @@
   }
 
   @media (max-width: 420px){
-    .team-grid{
+    .testimoni-grid{
       grid-template-columns:1fr;
     }
   }
 </style>
+
+{% macro render_stars(rating) -%}
+  {% set r = rating or 0 %}
+  {% for i in range(1, 6) %}
+    {% if i <= r %}
+      ★
+    {% else %}
+      ☆
+    {% endif %}
+  {% endfor %}
+{%- endmacro %}
 
 <div class="container-fluid">
 
   <!-- HEADER -->
   <div class="d-flex justify-content-between align-items-center mb-3 page-head">
     <div>
-      <h4 class="mb-1">Master Tim</h4>
-      <div class="text-muted small">Kelola dokter & tenaga ahli</div>
+      <h4 class="mb-1">Master Testimoni</h4>
+      <div class="text-muted small">Kelola testimoni manual dari Google Review</div>
     </div>
 
     <div>
-      <a href="{{ url_for('team.team_new_page') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i> Tambah Tim
+      <a href="{{ url_for('testimoni.testimoni_new_page') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Tambah Testimoni
       </a>
     </div>
   </div>
@@ -182,7 +199,7 @@
       <input type="text"
              name="q"
              class="form-control"
-             placeholder="Cari nama / jabatan..."
+             placeholder="Cari nama / isi review..."
              value="{{ q }}">
     </div>
 
@@ -200,17 +217,18 @@
     </div>
   </form>
 
-  <!-- DESKTOP / TABLET -->
+  <!-- DESKTOP / TABLE -->
   <div class="desktop-list">
     <div class="card table-box">
       <div class="card-body table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead>
             <tr>
-              <th style="width:90px;">Foto</th>
               <th>Nama</th>
-              <th>Jabatan / Spesialis</th>
-              <th style="width:120px;">Urutan</th>
+              <th style="width:130px;">Tanggal</th>
+              <th style="width:140px;">Rating</th>
+              <th>Review</th>
+              <th style="width:110px;">Urutan</th>
               <th style="width:120px;">Status</th>
               <th style="width:180px;" class="text-end">Aksi</th>
             </tr>
@@ -220,21 +238,31 @@
               {% for item in rows %}
               <tr>
                 <td>
-                  {% if item.photo_path %}
-                    <img src="{{ url_for('static', filename=item.photo_path) }}"
-                         class="team-thumb"
-                         alt="{{ item.name }}">
+                  <div class="fw-semibold">{{ item.name_text }}</div>
+                </td>
+
+                <td>
+                  {% set rd = item.review_date %}
+                  {% if rd and rd.strftime is defined %}
+                    {{ rd.strftime('%d/%m/%Y') }}
+                  {% elif rd %}
+                    {{ rd }}
                   {% else %}
-                    <div class="team-thumb-placeholder">No Img</div>
+                    -
                   {% endif %}
                 </td>
 
                 <td>
-                  <div class="fw-semibold">{{ item.name }}</div>
+                  <span class="testimoni-rating">
+                    {{ render_stars(item.rating) }}
+                  </span>
+                  <div class="small text-muted">{{ item.rating }}/5</div>
                 </td>
 
-                <td>
-                  <div class="text-muted">{{ item.position }}</div>
+                <td class="review-cell">
+                  <div class="review-clamp">
+                    {{ item.review_text }}
+                  </div>
                 </td>
 
                 <td>
@@ -253,14 +281,14 @@
 
                 <td class="text-end">
                   <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
-                    <a href="{{ url_for('team.team_edit_page', team_id=item.id) }}"
+                    <a href="{{ url_for('testimoni.testimoni_edit_page', testimoni_id=item.id) }}"
                        class="btn btn-sm btn-outline-primary">
                       <i class="bi bi-pencil-square"></i>
                     </a>
 
                     {% if item.is_active %}
                       <form method="post"
-                            action="{{ url_for('team.team_disable_post', team_id=item.id) }}"
+                            action="{{ url_for('testimoni.testimoni_disable_post', testimoni_id=item.id) }}"
                             style="display:inline;">
                         <button class="btn btn-sm btn-outline-warning">
                           Nonaktifkan
@@ -268,7 +296,7 @@
                       </form>
                     {% else %}
                       <form method="post"
-                            action="{{ url_for('team.team_enable_post', team_id=item.id) }}"
+                            action="{{ url_for('testimoni.testimoni_enable_post', testimoni_id=item.id) }}"
                             style="display:inline;">
                         <button class="btn btn-sm btn-outline-success">
                           Aktifkan
@@ -281,8 +309,8 @@
               {% endfor %}
             {% else %}
               <tr>
-                <td colspan="6" class="text-center text-muted py-4">
-                  Data tim belum tersedia
+                <td colspan="7" class="text-center text-muted py-4">
+                  Data testimoni belum tersedia
                 </td>
               </tr>
             {% endif %}
@@ -292,61 +320,78 @@
     </div>
   </div>
 
-  <!-- MOBILE -->
+  <!-- MOBILE / CARD -->
   <div class="mobile-list">
     {% if rows %}
-      <div class="team-card-list">
+      <div class="testimoni-card-list">
         {% for item in rows %}
-        <div class="team-card">
-          <div class="team-card-body">
+        <div class="testimoni-card">
+          <div class="testimoni-card-body">
 
-            <div class="team-top">
-              {% if item.photo_path %}
-                <img src="{{ url_for('static', filename=item.photo_path) }}"
-                     class="team-thumb"
-                     alt="{{ item.name }}">
-              {% else %}
-                <div class="team-thumb-placeholder">No Img</div>
-              {% endif %}
+            <div class="testimoni-top">
+              <div>
+                <div class="testimoni-name">{{ item.name_text }}</div>
+                <div class="testimoni-date">
+                  {% set rd = item.review_date %}
+                  {% if rd and rd.strftime is defined %}
+                    {{ rd.strftime('%d/%m/%Y') }}
+                  {% elif rd %}
+                    {{ rd }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </div>
+              </div>
 
-              <div class="flex-grow-1">
-                <div class="team-name">{{ item.name }}</div>
-                <div class="team-position">{{ item.position }}</div>
-
-                {% if item.is_active %}
-                  <span class="badge bg-success status-badge">Aktif</span>
-                {% else %}
-                  <span class="badge bg-secondary status-badge">Nonaktif</span>
-                {% endif %}
+              <div class="testimoni-rating">
+                {{ render_stars(item.rating) }}
               </div>
             </div>
 
-            <div class="team-grid">
-              <div class="team-field">
-                <div class="team-label">Nomor Urut</div>
-                <div class="team-value">
+            <div class="testimoni-grid">
+              <div class="testimoni-field">
+                <div class="testimoni-label">Rating</div>
+                <div class="testimoni-value">{{ item.rating }}/5</div>
+              </div>
+
+              <div class="testimoni-field">
+                <div class="testimoni-label">Nomor Urut</div>
+                <div class="testimoni-value">
                   <span class="badge bg-light text-dark border">
                     {{ item.sort_order }}
                   </span>
                 </div>
               </div>
 
-              <div class="team-field">
-                <div class="team-label">Jabatan / Spesialis</div>
-                <div class="team-value">{{ item.position }}</div>
+              <div class="testimoni-field">
+                <div class="testimoni-label">Status</div>
+                <div class="testimoni-value">
+                  {% if item.is_active %}
+                    <span class="badge bg-success status-badge">Aktif</span>
+                  {% else %}
+                    <span class="badge bg-secondary status-badge">Nonaktif</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="testimoni-field full">
+                <div class="testimoni-label">Review</div>
+                <div class="review-box">
+                  {{ item.review_text }}
+                </div>
               </div>
             </div>
 
-            <div class="team-actions">
+            <div class="testimoni-actions">
               <div class="d-grid gap-2">
-                <a href="{{ url_for('team.team_edit_page', team_id=item.id) }}"
+                <a href="{{ url_for('testimoni.testimoni_edit_page', testimoni_id=item.id) }}"
                    class="btn btn-outline-primary">
                   <i class="bi bi-pencil-square me-1"></i> Edit
                 </a>
 
                 {% if item.is_active %}
                   <form method="post"
-                        action="{{ url_for('team.team_disable_post', team_id=item.id) }}"
+                        action="{{ url_for('testimoni.testimoni_disable_post', testimoni_id=item.id) }}"
                         class="m-0">
                     <button class="btn btn-outline-warning w-100">
                       <i class="bi bi-slash-circle me-1"></i> Nonaktifkan
@@ -354,7 +399,7 @@
                   </form>
                 {% else %}
                   <form method="post"
-                        action="{{ url_for('team.team_enable_post', team_id=item.id) }}"
+                        action="{{ url_for('testimoni.testimoni_enable_post', testimoni_id=item.id) }}"
                         class="m-0">
                     <button class="btn btn-outline-success w-100">
                       <i class="bi bi-check-circle me-1"></i> Aktifkan
@@ -371,7 +416,7 @@
     {% else %}
       <div class="card table-box">
         <div class="card-body text-center text-muted py-4">
-          Data tim belum tersedia
+          Data testimoni belum tersedia
         </div>
       </div>
     {% endif %}

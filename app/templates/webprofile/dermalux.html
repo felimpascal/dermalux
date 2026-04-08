@@ -179,27 +179,6 @@
     overflow:hidden;
   }
 
-  .dl-hero-circle{
-    width:260px;
-    height:260px;
-    border-radius:50%;
-    background:radial-gradient(circle at 30% 30%, #fff, #e6d9cd 58%, #cfbfaf);
-    box-shadow:0 20px 45px rgba(90,70,55,.12);
-  }
-
-  .dl-hero-floating{
-    position:absolute;
-    left:50%;
-    bottom:22px;
-    transform:translateX(-50%);
-    width:min(88%, 340px);
-    background:rgba(255,255,255,.74);
-    border-radius:24px;
-    padding:1rem 1.1rem;
-    text-align:center;
-    box-shadow:var(--dl-shadow);
-  }
-
   .dl-chip{
     display:inline-flex;
     align-items:center;
@@ -253,7 +232,6 @@
 
   .dl-treatment-thumb,
   .dl-doctor-thumb,
-  .dl-testi-thumb,
   .dl-promo-thumb{
     background:linear-gradient(135deg,#efe4da,#d9c7b5);
   }
@@ -284,34 +262,26 @@
     background:linear-gradient(135deg,#efe4da,#d9c7b5);
   }
 
-  .dl-testi-compare{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:.9rem;
-  }
-
-  .dl-testi-thumb{
-    height:145px;
-    border-radius:18px;
-    position:relative;
-    overflow:hidden;
-  }
-
-  .dl-testi-label{
-    position:absolute;
-    top:10px;
-    left:10px;
-    right:10px;
-    display:flex;
-    justify-content:center;
-    font-size:.86rem;
-    font-weight:600;
-    color:#7b6657;
+  .dl-testi-card{
+    min-height:100%;
   }
 
   .dl-stars{
     color:#c3a36a;
     letter-spacing:.08em;
+  }
+
+  .dl-testi-date{
+    font-size:.82rem;
+    color:#9c816d;
+    margin-top:.2rem;
+  }
+
+  .dl-testi-text{
+    display:-webkit-box;
+    -webkit-line-clamp:5;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
   }
 
   .dl-promo-thumb{
@@ -390,6 +360,27 @@
   .dl-doctor-thumb{
     height:280px;
     border-radius:24px;
+    overflow:hidden;
+    background:linear-gradient(135deg,#efe4da,#d9c7b5);
+  }
+
+  .dl-doctor-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .dl-doctor-thumb-placeholder{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#9c816d;
+    font-weight:600;
+    letter-spacing:.08em;
+    background:linear-gradient(135deg,#efe4da,#d9c7b5);
   }
 
   .dl-contact-box{
@@ -516,11 +507,6 @@
 
     .dl-hero-visual{
       min-height:430px;
-    }
-
-    .dl-hero-circle{
-      width:310px;
-      height:310px;
     }
 
     .dl-section-title{
@@ -669,9 +655,9 @@
         <div class="col-lg-6">
           <div class="dl-hero-card">
             <div class="dl-hero-visual">
-                <img src="{{ url_for('static', filename='images/logo.png') }}"
-                 alt="Dermalux"
-                 class="dl-logo-img">
+              <img src="{{ url_for('static', filename='images/logo.png') }}"
+                   alt="Dermalux"
+                   class="dl-logo-img">
             </div>
           </div>
         </div>
@@ -696,10 +682,10 @@
       {% if tariff_rows %}
       <div class="dl-carousel-wrap">
         <div class="dl-carousel-nav">
-          <button type="button" class="dl-carousel-btn" onclick="scrollTariffCarousel(-320)">
+          <button type="button" class="dl-carousel-btn" onclick="scrollCarousel('tariffCarousel', -320)">
             <i class="bi bi-chevron-left"></i>
           </button>
-          <button type="button" class="dl-carousel-btn" onclick="scrollTariffCarousel(320)">
+          <button type="button" class="dl-carousel-btn" onclick="scrollCarousel('tariffCarousel', 320)">
             <i class="bi bi-chevron-right"></i>
           </button>
         </div>
@@ -711,9 +697,8 @@
             <div class="dl-card p-3 p-md-4 h-100">
               <div class="dl-treatment-thumb mb-3">
                 {% if item.photo_path %}
-                  <img
-                    src="{{ url_for('static', filename=item.photo_path) }}"
-                    alt="{{ item.treatment_name }}">
+                  <img src="{{ url_for('static', filename=item.photo_path) }}"
+                       alt="{{ item.treatment_name }}">
                 {% else %}
                   <div class="dl-treatment-thumb-placeholder">
                     Dermalux
@@ -773,55 +758,71 @@
 
   <section class="dl-section dl-section-soft" id="testimoni">
     <div class="container">
-      <div class="text-center mb-4 mb-lg-5">
-        <div class="dl-eyebrow">Testimoni</div>
-        <h2 class="dl-section-title">Testimoni Klien</h2>
-        <p class="dl-section-desc mx-auto mt-3" style="max-width:760px;">
-          Data review nanti bisa Anda ambil dari tabel review yang diinput admin setelah login.
-          Untuk sekarang saya isi contoh dummy agar layout-nya langsung terlihat.
+      <div class="row align-items-end g-3 mb-4 mb-lg-5">
+        <div class="col-lg-8">
+          <div class="dl-eyebrow">Testimoni</div>
+          <h2 class="dl-section-title">Testimoni Klien</h2>
+          <p class="dl-section-desc mb-0">
+            Review pelanggan Dermalux yang ditampilkan dari data testimoni aktif.
+          </p>
+        </div>
+      </div>
+
+      {% if testimoni_rows %}
+      <div class="dl-carousel-wrap">
+        <div class="dl-carousel-nav">
+          <button type="button" class="dl-carousel-btn" onclick="scrollCarousel('testimoniCarousel', -320)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button type="button" class="dl-carousel-btn" onclick="scrollCarousel('testimoniCarousel', 320)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="dl-carousel-scroll" id="testimoniCarousel">
+          {% for item in testimoni_rows %}
+          <div class="dl-carousel-card">
+            <div class="dl-card p-3 p-md-4 h-100 dl-testi-card">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <h5 class="mb-1" style="font-weight:700; color:var(--dl-text);">
+                    {{ item.name_text }}
+                  </h5>
+
+                  <div class="dl-stars">
+                    {% set rating = item.rating or 0 %}
+                    {% for i in range(1, 6) %}
+                      {% if i <= rating %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                  </div>
+
+                  <div class="dl-testi-date">
+                    {% if item.review_date and item.review_date.strftime is defined %}
+                      {{ item.review_date.strftime('%d/%m/%Y') }}
+                    {% elif item.review_date %}
+                      {{ item.review_date }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <p class="dl-section-desc mt-3 mb-0 dl-testi-text">
+                “{{ item.review_text }}”
+              </p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="dl-card dl-empty-box">
+        <p class="dl-section-desc mb-0">
+          Testimoni belum tersedia.
         </p>
       </div>
-
-      {% set testimonials = [
-        {
-          'name':'Clara A.',
-          'quote':'Setelah perawatan di Dermalux, kulit saya terasa lebih kencang dan glowing.'
-        },
-        {
-          'name':'Melinda K.',
-          'quote':'Treatment di Dermalux membuat wajah saya terlihat lebih fresh dan proporsional.'
-        },
-        {
-          'name':'Jessica L.',
-          'quote':'Pengalaman facial terbaik. Kulit terasa bersih, halus, dan bercahaya setelah treatment.'
-        }
-      ] %}
-
-      <div class="row g-4">
-        {% for item in testimonials %}
-        <div class="col-md-6 col-xl-4">
-          <div class="dl-card p-3 p-md-4 h-100">
-            <div class="dl-testi-compare mb-3">
-              <div class="dl-testi-thumb">
-                <div class="dl-testi-label">Sebelum</div>
-              </div>
-              <div class="dl-testi-thumb">
-                <div class="dl-testi-label">Sesudah</div>
-              </div>
-            </div>
-            <div class="d-flex justify-content-between align-items-start gap-3">
-              <div>
-                <h5 class="mb-1" style="font-weight:700; color:var(--dl-text);">{{ item.name }}</h5>
-                <div class="dl-stars">★★★★★</div>
-              </div>
-            </div>
-            <p class="dl-section-desc mt-3 mb-0">
-              “{{ item.quote }}”
-            </p>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
+      {% endif %}
     </div>
   </section>
 
@@ -851,9 +852,8 @@
                   <div class="dl-badge">Promo Aktif</div>
 
                   {% if item.photo_path %}
-                    <img
-                      src="{{ url_for('static', filename=item.photo_path) }}"
-                      alt="{{ item.treatment_name }}">
+                    <img src="{{ url_for('static', filename=item.photo_path) }}"
+                         alt="{{ item.treatment_name }}">
                   {% else %}
                     <div class="dl-promo-thumb-placeholder">
                       Dermalux Promo
@@ -927,57 +927,60 @@
 
   <section class="dl-section dl-section-soft" id="dokter">
     <div class="container">
-      <div class="mb-4 mb-lg-5">
-        <div class="dl-eyebrow">Our Team</div>
-        <h2 class="dl-section-title">Dokter &amp; Tenaga Ahli Kami</h2>
-      </div>
-
-
-      <div class="row g-4">
-
-        {% for item in team_rows %}
-        <div class="col-md-3 text-center">
-
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-
-              <!-- FOTO -->
-              {% if item.photo_path %}
-                <img src="{{ url_for('static', filename=item.photo_path) }}"
-                    class="img-fluid mb-3"
-                    style="height:200px;object-fit:cover;border-radius:12px;">
-              {% else %}
-                <div style="
-                    height:200px;
-                    background:#f1f1f1;
-                    border-radius:12px;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    color:#999;">
-                  No Image
-                </div>
-              {% endif %}
-
-              <!-- NAMA -->
-              <div style="font-weight:600;">
-                {{ item.name }}
-              </div>
-
-              <!-- POSITION -->
-              <div class="text-muted small">
-                {{ item.position }}
-              </div>
-
-            </div>
-          </div>
+      <div class="row align-items-end g-3 mb-4 mb-lg-5">
+        <div class="col-lg-8">
+          <div class="dl-eyebrow">Our Team</div>
+          <h2 class="dl-section-title">Dokter &amp; Tenaga Ahli Kami</h2>
+          <p class="dl-section-desc mb-0">
+            Tim profesional Dermalux yang siap memberikan perawatan terbaik untuk Anda.
+          </p>
 
         </div>
-        {% endfor %}
-
       </div>
 
+      {% if team_rows %}
+      <div class="dl-carousel-wrap">
+        <div class="dl-carousel-nav">
+          <button type="button" class="dl-carousel-btn" onclick="scrollCarousel('teamCarousel', -320)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button type="button" class="dl-carousel-btn" onclick="scrollCarousel('teamCarousel', 320)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
 
+        <div class="dl-carousel-scroll" id="teamCarousel">
+          {% for item in team_rows %}
+          <div class="dl-carousel-card">
+            <div class="dl-card p-3 p-md-4 h-100">
+              <div class="dl-doctor-thumb mb-3">
+                {% if item.photo_path %}
+                  <img src="{{ url_for('static', filename=item.photo_path) }}"
+                       alt="{{ item.name }}">
+                {% else %}
+                  <div class="dl-doctor-thumb-placeholder">
+                    Dermalux Team
+                  </div>
+                {% endif %}
+              </div>
+
+              <h4 style="font-weight:700; color:var(--dl-text); margin-bottom:.3rem;">
+                {{ item.name }}
+              </h4>
+
+              <div class="dl-section-desc">{{ item.position }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="dl-card dl-empty-box">
+        <p class="dl-section-desc mb-0">
+          Data tim belum tersedia.
+        </p>
+      </div>
+      {% endif %}
     </div>
   </section>
 
@@ -1020,7 +1023,14 @@
         <div class="col-xl-7">
           <div class="dl-card p-3 p-md-4 h-100">
             <div class="dl-map-wrap">
-              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3982.32657944667!2d98.6739920108623!3d3.5117243964478355!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30313ba6e66f2ecb%3A0xc8aaa7fdb332fc5!2sDERMALUX!5e0!3m2!1sen!2sid!4v1775613908926!5m2!1sen!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3982.32657944667!2d98.6739920108623!3d3.5117243964478355!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30313ba6e66f2ecb%3A0xc8aaa7fdb332fc5!2sDERMALUX!5e0!3m2!1sen!2sid!4v1775613908926!5m2!1sen!2sid"
+                      width="600"
+                      height="450"
+                      style="border:0;"
+                      allowfullscreen=""
+                      loading="lazy"
+                      referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
             </div>
           </div>
         </div>
@@ -1038,8 +1048,8 @@
 
 {% block scripts %}
 <script>
-  function scrollTariffCarousel(amount) {
-    const el = document.getElementById('tariffCarousel');
+  function scrollCarousel(id, amount) {
+    const el = document.getElementById(id);
     if (!el) return;
     el.scrollBy({ left: amount, behavior: 'smooth' });
   }

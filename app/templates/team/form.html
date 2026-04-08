@@ -1,10 +1,94 @@
 {% extends "base/base.html" %}
 {% block content %}
 
+<style>
+  .page-head{
+    gap:.75rem;
+  }
+
+  .form-box,
+  .photo-box{
+    border:1px solid rgba(0,0,0,.08);
+    border-radius:1rem;
+    overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,0,0,.04);
+  }
+
+  .photo-preview-wrap{
+    border:1px dashed rgba(0,0,0,.12);
+    border-radius:1rem;
+    background:#f8f9fa;
+    overflow:hidden;
+  }
+
+  .photo-preview-img{
+    width:100%;
+    max-height:320px;
+    min-height:260px;
+    object-fit:cover;
+    display:block;
+    border-radius:1rem;
+  }
+
+  .photo-preview-empty{
+    width:100%;
+    min-height:260px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:1rem;
+    color:#999;
+    background:#f1f1f1;
+    text-align:center;
+    padding:1rem;
+  }
+
+  .action-bar{
+    display:flex;
+    gap:.75rem;
+    flex-wrap:wrap;
+  }
+
+  .form-hint{
+    font-size:.85rem;
+    color:#6c757d;
+  }
+
+  @media (max-width: 767.98px){
+    .page-head{
+      flex-direction:column;
+      align-items:stretch !important;
+    }
+
+    .page-head .btn{
+      width:100%;
+    }
+
+    .form-box .form-control,
+    .form-box .form-select,
+    .form-box .btn,
+    .photo-box .form-control,
+    .photo-box .btn{
+      min-height:44px;
+      font-size:.95rem;
+    }
+
+    .photo-preview-img,
+    .photo-preview-empty{
+      min-height:220px;
+      max-height:260px;
+    }
+
+    .action-bar .btn{
+      width:100%;
+    }
+  }
+</style>
+
 <div class="container-fluid">
 
   <!-- HEADER -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-3 page-head">
     <div>
       <h4 class="mb-1">
         {% if mode == 'edit' %}Edit Tim{% else %}Tambah Tim{% endif %}
@@ -19,11 +103,13 @@
     </div>
 
     <a href="{{ url_for('team.team_list_page') }}" class="btn btn-secondary">
-      Kembali
+      <i class="bi bi-arrow-left me-1"></i> Kembali
     </a>
   </div>
 
-  <form method="post" action="{{ url_for('team.team_save_post') }}" enctype="multipart/form-data">
+  <form method="post"
+        action="{{ url_for('team.team_save_post') }}"
+        enctype="multipart/form-data">
 
     {% if mode == 'edit' %}
       <input type="hidden" name="id" value="{{ row.id }}">
@@ -32,30 +118,41 @@
     <div class="row g-3">
 
       <!-- LEFT -->
-      <div class="col-md-8">
-
-        <div class="card">
-          <div class="card-body">
+      <div class="col-12 col-lg-8">
+        <div class="card form-box">
+          <div class="card-body p-3 p-md-4">
 
             <!-- NAMA -->
             <div class="mb-3">
               <label class="form-label">Nama</label>
-              <input type="text" name="name" class="form-control"
-                     value="{{ row.name if row else '' }}" required>
+              <input type="text"
+                     name="name"
+                     class="form-control"
+                     value="{{ row.name if row else '' }}"
+                     required>
             </div>
 
             <!-- POSITION -->
             <div class="mb-3">
               <label class="form-label">Jabatan / Spesialis</label>
-              <input type="text" name="position" class="form-control"
-                     value="{{ row.position if row else '' }}" required>
+              <input type="text"
+                     name="position"
+                     class="form-control"
+                     value="{{ row.position if row else '' }}"
+                     required>
             </div>
 
             <!-- SORT ORDER -->
             <div class="mb-3">
               <label class="form-label">Nomor Urut</label>
-              <input type="number" name="sort_order" class="form-control"
-                     value="{{ row.sort_order if row else 0 }}" min="0">
+              <input type="number"
+                     name="sort_order"
+                     class="form-control"
+                     value="{{ row.sort_order if row else 0 }}"
+                     min="0">
+              <div class="form-text">
+                Semakin kecil angka, semakin atas tampil di web profile.
+              </div>
             </div>
 
             <!-- STATUS -->
@@ -70,70 +167,70 @@
 
           </div>
         </div>
-
       </div>
 
       <!-- RIGHT -->
-      <div class="col-md-4">
-
-        <div class="card">
-          <div class="card-body">
+      <div class="col-12 col-lg-4">
+        <div class="card photo-box">
+          <div class="card-body p-3 p-md-4">
 
             <label class="form-label">Foto</label>
 
             <!-- PREVIEW -->
-            <div class="mb-3 text-center">
-
+            <div class="photo-preview-wrap mb-3 text-center">
               {% if row and row.photo_path %}
                 <img id="preview-img"
                      src="{{ url_for('static', filename=row.photo_path) }}"
-                     style="width:100%;max-height:250px;object-fit:cover;border-radius:10px;">
+                     class="photo-preview-img"
+                     alt="Foto Tim">
               {% else %}
-                <div id="preview-img"
-                     style="
-                      width:100%;
-                      height:200px;
-                      background:#f1f1f1;
-                      display:flex;
-                      align-items:center;
-                      justify-content:center;
-                      border-radius:10px;
-                      color:#999;">
-                  No Image
+                <div id="preview-img" class="photo-preview-empty">
+                  <div>
+                    <div style="font-size:1.05rem; font-weight:600;">No Image</div>
+                    <div class="form-hint mt-1">Belum ada foto yang diupload</div>
+                  </div>
                 </div>
               {% endif %}
-
             </div>
 
             <!-- UPLOAD -->
-            <input type="file" name="photo" class="form-control mb-3"
-                   accept="image/png, image/jpeg">
+            <div class="mb-3">
+              <input type="file"
+                     name="photo"
+                     id="photoInput"
+                     class="form-control"
+                     accept="image/png, image/jpeg, image/jpg">
+            </div>
 
             <!-- DELETE PHOTO -->
             {% if mode == 'edit' and row and row.photo_path %}
               <button type="button"
-                      class="btn btn-outline-danger w-100 mb-2"
+                      class="btn btn-outline-danger w-100 mb-3"
                       onclick="deletePhoto({{ row.id }})">
-                Hapus Foto
+                <i class="bi bi-trash me-1"></i> Hapus Foto
               </button>
             {% endif %}
 
-            <div class="text-muted small">
-              Format: JPG / PNG (Max 2MB)
+            <div class="form-hint">
+              Format: JPG / JPEG / PNG <br>
+              Maksimal file: 2 MB
             </div>
 
           </div>
         </div>
-
       </div>
 
     </div>
 
     <!-- ACTION -->
-    <div class="mt-3">
+    <div class="mt-3 action-bar">
       <button class="btn btn-primary">
-        Simpan
+        <i class="bi bi-save me-1"></i> Simpan
       </button>
+
+      <a href="{{ url_for('team.team_list_page') }}" class="btn btn-outline-secondary">
+        Batal
+      </a>
     </div>
 
   </form>
@@ -157,6 +254,37 @@ function deletePhoto(id) {
   })
   .catch(() => alert("Terjadi kesalahan"));
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  const input = document.getElementById("photoInput");
+  if (!input) return;
+
+  input.addEventListener("change", function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const allowed = ["image/jpeg", "image/png", "image/jpg"];
+    if (!allowed.includes((file.type || "").toLowerCase())) {
+      alert("File harus berupa JPG, JPEG, atau PNG.");
+      input.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const preview = document.getElementById("preview-img");
+      if (!preview) return;
+
+      preview.outerHTML = `
+        <img id="preview-img"
+             src="${evt.target.result}"
+             class="photo-preview-img"
+             alt="Preview Foto Tim">
+      `;
+    };
+    reader.readAsDataURL(file);
+  });
+});
 </script>
 
 {% endblock %}

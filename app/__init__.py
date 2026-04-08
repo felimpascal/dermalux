@@ -90,7 +90,9 @@ def create_app():
     from app.modules.report.kunjungan import bp as report_kunjungan_bp
     from app.modules.report.treatment import bp as report_treatment_bp
     from app.modules.team import team_bp as team_bp
-
+    from app.modules.testimoni import testimoni_bp
+    
+    app.register_blueprint(testimoni_bp)
     app.register_blueprint(team_bp)
     app.register_blueprint(report_treatment_bp, url_prefix="/api/reports/treatment")
     app.register_blueprint(report_kunjungan_bp, url_prefix="/api/reports/kunjungan")
