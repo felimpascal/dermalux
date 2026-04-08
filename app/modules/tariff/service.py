@@ -83,6 +83,8 @@ class TariffService:
         """
         tariff_code = _clean_text(data.get("tariff_code"))
         treatment_name = _clean_text(data.get("treatment_name"))
+        photo_path = _clean_text(data.get("photo_path")) or None
+        photo_original_name = _clean_text(data.get("photo_original_name")) or None
 
         if not tariff_code:
             raise AppError("Kode tarif wajib diisi.", 400)
@@ -124,6 +126,8 @@ class TariffService:
             "tariff_code": tariff_code,
             "treatment_name": treatment_name,
             "category_id": category_id,  # boleh None
+            "photo_path": photo_path,
+            "photo_original_name": photo_original_name,
             "price": float(price.quantize(Decimal("0.01"))),
             "promo_type": promo_type,
             "promo_value": float(promo_value.quantize(Decimal("0.01"))),
@@ -164,6 +168,12 @@ class TariffService:
                 raise AppError("Nama treatment wajib diisi.", 400)
             payload["treatment_name"] = treatment_name
 
+        if "photo_path" in data:
+            payload["photo_path"] = _clean_text(data.get("photo_path")) or None
+
+        if "photo_original_name" in data:
+            payload["photo_original_name"] = _clean_text(data.get("photo_original_name")) or None
+
         # ---- category (partial) ----
         # NOTE: form select biasanya mengirim "" jika tidak dipilih
         if "category_id" in data:
@@ -179,7 +189,10 @@ class TariffService:
             price = Decimal(str(row["price"]))  # untuk validasi promo amount
 
         if "is_active" in data:
-            payload["is_active"] = _to_int01(data.get("is_active"), default=int(row.get("is_active", 1)))
+            payload["is_active"] = _to_int01(
+                data.get("is_active"),
+                default=int(row.get("is_active", 1))
+            )
 
         # ---- promo fields ----
         promo_touched = any(k in data for k in ("promo_type", "promo_value", "promo_start", "promo_end"))

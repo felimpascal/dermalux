@@ -26,6 +26,16 @@ def create_app():
     app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads")
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
+    app.config["UPLOAD_TARIFF_DIR"] = os.path.join(app.config["UPLOAD_FOLDER"], "tariff")
+    os.makedirs(app.config["UPLOAD_TARIFF_DIR"], exist_ok=True)
+
+    app.config["UPLOAD_TEAM_DIR"] = os.path.join(app.config["UPLOAD_FOLDER"], "team")
+    os.makedirs(app.config["UPLOAD_TEAM_DIR"], exist_ok=True)
+
+    app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB
+    app.config["ALLOWED_IMAGE_EXTENSIONS"] = {"jpg", "jpeg", "png"}
+
+
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
 
     app.config["DB_HOST"] = os.getenv("DB_HOST", "127.0.0.1")
@@ -79,7 +89,9 @@ def create_app():
     from app.modules.riwayat_pasien import riwayat_pasien_bp as riwayat_bp
     from app.modules.report.kunjungan import bp as report_kunjungan_bp
     from app.modules.report.treatment import bp as report_treatment_bp
+    from app.modules.team import team_bp as team_bp
 
+    app.register_blueprint(team_bp)
     app.register_blueprint(report_treatment_bp, url_prefix="/api/reports/treatment")
     app.register_blueprint(report_kunjungan_bp, url_prefix="/api/reports/kunjungan")
     app.register_blueprint(riwayat_bp)

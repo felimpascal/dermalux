@@ -8,8 +8,9 @@ from app.db import get_db
 class TariffRepository:
     """
     master_tariff columns assumed:
-      id, tariff_code, category_id, treatment_name, price,
-      promo_type, promo_value, promo_start, promo_end,
+      id, tariff_code, category_id, treatment_name,
+      photo_path, photo_original_name,
+      price, promo_type, promo_value, promo_start, promo_end,
       is_active, created_at, updated_at
 
     master_tariff_category columns:
@@ -51,26 +52,19 @@ class TariffRepository:
 
     @staticmethod
     def _normalize_payload(payload: dict[str, Any], partial: bool = False) -> dict[str, Any]:
-        """
-        Normalize and validate payload.
-        If partial=True: only normalize existing keys (PATCH update).
-        Supports:
-          - category_id
-          - optional category_code (will be resolved to category_id if provided)
-        """
         def has(k: str) -> bool:
+            if partial:
+                return k in payload
             return k in payload and payload[k] is not None
 
         out: dict[str, Any] = {}
 
-        # required on insert
         required = ["tariff_code", "treatment_name", "price", "is_active"]
         if not partial:
             missing = [k for k in required if not has(k)]
             if missing:
                 raise ValueError(f"Missing required fields: {', '.join(missing)}")
 
-        # normalize text
         if has("tariff_code"):
             out["tariff_code"] = str(payload["tariff_code"]).strip()
             if not out["tariff_code"]:
@@ -81,26 +75,36 @@ class TariffRepository:
             if not out["treatment_name"]:
                 raise ValueError("treatment_name tidak boleh kosong")
 
-        # category
+        if has("photo_path"):
+            out["photo_path"] = (
+                str(payload["photo_path"]).strip() if payload["photo_path"] is not None else None
+            ) or None
+
+        if has("photo_original_name"):
+            out["photo_original_name"] = (
+                str(payload["photo_original_name"]).strip() if payload["photo_original_name"] is not None else None
+            ) or None
+
         if has("category_id"):
-            try:
-                out["category_id"] = int(payload["category_id"])
-            except Exception:
-                raise ValueError("category_id harus angka")
+            if payload["category_id"] is None or str(payload["category_id"]).strip() == "":
+                out["category_id"] = None
+            else:
+                try:
+                    out["category_id"] = int(payload["category_id"])
+                except Exception:
+                    raise ValueError("category_id harus angka")
 
         if has("category_code"):
-            cc = str(payload["category_code"]).strip().upper()
+            cc = str(payload["category_code"]).strip().upper() if payload["category_code"] is not None else ""
             if cc:
-                out["category_code"] = cc  # resolved later (insert/update) if needed
+                out["category_code"] = cc
 
-        # numbers
         if has("price"):
             out["price"] = payload["price"]
 
         if has("is_active"):
             out["is_active"] = 1 if int(payload["is_active"]) else 0
 
-        # promo
         promo_type = payload.get("promo_type", None)
         if promo_type is not None:
             promo_type = str(promo_type).strip().lower()
@@ -113,6 +117,7 @@ class TariffRepository:
 
         if "promo_start" in payload:
             out["promo_start"] = payload.get("promo_start")
+
         if "promo_end" in payload:
             out["promo_end"] = payload.get("promo_end")
 
@@ -128,6 +133,7 @@ class TariffRepository:
 
         return out
 
+
     @staticmethod
     def _get_category_id_by_code(category_code: str) -> Optional[int]:
         db = get_db()
@@ -142,6 +148,7 @@ class TariffRepository:
             (category_code.strip().upper(),),
         )
         row = cur.fetchone()
+        cur.close()
         return int(row["id"]) if row else None
 
     # ----- queries -----
@@ -191,6 +198,8 @@ class TariffRepository:
             c.category_code,
             c.category_name,
             t.treatment_name,
+            t.photo_path,
+            t.photo_original_name,
             t.price,
             t.promo_type, t.promo_value, t.promo_start, t.promo_end,
             t.is_active, t.created_at, t.updated_at,
@@ -208,7 +217,9 @@ class TariffRepository:
         params["offset"] = int(offset)
 
         cur.execute(sql, params)
-        return cur.fetchall()
+        rows = cur.fetchall()
+        cur.close()
+        return rows
 
     @staticmethod
     def get_by_id(tariff_id: int):
@@ -219,7 +230,20 @@ class TariffRepository:
 
         sql = f"""
         SELECT
-            t.*,
+            t.id,
+            t.tariff_code,
+            t.category_id,
+            t.treatment_name,
+            t.photo_path,
+            t.photo_original_name,
+            t.price,
+            t.promo_type,
+            t.promo_value,
+            t.promo_start,
+            t.promo_end,
+            t.is_active,
+            t.created_at,
+            t.updated_at,
             c.category_code,
             c.category_name,
             CASE WHEN {promo_is_active_sql} THEN 1 ELSE 0 END AS promo_is_active,
@@ -231,7 +255,9 @@ class TariffRepository:
         WHERE t.id=%s
         """
         cur.execute(sql, (tariff_id,))
-        return cur.fetchone()
+        row = cur.fetchone()
+        cur.close()
+        return row
 
     @staticmethod
     def get_by_code(tariff_code: str):
@@ -242,7 +268,20 @@ class TariffRepository:
 
         sql = f"""
         SELECT
-            t.*,
+            t.id,
+            t.tariff_code,
+            t.category_id,
+            t.treatment_name,
+            t.photo_path,
+            t.photo_original_name,
+            t.price,
+            t.promo_type,
+            t.promo_value,
+            t.promo_start,
+            t.promo_end,
+            t.is_active,
+            t.created_at,
+            t.updated_at,
             c.category_code,
             c.category_name,
             CASE WHEN {promo_is_active_sql} THEN 1 ELSE 0 END AS promo_is_active,
@@ -255,12 +294,13 @@ class TariffRepository:
         LIMIT 1
         """
         cur.execute(sql, (tariff_code.strip(),))
-        return cur.fetchone()
+        row = cur.fetchone()
+        cur.close()
+        return row
 
     @staticmethod
     def insert(payload: dict):
         db = get_db()
-        cur = db.cursor(dictionary=True)
 
         data = TariffRepository._normalize_payload(payload, partial=False)
 
@@ -272,14 +312,30 @@ class TariffRepository:
             data["category_id"] = cid
 
         cols = [
-            "tariff_code", "category_id", "treatment_name", "price",
-            "promo_type", "promo_value", "promo_start", "promo_end",
-            "is_active"
+            "tariff_code",
+            "category_id",
+            "treatment_name",
+            "photo_path",
+            "photo_original_name",
+            "price",
+            "promo_type",
+            "promo_value",
+            "promo_start",
+            "promo_end",
+            "is_active",
         ]
         vals = [
-            "%(tariff_code)s", "%(category_id)s", "%(treatment_name)s", "%(price)s",
-            "%(promo_type)s", "%(promo_value)s", "%(promo_start)s", "%(promo_end)s",
-            "%(is_active)s"
+            "%(tariff_code)s",
+            "%(category_id)s",
+            "%(treatment_name)s",
+            "%(photo_path)s",
+            "%(photo_original_name)s",
+            "%(price)s",
+            "%(promo_type)s",
+            "%(promo_value)s",
+            "%(promo_start)s",
+            "%(promo_end)s",
+            "%(is_active)s",
         ]
 
         # default promo fields
@@ -287,6 +343,10 @@ class TariffRepository:
         data.setdefault("promo_value", 0)
         data.setdefault("promo_start", None)
         data.setdefault("promo_end", None)
+
+        # default image fields
+        data.setdefault("photo_path", None)
+        data.setdefault("photo_original_name", None)
 
         # if category_id not provided at all, allow NULL
         data.setdefault("category_id", None)
@@ -297,10 +357,12 @@ class TariffRepository:
         VALUES
         ({", ".join(vals)})
         """
-        cur2 = db.cursor()
-        cur2.execute(sql, data)
+        cur = db.cursor()
+        cur.execute(sql, data)
         db.commit()
-        return cur2.lastrowid
+        last_id = cur.lastrowid
+        cur.close()
+        return last_id
 
     @staticmethod
     def update(tariff_id: int, payload: dict):
@@ -311,7 +373,6 @@ class TariffRepository:
             return 0
 
         db = get_db()
-        cur = db.cursor(dictionary=True)
 
         data = TariffRepository._normalize_payload(payload, partial=True)
         if not data:
@@ -325,9 +386,17 @@ class TariffRepository:
             data["category_id"] = cid
 
         allowed = {
-            "tariff_code", "category_id", "treatment_name", "price",
-            "promo_type", "promo_value", "promo_start", "promo_end",
-            "is_active"
+            "tariff_code",
+            "category_id",
+            "treatment_name",
+            "photo_path",
+            "photo_original_name",
+            "price",
+            "promo_type",
+            "promo_value",
+            "promo_start",
+            "promo_end",
+            "is_active",
         }
 
         sets = []
@@ -348,10 +417,12 @@ class TariffRepository:
         SET {", ".join(sets)}
         WHERE id=%(id)s
         """
-        cur2 = db.cursor()
-        cur2.execute(sql, params)
+        cur = db.cursor()
+        cur.execute(sql, params)
         db.commit()
-        return cur2.rowcount
+        affected = cur.rowcount
+        cur.close()
+        return affected
 
     @staticmethod
     def set_active(tariff_id: int, is_active: int):
@@ -362,7 +433,9 @@ class TariffRepository:
             (1 if int(is_active) else 0, tariff_id),
         )
         db.commit()
-        return cur.rowcount
+        affected = cur.rowcount
+        cur.close()
+        return affected
 
     @staticmethod
     def list_today_active_promos(limit: int = 500, offset: int = 0):
@@ -373,10 +446,19 @@ class TariffRepository:
 
         sql = f"""
         SELECT
-            t.id, t.tariff_code,
-            t.category_id, c.category_code, c.category_name,
-            t.treatment_name, t.price,
-            t.promo_type, t.promo_value, t.promo_start, t.promo_end,
+            t.id,
+            t.tariff_code,
+            t.category_id,
+            c.category_code,
+            c.category_name,
+            t.treatment_name,
+            t.photo_path,
+            t.photo_original_name,
+            t.price,
+            t.promo_type,
+            t.promo_value,
+            t.promo_start,
+            t.promo_end,
             {promo_price_sql} AS promo_price
         FROM master_tariff t
         LEFT JOIN master_tariff_category c
@@ -388,7 +470,9 @@ class TariffRepository:
         LIMIT %s OFFSET %s
         """
         cur.execute(sql, (int(limit), int(offset)))
-        return cur.fetchall()
+        rows = cur.fetchall()
+        cur.close()
+        return rows
 
     @staticmethod
     def clear_promo(tariff_id: int):
@@ -405,7 +489,9 @@ class TariffRepository:
         """
         cur.execute(sql, (tariff_id,))
         db.commit()
-        return cur.rowcount
+        affected = cur.rowcount
+        cur.close()
+        return affected
 
     @staticmethod
     def set_promo(
@@ -438,7 +524,9 @@ class TariffRepository:
             ),
         )
         db.commit()
-        return cur.rowcount
+        affected = cur.rowcount
+        cur.close()
+        return affected
 
     @staticmethod
     def list_categories(active_only: bool = True):
@@ -457,4 +545,6 @@ class TariffRepository:
         ORDER BY category_name ASC
         """
         cur.execute(sql, params)
-        return cur.fetchall()
+        rows = cur.fetchall()
+        cur.close()
+        return rows

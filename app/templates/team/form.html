@@ -1,0 +1,162 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<div class="container-fluid">
+
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h4 class="mb-1">
+        {% if mode == 'edit' %}Edit Tim{% else %}Tambah Tim{% endif %}
+      </h4>
+      <div class="text-muted small">
+        {% if mode == 'edit' %}
+          Ubah data dokter / tenaga ahli
+        {% else %}
+          Tambahkan data tim baru
+        {% endif %}
+      </div>
+    </div>
+
+    <a href="{{ url_for('team.team_list_page') }}" class="btn btn-secondary">
+      Kembali
+    </a>
+  </div>
+
+  <form method="post" action="{{ url_for('team.team_save_post') }}" enctype="multipart/form-data">
+
+    {% if mode == 'edit' %}
+      <input type="hidden" name="id" value="{{ row.id }}">
+    {% endif %}
+
+    <div class="row g-3">
+
+      <!-- LEFT -->
+      <div class="col-md-8">
+
+        <div class="card">
+          <div class="card-body">
+
+            <!-- NAMA -->
+            <div class="mb-3">
+              <label class="form-label">Nama</label>
+              <input type="text" name="name" class="form-control"
+                     value="{{ row.name if row else '' }}" required>
+            </div>
+
+            <!-- POSITION -->
+            <div class="mb-3">
+              <label class="form-label">Jabatan / Spesialis</label>
+              <input type="text" name="position" class="form-control"
+                     value="{{ row.position if row else '' }}" required>
+            </div>
+
+            <!-- SORT ORDER -->
+            <div class="mb-3">
+              <label class="form-label">Nomor Urut</label>
+              <input type="number" name="sort_order" class="form-control"
+                     value="{{ row.sort_order if row else 0 }}" min="0">
+            </div>
+
+            <!-- STATUS -->
+            <div class="form-check form-switch">
+              <input class="form-check-input"
+                     type="checkbox"
+                     name="is_active"
+                     value="1"
+                     {% if not row or row.is_active %}checked{% endif %}>
+              <label class="form-check-label">Aktif</label>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT -->
+      <div class="col-md-4">
+
+        <div class="card">
+          <div class="card-body">
+
+            <label class="form-label">Foto</label>
+
+            <!-- PREVIEW -->
+            <div class="mb-3 text-center">
+
+              {% if row and row.photo_path %}
+                <img id="preview-img"
+                     src="{{ url_for('static', filename=row.photo_path) }}"
+                     style="width:100%;max-height:250px;object-fit:cover;border-radius:10px;">
+              {% else %}
+                <div id="preview-img"
+                     style="
+                      width:100%;
+                      height:200px;
+                      background:#f1f1f1;
+                      display:flex;
+                      align-items:center;
+                      justify-content:center;
+                      border-radius:10px;
+                      color:#999;">
+                  No Image
+                </div>
+              {% endif %}
+
+            </div>
+
+            <!-- UPLOAD -->
+            <input type="file" name="photo" class="form-control mb-3"
+                   accept="image/png, image/jpeg">
+
+            <!-- DELETE PHOTO -->
+            {% if mode == 'edit' and row and row.photo_path %}
+              <button type="button"
+                      class="btn btn-outline-danger w-100 mb-2"
+                      onclick="deletePhoto({{ row.id }})">
+                Hapus Foto
+              </button>
+            {% endif %}
+
+            <div class="text-muted small">
+              Format: JPG / PNG (Max 2MB)
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ACTION -->
+    <div class="mt-3">
+      <button class="btn btn-primary">
+        Simpan
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+function deletePhoto(id) {
+  if (!confirm("Hapus foto tim?")) return;
+
+  fetch(`/api/team/${id}/photo`, {
+    method: "DELETE"
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.ok) {
+      location.reload();
+    } else {
+      alert(res.error || "Gagal hapus foto");
+    }
+  })
+  .catch(() => alert("Terjadi kesalahan"));
+}
+</script>
+
+{% endblock %}

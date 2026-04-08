@@ -261,6 +261,27 @@
   .dl-treatment-thumb{
     height:160px;
     border-radius:20px;
+    overflow:hidden;
+    position:relative;
+  }
+
+  .dl-treatment-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .dl-treatment-thumb-placeholder{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#9c816d;
+    font-weight:600;
+    letter-spacing:.08em;
+    background:linear-gradient(135deg,#efe4da,#d9c7b5);
   }
 
   .dl-testi-compare{
@@ -296,6 +317,26 @@
   .dl-promo-thumb{
     height:230px;
     position:relative;
+    overflow:hidden;
+  }
+
+  .dl-promo-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .dl-promo-thumb-placeholder{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#9c816d;
+    font-weight:600;
+    letter-spacing:.08em;
+    background:linear-gradient(135deg,#efe4da,#d9c7b5);
   }
 
   .dl-badge{
@@ -309,6 +350,7 @@
     font-weight:700;
     padding:.42rem .8rem;
     box-shadow:var(--dl-shadow);
+    z-index:2;
   }
 
   .dl-price{
@@ -627,13 +669,9 @@
         <div class="col-lg-6">
           <div class="dl-hero-card">
             <div class="dl-hero-visual">
-              <div class="dl-hero-circle"></div>
-              <div class="dl-hero-floating">
-                <div style="font-size:.95rem; font-weight:700; color:#9c816d;">Premium Aesthetic Experience</div>
-                <div style="font-size:.82rem; color:#7c6a5d; margin-top:.25rem;">
-                  Tampilan responsive untuk phone, tablet, dan desktop.
-                </div>
-              </div>
+                <img src="{{ url_for('static', filename='images/logo.png') }}"
+                 alt="Dermalux"
+                 class="dl-logo-img">
             </div>
           </div>
         </div>
@@ -671,7 +709,17 @@
           {% set wa_tariff = ("Halo Admin Dermalux,\nSaya ingin bertanya tentang treatment " ~ (item.treatment_name or '') ~ ".\nBoleh minta info detailnya?")|urlencode %}
           <div class="dl-carousel-card">
             <div class="dl-card p-3 p-md-4 h-100">
-              <div class="dl-treatment-thumb mb-3"></div>
+              <div class="dl-treatment-thumb mb-3">
+                {% if item.photo_path %}
+                  <img
+                    src="{{ url_for('static', filename=item.photo_path) }}"
+                    alt="{{ item.treatment_name }}">
+                {% else %}
+                  <div class="dl-treatment-thumb-placeholder">
+                    Dermalux
+                  </div>
+                {% endif %}
+              </div>
 
               <div class="dl-meta-label">
                 {{ item.category_name or 'Treatment' }}
@@ -801,7 +849,18 @@
               <div class="dl-card overflow-hidden h-100">
                 <div class="dl-promo-thumb">
                   <div class="dl-badge">Promo Aktif</div>
+
+                  {% if item.photo_path %}
+                    <img
+                      src="{{ url_for('static', filename=item.photo_path) }}"
+                      alt="{{ item.treatment_name }}">
+                  {% else %}
+                    <div class="dl-promo-thumb-placeholder">
+                      Dermalux Promo
+                    </div>
+                  {% endif %}
                 </div>
+
                 <div class="p-4">
                   <div class="dl-meta-label">
                     {{ item.category_name or 'Promo Treatment' }}
@@ -873,23 +932,52 @@
         <h2 class="dl-section-title">Dokter &amp; Tenaga Ahli Kami</h2>
       </div>
 
-      {% set doctors = [
-        {'name':'Dr. Sarah Mulyani','role':'Dokter Estetika'},
-        {'name':'Dr. Lita Dewi','role':'Dokter Anti Aging'},
-        {'name':'Terapis Clara','role':'Beauty Therapist'}
-      ] %}
 
       <div class="row g-4">
-        {% for item in doctors %}
-        <div class="col-sm-6 col-xl-4">
-          <div class="dl-card p-3 p-md-4 h-100">
-            <div class="dl-doctor-thumb mb-3"></div>
-            <h4 style="font-weight:700; color:var(--dl-text); margin-bottom:.3rem;">{{ item.name }}</h4>
-            <div class="dl-section-desc">{{ item.role }}</div>
+
+        {% for item in team_rows %}
+        <div class="col-md-3 text-center">
+
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+
+              <!-- FOTO -->
+              {% if item.photo_path %}
+                <img src="{{ url_for('static', filename=item.photo_path) }}"
+                    class="img-fluid mb-3"
+                    style="height:200px;object-fit:cover;border-radius:12px;">
+              {% else %}
+                <div style="
+                    height:200px;
+                    background:#f1f1f1;
+                    border-radius:12px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    color:#999;">
+                  No Image
+                </div>
+              {% endif %}
+
+              <!-- NAMA -->
+              <div style="font-weight:600;">
+                {{ item.name }}
+              </div>
+
+              <!-- POSITION -->
+              <div class="text-muted small">
+                {{ item.position }}
+              </div>
+
+            </div>
           </div>
+
         </div>
         {% endfor %}
+
       </div>
+
+
     </div>
   </section>
 
@@ -932,13 +1020,7 @@
         <div class="col-xl-7">
           <div class="dl-card p-3 p-md-4 h-100">
             <div class="dl-map-wrap">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3982.326579431519!2d98.67657229999999!3d3.5117244000000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30313ba6e66f2ecb%3A0xc8aaa7fdb332fc5!2sDERMALUX!5e0!3m2!1sen!2sid!4v1775362210861!5m2!1sen!2sid"
-                allowfullscreen=""
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-                title="Dermalux Map">
-              </iframe>
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3982.32657944667!2d98.6739920108623!3d3.5117243964478355!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30313ba6e66f2ecb%3A0xc8aaa7fdb332fc5!2sDERMALUX!5e0!3m2!1sen!2sid!4v1775613908926!5m2!1sen!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
           </div>
         </div>

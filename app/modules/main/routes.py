@@ -4,6 +4,7 @@ from flask import render_template
 from app.modules.main import bp
 from app.common.permission import require_permission
 from app.modules.tariff.repository import TariffRepository
+from app.modules.team.repository import TeamRepository
 
 
 @bp.get("/")
@@ -32,9 +33,12 @@ def landing_page():
         limit=100
     )
 
+    team_rows = TeamRepository.list_active_ordered()
+
     return render_template(
         "webprofile/dermalux.html",
         title="Dermalux",
         promo_rows=promo_rows or [],
-        tariff_rows=tariff_rows or []
+        tariff_rows=tariff_rows or [],
+        team_rows=team_rows or []
     )

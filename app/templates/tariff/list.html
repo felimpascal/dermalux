@@ -105,6 +105,94 @@
     border-radius: .9rem;
   }
 
+  .tariff-name-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+  }
+
+  .tariff-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: .9rem;
+    object-fit: cover;
+    border: 1px solid rgba(0,0,0,.08);
+    background: #f8f9fa;
+    flex: 0 0 56px;
+  }
+
+  .tariff-thumb-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: .9rem;
+    border: 1px dashed rgba(0,0,0,.15);
+    background: #f8f9fa;
+    color: #adb5bd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 56px;
+    font-size: 1rem;
+  }
+
+  .tariff-name-main {
+    min-width: 0;
+  }
+
+  .tariff-name-title {
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: .15rem;
+  }
+
+  .tariff-name-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem .75rem;
+    align-items: center;
+  }
+
+  .btn-link-photo {
+    padding: 0;
+    font-size: .82rem;
+    text-decoration: none;
+  }
+
+  .upload-preview-box {
+    border: 1px dashed rgba(0,0,0,.15);
+    border-radius: 1rem;
+    background: #fafafa;
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .upload-preview-box img {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .upload-preview-empty {
+    color: #adb5bd;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .mobile-thumb-wrap {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: .85rem;
+  }
+
+  .mobile-thumb-meta {
+    min-width: 0;
+  }
+
   @media (max-width: 991.98px) {
     #tblTariff th,
     #tblTariff td {
@@ -252,7 +340,47 @@
               {% for r in rows %}
               <tr>
                 <td class="fw-semibold">{{ r.tariff_code }}</td>
-                <td>{{ r.treatment_name }}</td>
+
+                <td>
+                  <div class="tariff-name-wrap">
+                    {% if r.photo_path %}
+                      <img
+                        src="{{ url_for('static', filename=r.photo_path) }}"
+                        alt="{{ r.treatment_name }}"
+                        class="tariff-thumb">
+                    {% else %}
+                      <div class="tariff-thumb-placeholder">
+                        <i class="bi bi-image"></i>
+                      </div>
+                    {% endif %}
+
+                    <div class="tariff-name-main">
+                      <div class="tariff-name-title">{{ r.treatment_name }}</div>
+                      <div class="tariff-name-meta">
+                        <button type="button"
+                                class="btn btn-link btn-link-photo btn-add-photo"
+                                data-id="{{ r.id }}"
+                                data-code="{{ r.tariff_code }}"
+                                data-name="{{ r.treatment_name }}"
+                                data-photo-path="{{ r.photo_path or '' }}"
+                                data-photo-original-name="{{ r.photo_original_name or '' }}">
+                          <i class="bi bi-image me-1"></i>
+                          {% if r.photo_path %}Ganti Photo{% else %}Add Photo{% endif %}
+                        </button>
+
+                        {% if r.photo_path %}
+                          <button type="button"
+                                  class="btn btn-link text-danger btn-link-photo btn-delete-photo"
+                                  data-id="{{ r.id }}"
+                                  data-code="{{ r.tariff_code }}"
+                                  data-name="{{ r.treatment_name }}">
+                            <i class="bi bi-trash me-1"></i>Hapus Photo
+                          </button>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </td>
 
                 <td>
                   {% if r.category_name %}
@@ -339,6 +467,30 @@
                           <i class="bi bi-pencil-square me-2"></i>Edit
                         </a>
                       </li>
+
+                      <li>
+                        <button type="button"
+                                class="dropdown-item btn-add-photo"
+                                data-id="{{ r.id }}"
+                                data-code="{{ r.tariff_code }}"
+                                data-name="{{ r.treatment_name }}"
+                                data-photo-path="{{ r.photo_path or '' }}"
+                                data-photo-original-name="{{ r.photo_original_name or '' }}">
+                          <i class="bi bi-image me-2"></i>{% if r.photo_path %}Ganti Photo{% else %}Add Photo{% endif %}
+                        </button>
+                      </li>
+
+                      {% if r.photo_path %}
+                      <li>
+                        <button type="button"
+                                class="dropdown-item text-danger btn-delete-photo"
+                                data-id="{{ r.id }}"
+                                data-code="{{ r.tariff_code }}"
+                                data-name="{{ r.treatment_name }}">
+                          <i class="bi bi-trash me-2"></i>Hapus Photo
+                        </button>
+                      </li>
+                      {% endif %}
 
                       <li>
                         <button type="button"
@@ -429,6 +581,43 @@
             </div>
 
             <div class="tariff-card-body">
+              <div class="mobile-thumb-wrap">
+                {% if r.photo_path %}
+                  <img
+                    src="{{ url_for('static', filename=r.photo_path) }}"
+                    alt="{{ r.treatment_name }}"
+                    class="tariff-thumb">
+                {% else %}
+                  <div class="tariff-thumb-placeholder">
+                    <i class="bi bi-image"></i>
+                  </div>
+                {% endif %}
+
+                <div class="mobile-thumb-meta">
+                  <div class="d-flex flex-wrap gap-2">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary btn-add-photo"
+                            data-id="{{ r.id }}"
+                            data-code="{{ r.tariff_code }}"
+                            data-name="{{ r.treatment_name }}"
+                            data-photo-path="{{ r.photo_path or '' }}"
+                            data-photo-original-name="{{ r.photo_original_name or '' }}">
+                      <i class="bi bi-image me-1"></i>{% if r.photo_path %}Ganti Photo{% else %}Add Photo{% endif %}
+                    </button>
+
+                    {% if r.photo_path %}
+                      <button type="button"
+                              class="btn btn-sm btn-outline-danger btn-delete-photo"
+                              data-id="{{ r.id }}"
+                              data-code="{{ r.tariff_code }}"
+                              data-name="{{ r.treatment_name }}">
+                        <i class="bi bi-trash me-1"></i>Hapus
+                      </button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
               <div class="tariff-grid">
                 <div class="tariff-field">
                   <div class="tariff-label">Kategori</div>
@@ -578,6 +767,7 @@
   </div>
 </div>
 
+<!-- MODAL SET PROMO -->
 <div class="modal fade" id="modalSetPromo" tabindex="-1" aria-labelledby="modalSetPromoLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-scrollable">
     <form id="formSetPromo" class="modal-content">
@@ -671,6 +861,67 @@
   </div>
 </div>
 
+<!-- MODAL UPLOAD PHOTO -->
+<div class="modal fade" id="modalUploadPhoto" tabindex="-1" aria-labelledby="modalUploadPhotoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-scrollable">
+    <form id="formUploadPhoto" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalUploadPhotoLabel">Upload Foto Tarif</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="upload_tariff_id">
+
+        <div class="card bg-light border-0 mb-3 modal-info-box">
+          <div class="card-body py-3">
+            <div class="row g-3">
+              <div class="col-12 col-md-3">
+                <label class="form-label text-muted mb-1">Kode Tarif</label>
+                <div class="fw-semibold" id="upload_info_tariff_code">-</div>
+              </div>
+              <div class="col-12 col-md-5">
+                <label class="form-label text-muted mb-1">Nama Treatment</label>
+                <div class="fw-semibold" id="upload_info_tariff_name">-</div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label text-muted mb-1">File Saat Ini</label>
+                <div id="upload_info_existing_file" class="fw-semibold">-</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="photo_file" class="form-label">Pilih Foto</label>
+          <input type="file"
+                 class="form-control"
+                 id="photo_file"
+                 name="photo"
+                 accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                 required>
+          <div class="form-text">Upload 1 file gambar JPG, JPEG, atau PNG.</div>
+        </div>
+
+        <div class="upload-preview-box" id="uploadPreviewBox">
+          <div class="upload-preview-empty" id="uploadPreviewEmpty">
+            <div><i class="bi bi-image fs-1"></i></div>
+            <div class="mt-2">Preview foto akan tampil di sini</div>
+          </div>
+          <img id="uploadPreviewImg" src="" alt="Preview" style="display:none;">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitUploadPhoto">
+          <i class="bi bi-upload me-1"></i>Upload Foto
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -678,6 +929,9 @@
 $(function () {
   const modalEl = document.getElementById('modalSetPromo');
   const modalSetPromo = modalEl ? new bootstrap.Modal(modalEl) : null;
+
+  const modalUploadEl = document.getElementById('modalUploadPhoto');
+  const modalUploadPhoto = modalUploadEl ? new bootstrap.Modal(modalUploadEl) : null;
 
   function hasRealTariffRows() {
     const $tbody = $('#tblTariffBody');
@@ -776,6 +1030,12 @@ $(function () {
   function getCsrfToken() {
     const token = $('meta[name="csrf-token"]').attr('content');
     return token || '';
+  }
+
+  function resetUploadPreview() {
+    $('#photo_file').val('');
+    $('#uploadPreviewImg').attr('src', '').hide();
+    $('#uploadPreviewEmpty').show();
   }
 
   safeInitDataTable();
@@ -997,6 +1257,198 @@ $(function () {
       btnSubmit.prop('disabled', false);
     }
   });
+
+  $(document).on('click', '.btn-add-photo', function () {
+    const btn = $(this);
+
+    const tariffId = btn.data('id') || '';
+    const code = btn.data('code') || '';
+    const name = btn.data('name') || '';
+    const originalName = btn.data('photo-original-name') || '';
+
+    $('#upload_tariff_id').val(tariffId);
+    $('#upload_info_tariff_code').text(code || '-');
+    $('#upload_info_tariff_name').text(name || '-');
+    $('#upload_info_existing_file').text(originalName || '-');
+
+    resetUploadPreview();
+
+    if (modalUploadPhoto) modalUploadPhoto.show();
+  });
+
+  $('#photo_file').on('change', function () {
+    const file = this.files && this.files[0] ? this.files[0] : null;
+    if (!file) {
+      resetUploadPreview();
+      return;
+    }
+
+    const allowed = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!allowed.includes((file.type || '').toLowerCase())) {
+      $(this).val('');
+      resetUploadPreview();
+      if (window.Swal) {
+        Swal.fire('Validasi', 'File harus berupa JPG, JPEG, atau PNG.', 'warning');
+      } else {
+        alert('File harus berupa JPG, JPEG, atau PNG.');
+      }
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      $('#uploadPreviewImg').attr('src', e.target.result).show();
+      $('#uploadPreviewEmpty').hide();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $('#formUploadPhoto').on('submit', async function (e) {
+    e.preventDefault();
+
+    const tariffId = $('#upload_tariff_id').val();
+    const fileInput = document.getElementById('photo_file');
+    const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+
+    if (!tariffId) {
+      Swal.fire('Error', 'Tariff ID tidak ditemukan.', 'error');
+      return;
+    }
+
+    if (!file) {
+      Swal.fire('Validasi', 'Silakan pilih 1 file foto.', 'warning');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    const btnSubmit = $('#btnSubmitUploadPhoto');
+    btnSubmit.prop('disabled', true);
+
+    try {
+      const resp = await fetch(`/api/tariff/${tariffId}/photo`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCsrfToken()
+        },
+        body: formData
+      });
+
+      let data = {};
+      try {
+        data = await resp.json();
+      } catch (err) {
+        data = {};
+      }
+
+      if (!resp.ok || data.ok === false) {
+        const msg = data.message || data.error || 'Gagal upload foto.';
+        throw new Error(msg);
+      }
+
+      if (modalUploadPhoto) modalUploadPhoto.hide();
+
+      if (window.Swal) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: 'Foto tarif berhasil diupload.'
+        });
+      } else {
+        alert('Foto tarif berhasil diupload.');
+      }
+
+      window.location.reload();
+    } catch (err) {
+      if (window.Swal) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal',
+          text: err.message || 'Terjadi kesalahan saat upload foto.'
+        });
+      } else {
+        alert(err.message || 'Terjadi kesalahan saat upload foto.');
+      }
+    } finally {
+      btnSubmit.prop('disabled', false);
+    }
+  });
+
+  $(document).on('click', '.btn-delete-photo', function () {
+    const btn = $(this);
+    const tariffId = btn.data('id') || '';
+    const code = btn.data('code') || '';
+    const name = btn.data('name') || '';
+
+    if (!tariffId) {
+      Swal.fire('Error', 'Tariff ID tidak ditemukan.', 'error');
+      return;
+    }
+
+    confirmWithSwal({
+      icon: 'warning',
+      title: 'Hapus foto tarif?',
+      html: `<div style="text-align:left">
+              <b>${code}</b><br>${name}<br><br>
+              Foto tarif akan dihapus dari sistem.
+            </div>`,
+      confirmText: 'Ya, Hapus'
+    }, async () => {
+      try {
+        const resp = await fetch(`/api/tariff/${tariffId}/photo`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRFToken': getCsrfToken()
+          }
+        });
+
+        let data = {};
+        try {
+          data = await resp.json();
+        } catch (err) {
+          data = {};
+        }
+
+        if (!resp.ok || data.ok === false) {
+          const msg = data.message || data.error || 'Gagal menghapus foto.';
+          throw new Error(msg);
+        }
+
+        if (window.Swal) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: 'Foto tarif berhasil dihapus.'
+          });
+        } else {
+          alert('Foto tarif berhasil dihapus.');
+        }
+
+        window.location.reload();
+      } catch (err) {
+        if (window.Swal) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: err.message || 'Terjadi kesalahan saat menghapus foto.'
+          });
+        } else {
+          alert(err.message || 'Terjadi kesalahan saat menghapus foto.');
+        }
+      }
+    });
+  });
+
+  if (modalUploadEl) {
+    modalUploadEl.addEventListener('hidden.bs.modal', function () {
+      resetUploadPreview();
+      $('#upload_tariff_id').val('');
+      $('#upload_info_tariff_code').text('-');
+      $('#upload_info_tariff_name').text('-');
+      $('#upload_info_existing_file').text('-');
+    });
+  }
 });
 </script>
 {% endblock %}
