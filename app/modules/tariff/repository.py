@@ -10,7 +10,7 @@ class TariffRepository:
     master_tariff columns assumed:
       id, tariff_code, category_id, treatment_name,
       photo_path, photo_original_name,
-      price, promo_type, promo_value, promo_start, promo_end,
+      price, promo_type, promo_value, promo_start, promo_end, promo_category,
       is_active, created_at, updated_at
 
     master_tariff_category columns:
@@ -121,10 +121,18 @@ class TariffRepository:
         if "promo_end" in payload:
             out["promo_end"] = payload.get("promo_end")
 
+        if has("promo_category"):
+            out["promo_category"] = (
+                str(payload["promo_category"]).strip()
+                if payload["promo_category"] is not None
+                else None
+            ) or None
+
         if out.get("promo_type") == "none":
             out.setdefault("promo_value", 0)
             out.setdefault("promo_start", None)
             out.setdefault("promo_end", None)
+            out.setdefault("promo_category", None)
 
         if out.get("promo_type") in ("percent", "amount"):
             if (not partial) or ("promo_start" in out or "promo_end" in out):
@@ -132,7 +140,6 @@ class TariffRepository:
                     raise ValueError("promo_start dan promo_end wajib diisi jika promo_type bukan 'none'")
 
         return out
-
 
     @staticmethod
     def _get_category_id_by_code(category_code: str) -> Optional[int]:
@@ -172,7 +179,7 @@ class TariffRepository:
         params: dict[str, Any] = {}
 
         if search:
-            where.append("(t.tariff_code LIKE %(q)s OR t.treatment_name LIKE %(q)s)")
+            where.append("(t.tariff_code LIKE %(q)s OR t.treatment_name LIKE %(q)s OR t.promo_category LIKE %(q)s)")
             params["q"] = f"%{search.strip()}%"
 
         if active_only:
@@ -201,8 +208,14 @@ class TariffRepository:
             t.photo_path,
             t.photo_original_name,
             t.price,
-            t.promo_type, t.promo_value, t.promo_start, t.promo_end,
-            t.is_active, t.created_at, t.updated_at,
+            t.promo_type,
+            t.promo_value,
+            t.promo_start,
+            t.promo_end,
+            t.promo_category,
+            t.is_active,
+            t.created_at,
+            t.updated_at,
             CASE WHEN {promo_is_active_sql} THEN 1 ELSE 0 END AS promo_is_active,
             {promo_price_sql} AS promo_price,
             {promo_price_sql} AS final_price
@@ -241,6 +254,7 @@ class TariffRepository:
             t.promo_value,
             t.promo_start,
             t.promo_end,
+            t.promo_category,
             t.is_active,
             t.created_at,
             t.updated_at,
@@ -279,6 +293,7 @@ class TariffRepository:
             t.promo_value,
             t.promo_start,
             t.promo_end,
+            t.promo_category,
             t.is_active,
             t.created_at,
             t.updated_at,
@@ -304,7 +319,6 @@ class TariffRepository:
 
         data = TariffRepository._normalize_payload(payload, partial=False)
 
-        # resolve category_code -> category_id (if provided)
         if "category_id" not in data and "category_code" in data:
             cid = TariffRepository._get_category_id_by_code(data["category_code"])
             if cid is None:
@@ -322,6 +336,7 @@ class TariffRepository:
             "promo_value",
             "promo_start",
             "promo_end",
+            "promo_category",
             "is_active",
         ]
         vals = [
@@ -335,20 +350,19 @@ class TariffRepository:
             "%(promo_value)s",
             "%(promo_start)s",
             "%(promo_end)s",
+            "%(promo_category)s",
             "%(is_active)s",
         ]
 
-        # default promo fields
         data.setdefault("promo_type", "none")
         data.setdefault("promo_value", 0)
         data.setdefault("promo_start", None)
         data.setdefault("promo_end", None)
+        data.setdefault("promo_category", None)
 
-        # default image fields
         data.setdefault("photo_path", None)
         data.setdefault("photo_original_name", None)
 
-        # if category_id not provided at all, allow NULL
         data.setdefault("category_id", None)
 
         sql = f"""
@@ -378,7 +392,6 @@ class TariffRepository:
         if not data:
             return 0
 
-        # resolve category_code -> category_id (if provided)
         if "category_code" in data and "category_id" not in data:
             cid = TariffRepository._get_category_id_by_code(data["category_code"])
             if cid is None:
@@ -396,6 +409,7 @@ class TariffRepository:
             "promo_value",
             "promo_start",
             "promo_end",
+            "promo_category",
             "is_active",
         }
 
@@ -459,6 +473,7 @@ class TariffRepository:
             t.promo_value,
             t.promo_start,
             t.promo_end,
+            t.promo_category,
             {promo_price_sql} AS promo_price
         FROM master_tariff t
         LEFT JOIN master_tariff_category c
@@ -484,7 +499,8 @@ class TariffRepository:
             promo_type='none',
             promo_value=0,
             promo_start=NULL,
-            promo_end=NULL
+            promo_end=NULL,
+            promo_category=NULL
         WHERE id=%s
         """
         cur.execute(sql, (tariff_id,))
@@ -500,6 +516,7 @@ class TariffRepository:
         promo_value,
         promo_start,
         promo_end,
+        promo_category=None,
     ):
         db = get_db()
         cur = db.cursor()
@@ -510,7 +527,8 @@ class TariffRepository:
             promo_type=%s,
             promo_value=%s,
             promo_start=%s,
-            promo_end=%s
+            promo_end=%s,
+            promo_category=%s
         WHERE id=%s
         """
         cur.execute(
@@ -520,6 +538,7 @@ class TariffRepository:
                 promo_value,
                 promo_start,
                 promo_end,
+                (str(promo_category).strip() if promo_category is not None else None) or None,
                 tariff_id,
             ),
         )
@@ -545,6 +564,32 @@ class TariffRepository:
         ORDER BY category_name ASC
         """
         cur.execute(sql, params)
+        rows = cur.fetchall()
+        cur.close()
+        return rows
+
+    @staticmethod
+    def list_distinct_promo_categories(active_only: bool = False):
+        db = get_db()
+        cur = db.cursor(dictionary=True)
+
+        where = [
+            "promo_category IS NOT NULL",
+            "TRIM(promo_category) <> ''",
+        ]
+
+        if active_only:
+            promo_is_active_sql, _ = TariffRepository._compute_promo_sql("t")
+            where.append("t.is_active = 1")
+            where.append(promo_is_active_sql)
+
+        sql = f"""
+        SELECT DISTINCT t.promo_category
+        FROM master_tariff t
+        WHERE {" AND ".join(where)}
+        ORDER BY t.promo_category ASC
+        """
+        cur.execute(sql)
         rows = cur.fetchall()
         cur.close()
         return rows

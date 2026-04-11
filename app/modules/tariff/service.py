@@ -85,6 +85,7 @@ class TariffService:
         treatment_name = _clean_text(data.get("treatment_name"))
         photo_path = _clean_text(data.get("photo_path")) or None
         photo_original_name = _clean_text(data.get("photo_original_name")) or None
+        promo_category = _clean_text(data.get("promo_category")) or None
 
         if not tariff_code:
             raise AppError("Kode tarif wajib diisi.", 400)
@@ -114,12 +115,13 @@ class TariffService:
             raise AppError("Kode tarif sudah digunakan.", 400)
 
         # Promo rules
-        promo_type, promo_value, promo_start, promo_end = TariffService._validate_promo(
+        promo_type, promo_value, promo_start, promo_end, promo_category = TariffService._validate_promo(
             price=price,
             promo_type=promo_type,
             promo_value=promo_value,
             promo_start=promo_start,
             promo_end=promo_end,
+            promo_category=promo_category,
         )
 
         payload = {
@@ -133,6 +135,7 @@ class TariffService:
             "promo_value": float(promo_value.quantize(Decimal("0.01"))),
             "promo_start": promo_start,
             "promo_end": promo_end,
+            "promo_category": promo_category,
             "is_active": is_active,
         }
         return payload
@@ -175,7 +178,6 @@ class TariffService:
             payload["photo_original_name"] = _clean_text(data.get("photo_original_name")) or None
 
         # ---- category (partial) ----
-        # NOTE: form select biasanya mengirim "" jika tidak dipilih
         if "category_id" in data:
             payload["category_id"] = _parse_int_optional(data.get("category_id"), "Kategori")
 
@@ -186,7 +188,7 @@ class TariffService:
                 raise AppError("Harga tidak boleh negatif.", 400)
             payload["price"] = float(price.quantize(Decimal("0.01")))
         else:
-            price = Decimal(str(row["price"]))  # untuk validasi promo amount
+            price = Decimal(str(row["price"]))
 
         if "is_active" in data:
             payload["is_active"] = _to_int01(
@@ -195,7 +197,9 @@ class TariffService:
             )
 
         # ---- promo fields ----
-        promo_touched = any(k in data for k in ("promo_type", "promo_value", "promo_start", "promo_end"))
+        promo_touched = any(
+            k in data for k in ("promo_type", "promo_value", "promo_start", "promo_end", "promo_category")
+        )
 
         if promo_touched:
             promo_type = _clean_text(data.get("promo_type", row.get("promo_type", "none"))).lower()
@@ -210,6 +214,11 @@ class TariffService:
 
             promo_start = _parse_date(data.get("promo_start")) if "promo_start" in data else row.get("promo_start")
             promo_end = _parse_date(data.get("promo_end")) if "promo_end" in data else row.get("promo_end")
+            promo_category = (
+                _clean_text(data.get("promo_category")) or None
+                if "promo_category" in data
+                else (_clean_text(row.get("promo_category")) or None)
+            )
 
             # row promo_start/promo_end bisa date/datetime
             if promo_start and hasattr(promo_start, "date") and not isinstance(promo_start, date):
@@ -217,18 +226,20 @@ class TariffService:
             if promo_end and hasattr(promo_end, "date") and not isinstance(promo_end, date):
                 promo_end = promo_end.date()
 
-            promo_type, promo_value, promo_start, promo_end = TariffService._validate_promo(
+            promo_type, promo_value, promo_start, promo_end, promo_category = TariffService._validate_promo(
                 price=price,
                 promo_type=promo_type,
                 promo_value=promo_value,
                 promo_start=promo_start,
                 promo_end=promo_end,
+                promo_category=promo_category,
             )
 
             payload["promo_type"] = promo_type
             payload["promo_value"] = float(promo_value.quantize(Decimal("0.01")))
             payload["promo_start"] = promo_start
             payload["promo_end"] = promo_end
+            payload["promo_category"] = promo_category
 
         return payload
 
@@ -240,9 +251,12 @@ class TariffService:
         promo_value: Decimal,
         promo_start: date | None,
         promo_end: date | None,
+        promo_category: str | None = None,
     ):
+        promo_category = (_clean_text(promo_category) or None)
+
         if promo_type == "none":
-            return "none", Decimal("0"), None, None
+            return "none", Decimal("0"), None, None, None
 
         if promo_value <= 0:
             raise AppError("Nilai diskon/promo harus > 0 jika promo aktif.", 400)
@@ -259,7 +273,7 @@ class TariffService:
             if promo_value > price:
                 raise AppError("Diskon nominal tidak boleh melebihi harga.", 400)
 
-        return promo_type, promo_value, promo_start, promo_end
+        return promo_type, promo_value, promo_start, promo_end, promo_category
 
     # ----- actions -----
 
@@ -311,13 +325,15 @@ class TariffService:
         promo_value = _parse_money(data.get("promo_value"), "diskon/promo")
         promo_start = _parse_date(data.get("promo_start"))
         promo_end = _parse_date(data.get("promo_end"))
+        promo_category = _clean_text(data.get("promo_category")) or None
 
-        promo_type, promo_value, promo_start, promo_end = TariffService._validate_promo(
+        promo_type, promo_value, promo_start, promo_end, promo_category = TariffService._validate_promo(
             price=price,
             promo_type=promo_type,
             promo_value=promo_value,
             promo_start=promo_start,
             promo_end=promo_end,
+            promo_category=promo_category,
         )
 
         affected = TariffRepository.set_promo(
@@ -326,6 +342,7 @@ class TariffService:
             promo_value=float(promo_value.quantize(Decimal("0.01"))),
             promo_start=promo_start,
             promo_end=promo_end,
+            promo_category=promo_category,
         )
         if affected <= 0:
             raise AppError("Gagal menyimpan promo.", 400)

@@ -111,6 +111,9 @@ def tariff_list_page():
     category_code = (request.args.get("category") or "").strip().upper()
     category_id = _safe_int(request.args.get("category_id"), None)
 
+    # filter promo category (optional)
+    promo_category = (request.args.get("promo_category") or "").strip()
+
     # pagination optional
     limit = _safe_int(request.args.get("limit"), 500) or 500
     offset = _safe_int(request.args.get("offset"), 0) or 0
@@ -121,11 +124,14 @@ def tariff_list_page():
         category_id=category_id,
         category_code=(category_code or None),
         promo_only_today=promo_only_today,
+        # aktifkan ini jika repository Anda sudah ditambah param promo_category
+        # promo_category=(promo_category or None),
         limit=limit,
         offset=offset,
     )
 
     categories = TariffRepository.list_categories(active_only=True)
+    promo_categories = TariffRepository.list_distinct_promo_categories(active_only=False)
 
     return render_template(
         "tariff/list.html",
@@ -134,10 +140,12 @@ def tariff_list_page():
         active_only=active_only,
         category=category_code,
         category_id=category_id,
+        promo_category=promo_category,
         promo_today=promo_only_today,
         limit=limit,
         offset=offset,
         categories=categories,
+        promo_categories=promo_categories,
     )
 
 
@@ -145,7 +153,14 @@ def tariff_list_page():
 @require_permission("Tariff.Upsert")
 def tariff_new_page():
     categories = TariffRepository.list_categories(active_only=True)
-    return render_template("tariff/form.html", mode="new", row=None, categories=categories)
+    promo_categories = TariffRepository.list_distinct_promo_categories(active_only=False)
+    return render_template(
+        "tariff/form.html",
+        mode="new",
+        row=None,
+        categories=categories,
+        promo_categories=promo_categories,
+    )
 
 
 @tariff_bp.route("/tariff/<int:tariff_id>/edit", methods=["GET"])
@@ -156,7 +171,15 @@ def tariff_edit_page(tariff_id: int):
         raise AppError("Tarif tidak ditemukan.", 404)
 
     categories = TariffRepository.list_categories(active_only=True)
-    return render_template("tariff/form.html", mode="edit", row=row, categories=categories)
+    promo_categories = TariffRepository.list_distinct_promo_categories(active_only=False)
+
+    return render_template(
+        "tariff/form.html",
+        mode="edit",
+        row=row,
+        categories=categories,
+        promo_categories=promo_categories,
+    )
 
 
 @tariff_bp.route("/tariff/save", methods=["POST"])
@@ -285,6 +308,7 @@ def api_tariff_list():
 
         category_code = (request.args.get("category_code") or "").strip().upper()
         category_id = _safe_int(request.args.get("category_id"), None)
+        promo_category = (request.args.get("promo_category") or "").strip()
 
         limit = _safe_int(request.args.get("limit"), 500) or 500
         offset = _safe_int(request.args.get("offset"), 0) or 0
@@ -295,6 +319,8 @@ def api_tariff_list():
             category_id=category_id,
             category_code=(category_code or None),
             promo_only_today=promo_only_today,
+            # aktifkan ini jika repository Anda sudah ditambah param promo_category
+            # promo_category=(promo_category or None),
             limit=limit,
             offset=offset,
         )
@@ -307,6 +333,7 @@ def api_tariff_list():
                 "promo_today": promo_only_today,
                 "category_id": category_id,
                 "category_code": category_code,
+                "promo_category": promo_category,
                 "limit": limit,
                 "offset": offset,
             }
@@ -456,6 +483,17 @@ def api_tariff_category_list():
     try:
         active_only = (request.args.get("active_only") or "1").strip() == "1"
         rows = TariffRepository.list_categories(active_only=active_only)
+        return jsonify({"ok": True, "data": rows})
+    except AppError as e:
+        return _json_error(e)
+
+
+@tariff_bp.route("/api/tariff-promo-category", methods=["GET"])
+@require_permission("Tariff.View")
+def api_tariff_promo_category_list():
+    try:
+        active_only = (request.args.get("active_only") or "0").strip() == "1"
+        rows = TariffRepository.list_distinct_promo_categories(active_only=active_only)
         return jsonify({"ok": True, "data": rows})
     except AppError as e:
         return _json_error(e)

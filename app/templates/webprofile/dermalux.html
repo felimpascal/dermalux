@@ -500,6 +500,35 @@
     color:#fff;
   }
 
+  .dl-promo-group{
+    margin-bottom:2.5rem;
+  }
+
+  .dl-promo-group:last-child{
+    margin-bottom:0;
+  }
+
+  .dl-promo-group-head{
+    display:flex;
+    align-items:end;
+    justify-content:space-between;
+    gap:1rem;
+    margin-bottom:1.25rem;
+    flex-wrap:wrap;
+  }
+
+  .dl-promo-group-title{
+    font-size:1.35rem;
+    font-weight:700;
+    color:var(--dl-text);
+    margin:0;
+  }
+
+  .dl-promo-group-sub{
+    color:var(--dl-text-soft);
+    font-size:.92rem;
+  }
+
   @media (min-width: 768px){
     .dl-hero{
       padding:3rem 0 5.5rem;
@@ -833,6 +862,9 @@
         <div class="col-lg-8">
           <div class="dl-eyebrow">Promo</div>
           <h2 class="dl-section-title">Paket Promo &amp; Favorit</h2>
+          <p class="dl-section-desc mb-0">
+            Promo aktif hari ini ditampilkan berdasarkan kategori promo agar lebih rapi dan mudah dipilih.
+          </p>
         </div>
         <div class="col-lg-4 text-lg-end">
           <a href="https://wa.me/{{ wa_number }}?text={{ wa_consult }}" target="_blank" rel="noopener" style="font-weight:600; color:var(--dl-green); text-decoration:none;">
@@ -841,60 +873,90 @@
         </div>
       </div>
 
+      {% set ns = namespace(groups=[]) %}
+      {% for item in promo_rows %}
+        {% set group_name = item.promo_category or 'Promo Lainnya' %}
+        {% if group_name not in ns.groups %}
+          {% set ns.groups = ns.groups + [group_name] %}
+        {% endif %}
+      {% endfor %}
+
       <div class="row g-4">
         <div class="col-xl-8">
-          <div class="row g-4">
-            {% for item in promo_rows %}
-            {% set wa_promo = ("Halo Admin Dermalux,\nSaya tertarik dengan promo " ~ (item.treatment_name or 'treatment') ~ ".\nBoleh minta detailnya?")|urlencode %}
-            <div class="col-md-6">
-              <div class="dl-card overflow-hidden h-100">
-                <div class="dl-promo-thumb">
-                  <div class="dl-badge">Promo Aktif</div>
-
-                  {% if item.photo_path %}
-                    <img src="{{ url_for('static', filename=item.photo_path) }}"
-                         alt="{{ item.treatment_name }}">
-                  {% else %}
-                    <div class="dl-promo-thumb-placeholder">
-                      Dermalux Promo
-                    </div>
-                  {% endif %}
-                </div>
-
-                <div class="p-4">
-                  <div class="dl-meta-label">
-                    {{ item.category_name or 'Promo Treatment' }}
-                  </div>
-
-                  <h4 style="font-weight:700; color:var(--dl-text); margin-bottom:.35rem;">
-                    {{ item.treatment_name }}
-                  </h4>
-
-                  <div class="dl-section-desc mb-3">
-                    {% if item.promo_type and item.promo_value %}
-                      Promo {{ item.promo_type }} {{ item.promo_value }}
-                    {% else %}
-                      Special treatment promo
-                    {% endif %}
-                  </div>
-
-                  <div class="d-flex align-items-end gap-3 mb-4 flex-wrap">
-                    <div class="dl-price">
-                      IDR {{ "{:,.0f}".format((item.promo_price or 0)|float).replace(",", ".") }}
-                    </div>
-                    <div class="dl-old-price">
-                      IDR {{ "{:,.0f}".format((item.price or 0)|float).replace(",", ".") }}
-                    </div>
-                  </div>
-
-                  <a href="https://wa.me/{{ wa_number }}?text={{ wa_promo }}" target="_blank" rel="noopener" class="dl-btn dl-btn-green">
-                    Booking
-                  </a>
+          {% for group_name in ns.groups %}
+          <div class="dl-promo-group">
+            <div class="dl-promo-group-head">
+              <div>
+                <h3 class="dl-promo-group-title">{{ group_name }}</h3>
+                <div class="dl-promo-group-sub">
+                  Promo aktif dalam kategori {{ group_name|lower }}.
                 </div>
               </div>
             </div>
-            {% endfor %}
+
+            <div class="row g-4">
+              {% for item in promo_rows %}
+                {% set item_group = item.promo_category or 'Promo Lainnya' %}
+                {% if item_group == group_name %}
+                  {% set wa_promo = ("Halo Admin Dermalux,\nSaya tertarik dengan promo " ~ (item.treatment_name or 'treatment') ~ " pada kategori " ~ group_name ~ ".\nBoleh minta detailnya?")|urlencode %}
+                  <div class="col-md-6">
+                    <div class="dl-card overflow-hidden h-100">
+                      <div class="dl-promo-thumb">
+                        <div class="dl-badge">{{ group_name }}</div>
+
+                        {% if item.photo_path %}
+                          <img src="{{ url_for('static', filename=item.photo_path) }}"
+                               alt="{{ item.treatment_name }}">
+                        {% else %}
+                          <div class="dl-promo-thumb-placeholder">
+                            Dermalux Promo
+                          </div>
+                        {% endif %}
+                      </div>
+
+                      <div class="p-4">
+                        <div class="dl-meta-label">
+                          {{ item.category_name or 'Promo Treatment' }}
+                        </div>
+
+                        <h4 style="font-weight:700; color:var(--dl-text); margin-bottom:.35rem;">
+                          {{ item.treatment_name }}
+                        </h4>
+
+                        <div class="dl-section-desc mb-2">
+                          Kategori Promo: <b>{{ group_name }}</b>
+                        </div>
+
+                        <div class="dl-section-desc mb-3">
+                          {% if item.promo_type == 'percent' and item.promo_value %}
+                            Diskon {{ item.promo_value }}%
+                          {% elif item.promo_type == 'amount' and item.promo_value %}
+                            Potongan IDR {{ "{:,.0f}".format((item.promo_value or 0)|float).replace(",", ".") }}
+                          {% else %}
+                            Special treatment promo
+                          {% endif %}
+                        </div>
+
+                        <div class="d-flex align-items-end gap-3 mb-4 flex-wrap">
+                          <div class="dl-price">
+                            IDR {{ "{:,.0f}".format((item.promo_price or 0)|float).replace(",", ".") }}
+                          </div>
+                          <div class="dl-old-price">
+                            IDR {{ "{:,.0f}".format((item.price or 0)|float).replace(",", ".") }}
+                          </div>
+                        </div>
+
+                        <a href="https://wa.me/{{ wa_number }}?text={{ wa_promo }}" target="_blank" rel="noopener" class="dl-btn dl-btn-green">
+                          Booking
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
           </div>
+          {% endfor %}
         </div>
 
         <div class="col-xl-4">
@@ -909,6 +971,7 @@
               <li>Perawatan aman &amp; terpercaya</li>
               <li>Suasana klinik nyaman dan premium</li>
               <li>Promo tampil otomatis sesuai data aktif hari ini</li>
+              <li>Promo sudah dikelompokkan berdasarkan kategori promo</li>
             </ul>
 
             <div class="mt-4 p-4" style="border-radius:24px; background:linear-gradient(135deg,#f0e5dc,#d9c8b8);">
@@ -934,7 +997,6 @@
           <p class="dl-section-desc mb-0">
             Tim profesional Dermalux yang siap memberikan perawatan terbaik untuk Anda.
           </p>
-
         </div>
       </div>
 
@@ -1023,7 +1085,7 @@
         <div class="col-xl-7">
           <div class="dl-card p-3 p-md-4 h-100">
             <div class="dl-map-wrap">
-              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3982.32657944667!2d98.6739920108623!3d3.5117243964478355!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30313ba6e66f2ecb%3A0xc8aaa7fdb332fc5!2sDERMALUX!5e0!3m2!1sen!2sid!4v1775613908926!5m2!1sen!2sid"
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3982.32657944667!2d98.6739920108623!3d3.5117243964478355!2m3!1f0!2f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30313ba6e66f2ecb%3A0xc8aaa7fdb332fc5!2sDERMALUX!5e0!3m2!1sen!2sid!4v1775613908926!5m2!1sen!2sid"
                       width="600"
                       height="450"
                       style="border:0;"
