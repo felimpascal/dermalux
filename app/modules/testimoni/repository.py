@@ -134,10 +134,10 @@ class TestimoniRepository:
             sort_order
         FROM master_testimoni
         WHERE is_active = 1
-        ORDER BY sort_order ASC, review_date DESC, id DESC
+        ORDER BY RAND()
         LIMIT %s
         """
-        cur.execute(sql, (int(limit),))
+        cur.execute(sql, (max(1, int(limit)),))
         rows = cur.fetchall()
         cur.close()
         return rows
